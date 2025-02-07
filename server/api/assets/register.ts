@@ -29,8 +29,11 @@ router.post(
   upload.array("files", 25),
   async (req, res) => {
     const projectId = req.params.projectId;
-    const files = req.files;
+    const files = Array.isArray(req.files) ? req.files : [];
 
+    /**
+     * The list of uploaded files
+     */
     const uploaded: { src: string }[] = [];
 
     for (const file of files) {
