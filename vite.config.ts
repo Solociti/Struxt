@@ -1,6 +1,27 @@
 import { defineConfig } from "vite";
+import svgLoader from "vite-svg-loader";
 
 export default defineConfig({
+  plugins: [svgLoader()],
+  build: {
+    rollupOptions: {
+      input: {
+        editor: "./index.html",
+      },
+    },
+  },
+  css: {
+    preprocessorOptions: {
+      scss: {
+        silenceDeprecations: [
+          "mixed-decls",
+          "color-functions",
+          "global-builtin",
+          "import",
+        ],
+      },
+    },
+  },
   server: {
     proxy: {
       "/api": {

@@ -1,6 +1,14 @@
 import createStudioEditor from "@grapesjs/studio-sdk";
+import customCodePlugin from "grapesjs-custom-code";
+import parserPostCSS from "grapesjs-parser-postcss";
 import { createChild } from "./createChild";
+// import bootstrapPlugin, {
+//   canvasScripts,
+//   canvasStyles,
+// } from "@treimer/grapesjs-blocks-bootstrap-5";
+
 import "./style.css";
+import "./external-sites/site.scss";
 // @ts-ignore
 import "@grapesjs/studio-sdk/style";
 
@@ -18,8 +26,59 @@ createStudioEditor({
     "39b0a964ef184394a659bb8015cc8822efcbe5c371a44a9f86883d45806f1065",
   project: {
     type: "web",
+    default: {
+      pages: [
+        { name: "Home", component: "<h1>Home page</h1>" },
+        { name: "About", component: "<h1>About page</h1>" },
+        { name: "Contact", component: "<h1>Contact page</h1>" },
+      ],
+    },
     id: projectId,
   },
+  plugins: [
+    parserPostCSS,
+    customCodePlugin,
+    (editor) => {
+      editor.onReady(() => {
+        // let's show the global style panel on start
+        // editor.runCommand("studio:layoutToggle", {
+        //   id: "gs",
+        //   layout: "panelGlobalStyles",
+        //   header: { label: "Global Styles" },
+        //   placer: { type: "absolute", position: "right" },
+        // });
+      });
+    },
+    // bootstrapPlugin,
+    (editor) => {
+      console.log(editor);
+    },
+  ],
+  // globalStyles: {
+  //   default: [
+  //     {
+  //       id: "h1Color",
+  //       property: "color",
+  //       field: "color",
+  //       defaultValue: "red",
+  //       selector: "h1",
+  //       label: "H1 color",
+  //     },
+  //     {
+  //       id: "h1Size",
+  //       property: "font-size",
+  //       field: { type: "number", min: 0.1, max: 10, step: 0.1, units: ["rem"] },
+  //       defaultValue: "2rem",
+  //       selector: "h1",
+  //       label: "H1 size",
+  //     },
+  //   ],
+  // },
+  // onEditor: (editor) => {
+  //   const config = editor.getConfig();
+  //   config.canvas?.styles?.push(...canvasStyles);
+  //   config.canvas?.scripts?.push(...canvasScripts);
+  // },
   assets: {
     storageType: "self",
     // Provide a custom upload handler for assets

@@ -24,10 +24,19 @@ router.post("/:projectId", async (req, res) => {
   await getTable("sites")
     .update({
       project: JSON.stringify(req.body.project),
+      updated_at: new Date(),
     })
     .where({
       id: projectId,
     });
+
+  const [row] = await getTable("sites").where({
+    id: projectId,
+  });
+
+  await getTable("sites_history").insert({
+    ...row,
+  });
 
   // Create a new project
   res.json({
