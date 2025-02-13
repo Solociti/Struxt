@@ -2,6 +2,7 @@ import express from "express";
 import path from "node:path";
 import multer from "multer";
 import fs from "node:fs";
+import { mkDirRecursive } from "../../utils/mkDir";
 
 const __dirname = path.dirname(import.meta.url);
 const uploadDir = path
@@ -36,14 +37,13 @@ router.post(
      */
     const uploaded: { src: string }[] = [];
 
+    await mkDirRecursive(path.join(uploadDir, projectId));
+
     for (const file of files) {
       const ext = path.extname(file.originalname);
       const newFileName = file.filename + ext;
 
-      fs.renameSync(
-        file.path,
-        path.join(uploadDir, "projects", projectId, newFileName)
-      );
+      fs.renameSync(file.path, path.join(uploadDir, projectId, newFileName));
 
       uploaded.push({
         src: `/assets/${projectId}/${newFileName}`,

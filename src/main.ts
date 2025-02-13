@@ -11,6 +11,7 @@ import "./style.css";
 import "./external-sites/site.scss";
 // @ts-ignore
 import "@grapesjs/studio-sdk/style";
+import { registerDiv } from "./components/div";
 
 let projectId = location.hash.slice(1) || "default";
 
@@ -51,6 +52,8 @@ createStudioEditor({
     },
     // bootstrapPlugin,
     (editor) => {
+      registerDiv(editor);
+
       console.log(editor);
     },
   ],
