@@ -12,6 +12,7 @@
   },
   "devDependencies": {
     "@types/express": "^5.0.0",
+    "@types/multer": "^1.4.12",
     "@types/node": "^22.13.1",
     "sass": "^1.84.0",
     "typescript": "~5.6.2",

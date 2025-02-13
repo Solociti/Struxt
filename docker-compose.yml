@@ -14,13 +14,12 @@ services:
       - prod
 
   editor-api:
-    image: node:20:18
+    image: ./Dockerfile
     environment:
       - IS_DOCKER=true
-    working_dir: /app
+    command: "node server/apiEntry.js"
     volumes:
-      - .:/app
-    command: npm start
+      - ./uploads:/app/uploads
     depends_on:
       - mariadb
       - nginx
@@ -32,20 +31,24 @@ services:
       - prod
 
   nginx:
-    image: nginx:latest
+    image: "jc21/nginx-proxy-manager:latest"
+    restart: unless-stopped
     ports:
-      - "0.0.0.0:80:80"
-      - "0.0.0.0:443:443"
+      - "80:80"
+      - "81:81"
+      - "443:443"
     volumes:
-      - ./nginx.conf:/etc/nginx/nginx.conf
+      - nginx_date:/data
+      - nginx_letsencrypt:/etc/letsencrypt
     networks:
       - struxt-net
-
     profiles:
       - prod
 
 volumes:
   mariadb_data:
+  nginx_data:
+  nginx_letsencrypt:
 
 networks:
   struxt-net:

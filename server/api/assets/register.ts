@@ -4,7 +4,6 @@ import multer from "multer";
 import fs from "node:fs";
 import { mkDirRecursive } from "../../utils/mkDir";
 
-const __dirname = path.dirname(import.meta.url);
 const uploadDir = path
   .join(__dirname, "../../../uploads/projects")
   .replace("file:", "");
@@ -30,7 +29,7 @@ router.post(
   upload.array("files", 25),
   async (req, res) => {
     const projectId = req.params.projectId;
-    const files = Array.isArray(req.files) ? req.files : [];
+    const files = Array.isArray((req as any).files) ? (req as any).files : [];
 
     /**
      * The list of uploaded files
