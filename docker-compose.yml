@@ -23,9 +23,10 @@ services:
       - IS_DOCKER=true
       - MARIADB_ROOT_PASSWORD=${MARIADB_ROOT_PASSWORD}
       - PRIMARY_DB=${PRIMARY_DB}
+      - UPLOAD_DIR=/uploads
     command: "node server/apiEntry.js"
     volumes:
-      - ./uploads:/app/uploads
+      - ${UPLOAD_DIR}:/uploads
     depends_on:
       - mariadb
       - nginx
