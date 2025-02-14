@@ -6,7 +6,9 @@ import {
   staticFiles as assetStaticFiles,
 } from "./api/assets/register";
 import { router as projectsRouter } from "./api/projects/register";
+import { router as publishRouter } from "./api/publish/register";
 import { knex } from "./utils/database";
+import { getSiteDir } from "./utils/uploadDir";
 
 // migrate the database to latest version and then start the server
 console.log("Migrating database...");
@@ -37,6 +39,10 @@ async function main() {
   app.use("/assets", assetStaticFiles);
 
   app.use("/api/projects", projectsRouter);
+  app.use("/api/publish", publishRouter);
+
+  const siteDir = getSiteDir("staging", "_").replace("/_/staging", "");
+  app.use("/sites", express.static(siteDir));
 
   app.listen(port, () => {
     console.log(`Server listening at http://localhost:${port}`);
