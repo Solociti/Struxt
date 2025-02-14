@@ -21,6 +21,8 @@ services:
     restart: unless-stopped
     environment:
       - IS_DOCKER=true
+      - MARIADB_ROOT_PASSWORD=${MARIADB_ROOT_PASSWORD}
+      - PRIMARY_DB=${PRIMARY_DB}
     command: "node server/apiEntry.js"
     volumes:
       - ./uploads:/app/uploads
