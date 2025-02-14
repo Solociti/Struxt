@@ -1,4 +1,5 @@
 import path from "node:path";
+import { env } from "node:process";
 
 /**
  * Get hte upload directory
@@ -7,8 +8,8 @@ import path from "node:path";
  * @returns
  */
 export function getUploadDir(...paths: string[]) {
-  let baseDir = process.env.UPLOAD_DIR || "/uploads";
-  if (process.env.IS_DOCKER === "true") {
+  let baseDir = env.UPLOAD_DIR || "/uploads";
+  if (env.IS_DOCKER === "true") {
     baseDir = "/uploads";
   }
 
