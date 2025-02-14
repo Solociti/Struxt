@@ -12,6 +12,7 @@ import "./external-sites/site.scss";
 // @ts-ignore
 import "@grapesjs/studio-sdk/style";
 import { registerDiv } from "./components/div";
+import { addFonts } from "./fonts/addFonts";
 
 let projectId = location.hash.slice(1) || "default";
 
@@ -54,7 +55,7 @@ createStudioEditor({
     (editor) => {
       registerDiv(editor);
 
-      console.log(editor);
+      addFonts(editor);
     },
   ],
   // globalStyles: {

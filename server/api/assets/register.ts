@@ -1,15 +1,24 @@
 import express from "express";
-import path from "node:path";
 import multer from "multer";
 import fs from "node:fs";
+import path from "node:path";
+import { fileURLToPath } from "node:url";
 import { mkDirRecursive } from "../../utils/mkDir";
 
-const uploadDir = path
-  .join(__dirname, "../../../uploads/projects")
-  .replace("file:", "");
-const saveDir = path
-  .join(__dirname, "../../../uploads/temp")
-  .replace("file:", "");
+const { saveDir, uploadDir } = (() => {
+  let dir;
+  try {
+    dir = __dirname;
+  } catch (e) {
+    // @ts-expect-error
+    dir = path.dirname(fileURLToPath(import.meta.url));
+  }
+
+  return {
+    uploadDir: path.join(dir, "../../../uploads/projects").replace("file:", ""),
+    saveDir: path.join(dir, "../../../uploads/temp").replace("file:", ""),
+  };
+})();
 
 const upload = multer({ dest: saveDir });
 
