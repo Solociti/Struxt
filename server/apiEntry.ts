@@ -20,6 +20,9 @@ async function main() {
   // reduce fingerprinting
   app.disable("x-powered-by");
 
+  // enable static files
+  app.use("/", express.static("./dist"));
+
   app.use(express.json());
 
   app.get("/api", (req, res) => {
