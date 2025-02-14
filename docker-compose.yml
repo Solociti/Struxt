@@ -14,7 +14,9 @@ services:
       - prod
 
   editor-api:
-    image: ./Dockerfile
+    build:
+      context: .
+      dockerfile: Dockerfile
     environment:
       - IS_DOCKER=true
     command: "node server/apiEntry.js"
