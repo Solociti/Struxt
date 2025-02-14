@@ -3,7 +3,7 @@ import "dotenv/config";
 export default {
   client: "mysql2",
   connection: {
-    host: "localhost",
+    host: process.env.IS_DOCKER == "true" ? "mariadb" : "localhost",
     user: "root",
     password: process.env.MARIADB_ROOT_PASSWORD,
     database: process.env.PRIMARY_DB,

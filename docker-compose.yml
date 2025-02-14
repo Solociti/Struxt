@@ -1,6 +1,7 @@
 services:
   mariadb:
     image: mariadb:latest
+    restart: unless-stopped
     environment:
       MARIADB_ROOT_PASSWORD: ${MARIADB_ROOT_PASSWORD}
     ports:
@@ -17,6 +18,7 @@ services:
     build:
       context: .
       dockerfile: Dockerfile
+    restart: unless-stopped
     environment:
       - IS_DOCKER=true
     command: "node server/apiEntry.js"
