@@ -10,8 +10,12 @@ const { saveDir, uploadDir } = (() => {
   try {
     dir = __dirname;
   } catch (e) {
-    // @ts-expect-error
-    dir = path.dirname(fileURLToPath(import.meta.url));
+    try {
+      // @ts-expect-error
+      dir = path.dirname(fileURLToPath(import.meta.url));
+    } catch {
+      dir = "/app/server/api/assets";
+    }
   }
 
   return {
