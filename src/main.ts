@@ -1,4 +1,11 @@
 import createStudioEditor from "@grapesjs/studio-sdk";
+import {
+  fsLightboxComponent,
+  lightGalleryComponent,
+  listPagesComponent,
+  swiperComponent,
+  tableComponent,
+} from "@grapesjs/studio-sdk-plugins";
 import customCodePlugin from "grapesjs-custom-code";
 import parserPostCSS from "grapesjs-parser-postcss";
 import { createChild } from "./createChild";
@@ -7,8 +14,8 @@ import { createChild } from "./createChild";
 //   canvasStyles,
 // } from "@treimer/grapesjs-blocks-bootstrap-5";
 
-import "./style.css";
 import "./external-sites/site.scss";
+import "./style.css";
 // @ts-ignore
 import "@grapesjs/studio-sdk/style";
 import { registerDiv } from "./components/div";
@@ -39,6 +46,11 @@ createStudioEditor({
     id: projectId,
   },
   plugins: [
+    fsLightboxComponent.init({}),
+    lightGalleryComponent.init({}),
+    listPagesComponent.init({}),
+    swiperComponent.init({}),
+    tableComponent.init({}),
     parserPostCSS,
     customCodePlugin,
     (editor) => {
