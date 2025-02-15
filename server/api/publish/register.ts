@@ -8,6 +8,8 @@ import { getSiteDir } from "../../utils/uploadDir";
 
 export const router = express.Router();
 
+const validTypes = ["staging", "production"];
+
 router.post("/:projectId", async (req, res) => {
   const projectId = req.params.projectId;
 
@@ -21,7 +23,7 @@ router.post("/:projectId", async (req, res) => {
     return;
   }
 
-  if (req.body.type !== "staging") {
+  if (!validTypes.includes(req.body.type)) {
     res.status(400).json({
       success: false,
       error: `Type '${req.body.type}' not implemented!`,
@@ -39,7 +41,7 @@ router.post("/:projectId", async (req, res) => {
 
   const body: {
     projectId: string;
-    type: "staging";
+    type: "staging" | "production";
     files: { filename: string; content: string; mimeType: string }[];
   } = req.body;
 
