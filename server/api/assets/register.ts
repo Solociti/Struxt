@@ -1,7 +1,8 @@
 import express from "express";
 import multer from "multer";
-import fs from "node:fs";
-import path from "node:path";
+import { existsSync, renameSync } from "node:fs";
+import { basename, extname, join } from "node:path";
+import { getTable } from "../../utils/database";
 import { mkDirRecursive } from "../../utils/mkDir";
 import { getUploadDir } from "../../utils/uploadDir";
 
@@ -34,16 +35,34 @@ router.post(
      */
     const uploaded: { src: string }[] = [];
 
-    await mkDirRecursive(path.join(uploadDir, projectId));
+    await mkDirRecursive(join(uploadDir, projectId));
 
     for (const file of files) {
-      const ext = path.extname(file.originalname);
-      const newFileName = file.filename + ext;
+      const ext = extname(file.originalname);
+      const originalName = basename(file.originalname, ext);
 
-      fs.renameSync(file.path, path.join(uploadDir, projectId, newFileName));
+      let newFileName = originalName + ext;
+      let count = 0;
+
+      // check if the file already exists
+      // if it does, add a number to the end of the file name
+      while (existsSync(join(uploadDir, projectId, newFileName))) {
+        count++;
+        newFileName = `${originalName}-${count}${ext}`;
+      }
+
+      renameSync(file.path, join(uploadDir, projectId, newFileName));
 
       uploaded.push({
         src: `/assets/${projectId}/${newFileName}`,
+      });
+
+      // save the asset to database
+      getTable("assets").insert({
+        file_path: `/assets/${projectId}/${newFileName}`,
+        original_name: file.originalname,
+        site_id: projectId,
+        updated_by: "1",
       });
     }
 
