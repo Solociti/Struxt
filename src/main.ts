@@ -1,19 +1,15 @@
 import createStudioEditor from "@grapesjs/studio-sdk";
 import customCodePlugin from "grapesjs-custom-code";
 import parserPostCSS from "grapesjs-parser-postcss";
+import { registerElements } from "./components/htmlElements";
 import { createChild } from "./createChild";
-// import bootstrapPlugin, {
-//   canvasScripts,
-//   canvasStyles,
-// } from "@treimer/grapesjs-blocks-bootstrap-5";
-
-import "./style.css";
-import "./external-sites/site.scss";
-// @ts-ignore
-import "@grapesjs/studio-sdk/style";
-import { registerDiv } from "./components/div";
 import { addFonts } from "./fonts/addFonts";
 import { publishSite } from "./publish/publishSite";
+
+import "./external-sites/site.scss";
+import "./style.css";
+// @ts-ignore
+import "@grapesjs/studio-sdk/style";
 
 let projectId = location.hash.slice(1) || "default";
 
@@ -54,7 +50,7 @@ createStudioEditor({
     },
     // bootstrapPlugin,
     (editor) => {
-      registerDiv(editor);
+      registerElements(editor);
 
       addFonts(editor);
 
@@ -146,31 +142,6 @@ createStudioEditor({
       ],
     },
   },
-  // globalStyles: {
-  //   default: [
-  //     {
-  //       id: "h1Color",
-  //       property: "color",
-  //       field: "color",
-  //       defaultValue: "red",
-  //       selector: "h1",
-  //       label: "H1 color",
-  //     },
-  //     {
-  //       id: "h1Size",
-  //       property: "font-size",
-  //       field: { type: "number", min: 0.1, max: 10, step: 0.1, units: ["rem"] },
-  //       defaultValue: "2rem",
-  //       selector: "h1",
-  //       label: "H1 size",
-  //     },
-  //   ],
-  // },
-  // onEditor: (editor) => {
-  //   const config = editor.getConfig();
-  //   config.canvas?.styles?.push(...canvasStyles);
-  //   config.canvas?.scripts?.push(...canvasScripts);
-  // },
   assets: {
     storageType: "self",
     // Provide a custom upload handler for assets
