@@ -13,6 +13,7 @@ const imageComponent: ComponentDefinition = {
   attributes: {
     src: "https://cdn.photoswipe.com/photoswipe-demo-images/photos/1/img-200.jpg",
     alt: "",
+    loading: "lazy",
   },
 };
 
@@ -26,6 +27,8 @@ const anchorComponent: ComponentDefinition = {
     "data-pswp-width": "1875",
     "data-pswp-height": "2500",
     target: "_blank",
+    loading: "lazy",
+    fetchpriority: "auto",
   },
   style: {
     display: "inline-block",
@@ -121,7 +124,6 @@ export function registerImageViewer(editor: Editor) {
   editor.DomComponents.addType("pswp-img-anchor", {
     isComponent: (el: HTMLElement) => {
       if (el.tagName === "A" && el.classList.contains("pswp-img-anchor")) {
-        console.log("pswp-img-anchor");
         return { type: "pswp-img-anchor" };
       }
     },
@@ -150,6 +152,16 @@ export function registerImageViewer(editor: Editor) {
             name: "img-src",
             type: "image",
             typeProps: { inputField: true },
+          },
+          {
+            label: "Fetch Priority",
+            name: "fetchpriority",
+            type: "select",
+            options: [
+              { value: "auto", name: "Auto" },
+              { value: "high", name: "High" },
+              { value: "low", name: "Low" },
+            ],
           },
           ...imageTraits,
         ],
@@ -187,6 +199,8 @@ export function registerImageViewer(editor: Editor) {
 
         const alt = attributes.alt || "";
         const src = attributes["img-src"] || "";
+        const loading = attributes.loading || "lazy";
+        const fetchpriority = attributes.fetchpriority || "auto";
 
         // load the image component that is inside the anchor
         const img = this.components().find(
@@ -195,7 +209,7 @@ export function registerImageViewer(editor: Editor) {
 
         if (img) {
           const imgAttr = img.getAttributes();
-          img.setAttributes({ ...imgAttr, alt, src });
+          img.setAttributes({ ...imgAttr, fetchpriority, loading, alt, src });
         }
       },
     },
