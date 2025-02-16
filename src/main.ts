@@ -10,6 +10,7 @@ import "./external-sites/site.scss";
 import "./style.css";
 // @ts-ignore
 import "@grapesjs/studio-sdk/style";
+import { registerImageViewer } from "./components/imageViewer";
 
 let projectId = location.hash.slice(1) || "default";
 
@@ -51,6 +52,7 @@ createStudioEditor({
     // bootstrapPlugin,
     (editor) => {
       registerElements(editor);
+      registerImageViewer(editor);
 
       addFonts(editor);
 

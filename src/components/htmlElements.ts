@@ -1,9 +1,9 @@
 import { Editor } from "grapesjs";
 import divIcon from "./icons/div.svg?raw";
+import { getDefaultTraits } from "./traits";
 
 export function registerElements(editor: Editor) {
-  const defaults = editor.DomComponents.getType("default").model.getDefaults();
-  const defaultTraits = defaults.traits;
+  const defaultTraits = getDefaultTraits(editor);
 
   const linkDefaults =
     editor.DomComponents.getType("link")?.model.getDefaults();
@@ -45,15 +45,22 @@ export function registerElements(editor: Editor) {
 
     editor.DomComponents.addType(element, {
       isComponent: (el: HTMLElement) => {
-        console.log(el);
         if (typeof el !== "object") {
           return;
         }
 
-        const isGrapesJsComponent =
-          el.classList && [...el.classList].join(" ").includes("gjs-");
+        const classString = (el.getAttribute && el.getAttribute("class")) || "";
+        const isGrapesJsComponent = classString.includes("gjs-");
+        if (isGrapesJsComponent) {
+          return;
+        }
 
-        if (!isGrapesJsComponent && el.tagName === element.toUpperCase()) {
+        const isCustomComponent = classString.includes("pswp-");
+        if (isCustomComponent) {
+          return;
+        }
+
+        if (el.tagName === element.toUpperCase()) {
           return { type: element };
         }
       },
