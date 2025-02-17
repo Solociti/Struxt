@@ -26,6 +26,7 @@ const anchorComponent: ComponentDefinition = {
     href: "https://cdn.photoswipe.com/photoswipe-demo-images/photos/1/img-2500.jpg",
     "data-pswp-width": "1875",
     "data-pswp-height": "2500",
+    "data-cropped": "true",
     target: "_blank",
     loading: "lazy",
     fetchpriority: "auto",
@@ -148,6 +149,11 @@ export function registerImageViewer(editor: Editor) {
             type: "number",
           },
           {
+            label: "Cropped",
+            name: "data-cropped",
+            type: "checkbox",
+          },
+          {
             label: "Image",
             name: "img-src",
             type: "image",
@@ -161,6 +167,17 @@ export function registerImageViewer(editor: Editor) {
               { value: "auto", name: "Auto" },
               { value: "high", name: "High" },
               { value: "low", name: "Low" },
+            ],
+          },
+          {
+            label: "Target",
+            name: "target",
+            type: "select",
+            options: [
+              { value: "_blank", name: "Blank" },
+              { value: "_self", name: "Self" },
+              { value: "_parent", name: "Parent" },
+              { value: "_top", name: "Top" },
             ],
           },
           ...imageTraits,
