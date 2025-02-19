@@ -19,6 +19,7 @@ services:
       context: .
       dockerfile: Dockerfile
     restart: unless-stopped
+    scale: 2
     environment:
       - IS_DOCKER=true
       - MARIADB_ROOT_PASSWORD=${MARIADB_ROOT_PASSWORD}
