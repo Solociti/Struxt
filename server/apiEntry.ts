@@ -24,6 +24,12 @@ async function main() {
   // reduce fingerprinting
   app.disable("x-powered-by");
 
+  app.use((req, res, next) => {
+    const userAgent = req.headers["user-agent"];
+    console.log(new Date(), req.method, req.url, userAgent);
+    next();
+  });
+
   // enable static files
   app.use("/", express.static("./dist"));
 
