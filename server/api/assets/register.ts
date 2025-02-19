@@ -13,7 +13,12 @@ const saveDir = getUploadDir("temp");
 const upload = multer({ dest: saveDir });
 
 // setup the static files for assets
-export const staticFiles = express.static(uploadDir);
+export const staticFiles = express.static(uploadDir, {
+  setHeaders: (res) => {
+    // cache the assets for 7 days
+    res.setHeader("Cache-Control", "public, max-age=604000");
+  },
+});
 
 // setup a api endpoint for assets
 export const router = express.Router();
