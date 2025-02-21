@@ -149,6 +149,11 @@ export function registerImageViewer(editor: Editor) {
             type: "number",
           },
           {
+            label: "Set Aspect Ratio",
+            name: "aspect-ratio",
+            type: "checkbox",
+          },
+          {
             label: "Cropped",
             name: "data-cropped",
             type: "checkbox",
@@ -205,6 +210,10 @@ export function registerImageViewer(editor: Editor) {
             "data-pswp-width": width,
             "data-pswp-height": height,
           });
+
+          if (attributes["aspect-ratio"]) {
+            this.addStyle({ "aspect-ratio": `${width}/${height}` });
+          }
         };
         img.onerror = () => {
           console.error("Failed to load image dimensions.", href);
@@ -227,6 +236,20 @@ export function registerImageViewer(editor: Editor) {
         if (img) {
           const imgAttr = img.getAttributes();
           img.setAttributes({ ...imgAttr, fetchpriority, loading, alt, src });
+
+          if (
+            attributes["aspect-ratio"] &&
+            attributes["data-pswp-width"] &&
+            attributes["data-pswp-height"]
+          ) {
+            const { "data-pswp-width": width, "data-pswp-height": height } =
+              attributes;
+            this.addStyle({ "aspect-ratio": `${width}/${height}` });
+          }
+
+          if (!attributes["aspect-ratio"]) {
+            this.addStyle({ "aspect-ratio": "" });
+          }
         }
       },
     },
