@@ -33,7 +33,11 @@ async function main() {
   // enable static files
   app.use("/", express.static("./dist"));
 
-  app.use(express.json());
+  app.use(
+    express.json({
+      limit: "5mb",
+    })
+  );
 
   app.get("/api", (req, res) => {
     res.json({
