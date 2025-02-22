@@ -36,7 +36,7 @@ router.post("/:projectId", async (req, res) => {
   if (req.body.projectId !== projectId) {
     res.status(400).json({
       success: false,
-      error: `Project id mismatch!`,
+      error: "Project id mismatch!",
     });
     return;
   }
