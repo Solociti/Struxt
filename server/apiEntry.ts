@@ -7,12 +7,11 @@ import {
 } from "./api/assets/register";
 import { router as projectsRouter } from "./api/projects/register";
 import { router as publishRouter } from "./api/publish/register";
-import { knex } from "./utils/database";
-import { getSiteDir } from "./utils/uploadDir";
+import { expressSetup } from "./setup/expressSetup";
+import { dbInit } from "./utils/database";
 
-// migrate the database to latest version and then start the server
-console.log("Migrating database...");
-knex.migrate.latest().then(() => {
+// run init scripts and then start the server
+Promise.all([dbInit()]).then(() => {
   main();
 });
 
@@ -21,17 +20,7 @@ async function main() {
   const app = express();
   const port = 3000;
 
-  // reduce fingerprinting
-  app.disable("x-powered-by");
-
-  app.use((req, res, next) => {
-    const userAgent = req.headers["user-agent"];
-    console.log(new Date(), req.method, req.url, userAgent);
-    next();
-  });
-
-  // enable static files
-  app.use("/", express.static("./dist"));
+  expressSetup(app);
 
   app.use(
     express.json({
@@ -50,9 +39,6 @@ async function main() {
 
   app.use("/api/projects", projectsRouter);
   app.use("/api/publish", publishRouter);
-
-  const siteDir = getSiteDir("staging", "_").replace("/_/staging", "");
-  app.use("/sites", express.static(siteDir));
 
   app.listen(port, () => {
     console.log(`Server listening at http://localhost:${port}`);
