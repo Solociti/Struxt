@@ -55,7 +55,6 @@ router.post("/:projectId", async (req, res) => {
 
   // copy the asset files to the project directory
   const assetFiles = project.assets as { src: string; type: "image" }[];
-  const replaceValues: { find: string; replace: string }[] = [];
 
   for (const asset of assetFiles) {
     if (asset.src.startsWith("http")) {
@@ -70,13 +69,7 @@ router.post("/:projectId", async (req, res) => {
       continue;
     }
 
-    const destFile = join(siteDir, "assets", basename);
-
-    // replace the src string with the dest string in the project files
-    replaceValues.push({
-      find: asset.src,
-      replace: `/assets/${basename}`,
-    });
+    const destFile = join(siteDir, "assets", projectId, basename);
 
     await mkDirRecursive(dirname(destFile));
     await copyFile(srcFile, destFile);
@@ -88,12 +81,6 @@ router.post("/:projectId", async (req, res) => {
     await mkDirRecursive(dirname(filePath));
 
     let content = file.content;
-
-    // replace the asset src values
-    for (const { find, replace } of replaceValues) {
-      content = content.replace(new RegExp(`["']${find}["']`, "g"), replace);
-    }
-
     await writeFile(filePath, content, {
       encoding: "utf-8",
     });
