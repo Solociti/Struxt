@@ -17,6 +17,16 @@ export function getUploadDir(...paths: string[]) {
 }
 
 /**
+ * Get the asset directory for the given project
+ *
+ * @param projectId
+ * @returns
+ */
+export function getAssetDir(projectId?: string) {
+  return getUploadDir("projects", projectId || "");
+}
+
+/**
  * Get the site publish directory
  *
  * @param type

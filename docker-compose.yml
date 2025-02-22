@@ -14,7 +14,7 @@ services:
       - dev
       - prod
 
-  host:
+  web-host:
     build:
       context: .
       dockerfile: Dockerfile
