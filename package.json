@@ -8,7 +8,8 @@
     "build": "tsc && vite build",
     "preview": "vite preview",
     "serve": "tsx watch server/apiEntry.ts",
-    "docker": "docker compose --profile dev up -d"
+    "host": "tsx watch server/publicHost.ts",
+    "docker": "docker compose --profile dev up"
   },
   "devDependencies": {
     "@types/express": "^5.0.0",
