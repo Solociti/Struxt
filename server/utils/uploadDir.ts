@@ -27,6 +27,16 @@ export function getAssetDir(projectId?: string) {
 }
 
 /**
+ * Get the upload directory for any uploads from the sites forms
+ *
+ * @param projectId
+ * @returns
+ */
+export function getProjectFormUploadDir(projectId: string) {
+  return getUploadDir("projects", projectId, "forms");
+}
+
+/**
  * Get the site publish directory
  *
  * @param type

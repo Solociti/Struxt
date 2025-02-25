@@ -7,6 +7,7 @@ import {
 } from "./api/assets/register";
 import { router as projectsRouter } from "./api/projects/register";
 import { router as publishRouter } from "./api/publish/register";
+import { router as formsRouter } from "./forms/register";
 import { expressSetup } from "./setup/expressSetup";
 import { dbInit } from "./utils/database";
 
@@ -40,7 +41,13 @@ async function main() {
   app.use("/api/projects", projectsRouter);
   app.use("/api/publish", publishRouter);
 
-  app.listen(port, () => {
+  app.use(formsRouter);
+
+  const server = app.listen(port, () => {
     console.log(`Server listening at http://localhost:${port}`);
+  });
+
+  process.on("SIGTERM", () => {
+    server.close();
   });
 }

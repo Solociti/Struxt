@@ -8,6 +8,8 @@ import { Express } from "express";
 export function expressSetup(app: Express) {
   // reduce fingerprinting
   app.disable("x-powered-by");
+  // TODO: ensure that the proxy header can't be spoofed
+  app.set("trust proxy", true);
 
   // setup logging
   app.use((req, res, next) => {

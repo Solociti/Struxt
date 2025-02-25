@@ -1,12 +1,14 @@
 import express from "express";
+import { existsSync } from "node:fs";
 import { copyFile, writeFile } from "node:fs/promises";
 import path, { dirname, join } from "node:path";
+import { getFormValidationFromProject } from "../../forms/getFormValidationFromProject";
+import { saveValidationData } from "../../forms/saveValidationData";
 import { cleanDir } from "../../utils/cleanDir";
+import { copyDir } from "../../utils/copyDir";
 import { getTable } from "../../utils/database";
 import { mkDirRecursive } from "../../utils/mkDir";
 import { getAssetDir, getSiteDir } from "../../utils/uploadDir";
-import { copyDir } from "../../utils/copyDir";
-import { existsSync } from "node:fs";
 
 export const router = express.Router();
 
@@ -94,6 +96,16 @@ router.post("/:projectId", async (req, res) => {
       preserveTimestamps: true,
     });
   }
+
+  // get the form validation data
+  const validation = await getFormValidationFromProject(
+    projectId,
+    body.type,
+    project
+  );
+
+  // save the form validation data
+  await saveValidationData(validation);
 
   // Create a new project
   res.json({

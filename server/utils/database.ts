@@ -25,8 +25,23 @@ export async function dbInit() {
   if (isInitialized) {
     return;
   }
+
+  // check if mariadb is running
+  while (true) {
+    try {
+      await knex.select(1);
+      break;
+    } catch (error) {
+      await new Promise((resolve) => setTimeout(resolve, 250));
+    }
+  }
+
   console.log("Migrating database...");
 
   await knex.migrate.latest();
   isInitialized = true;
 }
+
+process.on("SIGTERM", () => {
+  knex.destroy();
+});

@@ -20,7 +20,11 @@ async function main() {
   const siteDir = getSiteDir("staging", "_").replace("/_/staging", "");
   app.use("/sites", express.static(siteDir));
 
-  app.listen(port, () => {
+  const server = app.listen(port, () => {
     console.log(`Server listening at http://localhost:${port}`);
+  });
+
+  process.on("SIGTERM", () => {
+    server.close();
   });
 }
