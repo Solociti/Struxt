@@ -10,6 +10,7 @@ import { router as publishRouter } from "./api/publish/register";
 import { router as formsRouter } from "./forms/register";
 import { expressSetup } from "./setup/expressSetup";
 import { dbInit } from "./utils/database";
+import { serverAdapter } from "./database/dashboard";
 
 // run init scripts and then start the server
 Promise.all([dbInit()]).then(() => {
@@ -42,6 +43,9 @@ async function main() {
   app.use("/api/publish", publishRouter);
 
   app.use(formsRouter);
+
+  // setup the admin pages. This should be moved to a separate server at some point
+  app.use("/admin/queues", serverAdapter.getRouter());
 
   const server = app.listen(port, () => {
     console.log(`Server listening at http://localhost:${port}`);

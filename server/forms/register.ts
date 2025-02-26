@@ -7,6 +7,7 @@ import { getProjectFormUploadDir, getUploadDir } from "../utils/uploadDir";
 import { FormAttachment, FormSubmission } from "./convertRows";
 import { saveFormSubmission } from "./saveFormSubmission";
 import { validateFormData } from "./validateFormData";
+import { scheduleFormSubmissionEmail } from "./sendEmail/queue";
 
 // Get the upload directory
 const saveDir = getUploadDir("temp", "forms");
@@ -103,9 +104,11 @@ router.post(
     };
 
     // save the form submission to the database
-    await saveFormSubmission(projectId, submission);
+    const { submissionId } = await saveFormSubmission(projectId, submission);
     // TODO: log the form submission
-    // TODO: schedule the email sending
+
+    // schedule the email sending
+    await scheduleFormSubmissionEmail(submissionId);
 
     if (redirect) {
       res.redirect(redirect);

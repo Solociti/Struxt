@@ -94,8 +94,11 @@ export async function validateFormData(
         break;
 
       case "email":
-        // TODO: validate email
-        if (typeof value === "string") {
+        if (
+          typeof value === "string" &&
+          value.includes("@") &&
+          value.includes(".")
+        ) {
           scrubbedData[key] = value;
         } else {
           errors.push({

@@ -1,0 +1,6 @@
+--snapshot_cron=*/15 * * * *
+--dbfilename=dump
+--cluster_mode=emulated
+--lock_on_hashtags
+--maxmemory=1024MiB
+--proactor_threads=2
