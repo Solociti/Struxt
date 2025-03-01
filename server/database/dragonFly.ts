@@ -12,8 +12,12 @@ export const clientUrl = `redis://${connectionParams.host}:${connectionParams.po
  *
  * @returns
  */
-export function setupNewClient() {
-  return createClient({
+export async function setupNewClient() {
+  const client = createClient({
     url: clientUrl,
   });
+
+  await client.connect();
+
+  return client;
 }

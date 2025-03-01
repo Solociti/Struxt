@@ -2,6 +2,7 @@ import express from "express";
 import multer from "multer";
 import { existsSync, renameSync } from "node:fs";
 import { basename, extname, join } from "node:path";
+import { createSimpleId } from "../utils/createId";
 import { mkDirRecursive } from "../utils/mkDir";
 import { getProjectFormUploadDir, getUploadDir } from "../utils/uploadDir";
 import { FormAttachment, FormSubmission } from "./convertRows";
@@ -9,7 +10,6 @@ import { saveFormSubmission } from "./saveFormSubmission";
 import { scheduleFormSubmissionEmail } from "./sendEmail/queue";
 import { getFormSettings } from "./settings/getFormSettings";
 import { validateFormData } from "./validateFormData";
-import { createSimpleId } from "../utils/createId";
 
 // Get the upload directory
 const saveDir = getUploadDir("temp", "forms");
@@ -19,9 +19,8 @@ const upload = multer({ dest: saveDir });
 // setup a api endpoint for assets
 export const router = express.Router();
 
-router.get("/", async (req, res) => {
-  // Return the list of assets
-  res.json([]);
+router.get("/forms/submit/:projectId/:projectEnv", async (req, res) => {
+  res.send("Form submission endpoint");
 });
 
 // ! This endpoint handles form submissions from untrusted sources
@@ -29,7 +28,8 @@ router.post(
   "/forms/submit/:projectId/:projectEnv",
   upload.array("attachments", 5),
   async (req, res) => {
-    // TODO: only allow from local proxies to prevent unauthorized uploads
+    // based on that no public endpoint can't access /forms/submit
+    // this has to go though a proxy server
     // TODO: rate limit the uploads
 
     const redirect = req.query.redirect as string | "";

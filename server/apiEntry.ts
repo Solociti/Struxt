@@ -22,7 +22,7 @@ async function main() {
   const app = express();
   const port = 3000;
 
-  expressSetup(app);
+  await expressSetup(app);
 
   app.use(
     express.json({

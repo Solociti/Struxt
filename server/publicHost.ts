@@ -12,7 +12,7 @@ async function main() {
   const app = express();
   const port = 3000;
 
-  expressSetup(app);
+  await expressSetup(app);
 
   // enable static files
   app.use("/", express.static("./dist"));

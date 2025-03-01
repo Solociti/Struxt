@@ -1,20 +1,41 @@
 import { Express } from "express";
+import { getIp } from "../utils/requests";
+import { rateLimit } from "./RateLimit";
 
 /**
  * Basic setups that happen for each express app
  *
  * @param app
  */
-export function expressSetup(app: Express) {
+export async function expressSetup(app: Express) {
   // reduce fingerprinting
   app.disable("x-powered-by");
-  // TODO: ensure that the proxy header can't be spoofed
   app.set("trust proxy", true);
+
+  const limiter = await rateLimit({
+    prefix: "rl",
+    leakRate: 120,
+    windowSeconds: 240,
+    maxCapacity: 40,
+    unitCost: (req) => {
+      if (req.path.startsWith("/api")) {
+        return 2;
+      }
+
+      if (req.path.startsWith("/forms")) {
+        return 5;
+      }
+
+      return 1;
+    },
+  });
+
+  app.use(limiter);
 
   // setup logging
   app.use((req, res, next) => {
     const userAgent = req.headers["user-agent"];
-    console.log(new Date(), req.method, req.url, userAgent);
+    console.log(new Date(), `[${getIp(req)}]`, req.method, req.url, userAgent);
     next();
   });
 
