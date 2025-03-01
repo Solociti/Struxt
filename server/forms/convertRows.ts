@@ -54,6 +54,7 @@ export interface FormSubmission {
   id?: number;
 
   siteId: string;
+  siteEnv: "production" | "staging";
   formName: string;
 
   ipAddress: string;
@@ -79,6 +80,7 @@ export function fromFormSubmissionRow(row: any): FormSubmission {
   return {
     id: row.id,
     siteId: row.site_id,
+    siteEnv: row.site_env,
     formName: row.form_name,
     ipAddress: row.ip_address,
     userAgent: row.user_agent,
@@ -100,7 +102,7 @@ export function toFormSubmissionRow(submission: FormSubmission): any {
   return {
     id: submission.id,
     site_id: submission.siteId,
-
+    site_env: submission.siteEnv,
     form_name: submission.formName,
 
     ip_address: submission.ipAddress,
@@ -162,6 +164,7 @@ export function toFormSettingsRow(settings: FormSettings): any {
   return {
     id: settings.id,
     site_id: settings.siteId,
+    site_env: settings.siteEnv,
     form_name: settings.formName,
     enabled: settings.enabled,
     send_email: settings.sendEmail,

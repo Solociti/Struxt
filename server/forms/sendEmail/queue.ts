@@ -1,4 +1,5 @@
 import { setupQueue, setupWorker } from "../../database/setupQueue";
+import { sendFormEmail } from "./sendFormEmail";
 
 const { queue } = setupQueue("public", "form-submission", {});
 
@@ -14,10 +15,6 @@ export async function scheduleFormSubmissionEmail(submissionId: string) {
   });
 }
 
-setTimeout(() => {
-  scheduleFormSubmissionEmail("1");
-}, 2000);
-
 setupWorker(
   "public",
   "form-submission",
@@ -25,6 +22,7 @@ setupWorker(
     switch (job.name) {
       case "send-email":
         // send email
+        return await sendFormEmail(job.data.submissionId);
         break;
       default:
         throw new Error("Invalid job name");

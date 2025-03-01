@@ -6,8 +6,10 @@ import { mkDirRecursive } from "../utils/mkDir";
 import { getProjectFormUploadDir, getUploadDir } from "../utils/uploadDir";
 import { FormAttachment, FormSubmission } from "./convertRows";
 import { saveFormSubmission } from "./saveFormSubmission";
-import { validateFormData } from "./validateFormData";
 import { scheduleFormSubmissionEmail } from "./sendEmail/queue";
+import { getFormSettings } from "./settings/getFormSettings";
+import { validateFormData } from "./validateFormData";
+import { createSimpleId } from "../utils/createId";
 
 // Get the upload directory
 const saveDir = getUploadDir("temp", "forms");
@@ -25,7 +27,7 @@ router.get("/", async (req, res) => {
 // ! This endpoint handles form submissions from untrusted sources
 router.post(
   "/forms/submit/:projectId/:projectEnv",
-  upload.array("files", 5),
+  upload.array("attachments", 5),
   async (req, res) => {
     // TODO: only allow from local proxies to prevent unauthorized uploads
     // TODO: rate limit the uploads
@@ -47,6 +49,12 @@ router.post(
       req.body
     );
 
+    const settings = await getFormSettings(projectId, projectEnv, formName);
+    if (!settings || !settings.enabled) {
+      res.status(400).send("Form is disabled");
+      return;
+    }
+
     if (errors) {
       // TODO: setup the error page handler
       res.status(400).json({ errors });
@@ -61,7 +69,10 @@ router.post(
       "submissionId" | "createdAt" | "updatedAt"
     >[] = [];
 
-    const uploadDir = getProjectFormUploadDir(projectId);
+    // get the save directory for attachments
+    const subDir = await createSimpleId("submission");
+    const uploadDir = join(getProjectFormUploadDir(projectId), subDir);
+
     await mkDirRecursive(uploadDir);
 
     for (const file of files) {
@@ -82,7 +93,7 @@ router.post(
 
       attachments.push({
         originalName: file.originalname,
-        fileName: newFileName,
+        fileName: join(subDir, newFileName),
         avStatus: "pending",
         avResult: "",
       });
@@ -95,6 +106,7 @@ router.post(
       createdAt: new Date(),
       updatedAt: new Date(),
       siteId: projectId,
+      siteEnv: projectEnv,
       formName: formName,
       ipAddress: req.ip || "",
       userAgent: req.headers["user-agent"] || "",

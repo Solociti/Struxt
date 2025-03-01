@@ -4,6 +4,11 @@ import { copyFile, writeFile } from "node:fs/promises";
 import path, { dirname, join } from "node:path";
 import { getFormValidationFromProject } from "../../forms/getFormValidationFromProject";
 import { saveValidationData } from "../../forms/saveValidationData";
+import {
+  defaultFormSettings,
+  saveNewFormSettings,
+} from "../../forms/sendEmail/saveFormSettings";
+import { getFormSettings } from "../../forms/settings/getFormSettings";
 import { cleanDir } from "../../utils/cleanDir";
 import { copyDir } from "../../utils/copyDir";
 import { getTable } from "../../utils/database";
@@ -103,6 +108,21 @@ router.post("/:projectId", async (req, res) => {
     body.type,
     project
   );
+
+  const formNames = [...new Set(validation.map((v) => v.formName))];
+
+  for (const formName of formNames) {
+    const formSettings = await getFormSettings(projectId, body.type, formName);
+
+    if (!formSettings) {
+      const formSettings = await defaultFormSettings(
+        parseInt(projectId),
+        body.type,
+        formName
+      );
+      await saveNewFormSettings(formSettings);
+    }
+  }
 
   // save the form validation data
   await saveValidationData(validation);
