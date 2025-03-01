@@ -43,17 +43,13 @@ async function main() {
     contents += [
       "",
       "# Setup the SMTP server details",
-      "SMTP_HOST=smtp.sendgrid.net",
+      "SMTP_HOST=mail.solociti.com",
       "SMTP_PORT=587",
       "SMTP_FROM=email-from",
       "SMTP_USER=user",
       "SMTP_PASS=pass",
       "",
     ].join("\n");
-  }
-
-  if (!contents.endsWith("\n")) {
-    contents += "\n";
   }
 
   if (contents !== original) {
@@ -98,6 +94,11 @@ async function main() {
       if (response.value && response.value !== value) {
         lines[i] = `${key}=${response.value}`;
       }
+    }
+
+    // add a new line at the end
+    if (lines[lines.length - 1]) {
+      lines.push("");
     }
 
     // write the changes to disk

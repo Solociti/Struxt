@@ -76,7 +76,9 @@ router.post(
     const subDir = await createSimpleId("submission");
     const uploadDir = join(getProjectFormUploadDir(projectId), subDir);
 
-    await mkDirRecursive(uploadDir);
+    if (files.length > 0) {
+      await mkDirRecursive(uploadDir);
+    }
 
     for (const file of files) {
       const ext = extname(file.originalname);
