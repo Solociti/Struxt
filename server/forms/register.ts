@@ -9,7 +9,7 @@ import { FormAttachment, FormSubmission } from "./convertRows";
 import { saveFormSubmission } from "./saveFormSubmission";
 import { scheduleFormSubmissionEmail } from "./sendEmail/queue";
 import { getFormSettings } from "./settings/getFormSettings";
-import { validateFormData } from "./validateFormData";
+import { FormValidationError, validateFormData } from "./validateFormData";
 
 // Get the upload directory
 const saveDir = getUploadDir("temp", "forms");
@@ -30,7 +30,6 @@ router.post(
   async (req, res) => {
     // based on that no public endpoint can't access /forms/submit
     // this has to go though a proxy server
-    // TODO: rate limit the uploads
 
     const redirect = req.query.redirect as string | "";
     const projectId = req.params.projectId;
@@ -51,13 +50,17 @@ router.post(
 
     const settings = await getFormSettings(projectId, projectEnv, formName);
     if (!settings || !settings.enabled) {
-      res.status(400).send("Form is disabled");
+      const error: FormValidationError = {
+        message: "Form is currently not accepting submissions.",
+        name: "",
+      };
+
+      res.status(400).json({ errors: [error], success: false });
       return;
     }
 
     if (errors) {
-      // TODO: setup the error page handler
-      res.status(400).json({ errors });
+      res.status(400).json({ errors, success: false });
       return;
     }
 
@@ -117,7 +120,14 @@ router.post(
 
     // save the form submission to the database
     const { submissionId } = await saveFormSubmission(projectId, submission);
-    // TODO: log the form submission
+    console.log(
+      "Submission ID:",
+      submissionId,
+      "Form Name:",
+      formName,
+      "Project ID:",
+      projectId
+    );
 
     // schedule the email sending
     await scheduleFormSubmissionEmail(submissionId);
@@ -125,7 +135,7 @@ router.post(
     if (redirect) {
       res.redirect(redirect);
     } else {
-      res.send("Success!");
+      res.json({ message: "Form submission successful!", success: true });
     }
   }
 );
