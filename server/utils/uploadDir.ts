@@ -30,10 +30,11 @@ export function getAssetDir(projectId?: string) {
  * Get the upload directory for any uploads from the sites forms
  *
  * @param projectId
+ *
  * @returns
  */
-export function getProjectFormUploadDir(projectId: string) {
-  return getUploadDir("projects", projectId, "forms");
+export function getProjectFormUploadDir(projectId: string | number) {
+  return getUploadDir("projects", projectId.toString(), "forms");
 }
 
 /**
