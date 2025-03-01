@@ -14,16 +14,16 @@ export async function expressSetup(app: Express) {
 
   const limiter = await rateLimit({
     prefix: "rl",
-    leakRate: 120,
-    windowSeconds: 240,
-    maxCapacity: 40,
+    leakRate: 300,
+    windowSeconds: 600,
+    maxCapacity: 100,
     unitCost: (req) => {
       if (req.path.startsWith("/api")) {
         return 2;
       }
 
       if (req.path.startsWith("/forms")) {
-        return 5;
+        return 20;
       }
 
       return 1;
