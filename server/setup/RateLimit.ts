@@ -72,7 +72,7 @@ export async function rateLimit(options: {
     }
 
     const percent = remaining / options.maxCapacity;
-    const delay = (1 - percent) * 5000;
+    const delay = (0.3 - percent) * 5000;
 
     setTimeout(next, delay);
   };
@@ -95,7 +95,7 @@ export async function rateLimit(options: {
       }
 
       // if close to the rate limit, start throttling
-      if (result.remaining < options.maxCapacity * 0.5) {
+      if (result.remaining < options.maxCapacity * 0.3) {
         slowDown(res, next, result.remaining);
         return;
       }
