@@ -1,0 +1,85 @@
+<script>
+  const forms = [...document.getElementsByTagName("form")];
+
+  /**
+   * Display the form errors to the user
+   *
+   * @param {HTMLFormElement} form
+   * @param {{name: string, message: string}[]} errors
+   */
+  function displayFormError(form, errors) {
+    const getErrorEl = (name) => form.querySelector(`[data-error="${name}"]`);
+
+    const primaryMessage = [];
+
+    for (const { name, message } of errors) {
+      if (!name) {
+        primaryMessage.push(message);
+        continue;
+      }
+
+      const errorEl = getErrorEl(name);
+      if (errorEl) {
+        errorEl.textContent = message;
+        errorEl.style.display = "block";
+      } else {
+        primaryMessage.push(`<b>${name}</b>: ${message}`);
+      }
+    }
+
+    if (primaryMessage.length) {
+      const primaryEl = getErrorEl("true");
+      if (primaryEl) {
+        primaryEl.innerHTML = primaryMessage.join("<br />");
+        primaryEl.style.display = "block";
+      }
+    }
+  }
+
+  function resetFormErrors(form) {
+    for (const errorEl of form.querySelectorAll("[data-error]")) {
+      errorEl.textContent = "";
+      errorEl.style.display = "none";
+    }
+  }
+
+  for (const form of forms) {
+    const endpoint = form.getAttribute("action");
+    const method = form.getAttribute("method") || "GET";
+    const successEndpoint = form.getAttribute("data-success");
+    if (!endpoint) {
+      continue;
+    }
+
+    form.addEventListener("submit", async (event) => {
+      event.preventDefault();
+
+      const formData = new FormData(event.target);
+
+      try {
+        const response = await fetch(endpoint, {
+          method,
+          body: formData,
+        });
+        const data = await response.json();
+
+        if (data.success) {
+          // redirect to the success page
+          if (successEndpoint) {
+            window.location.assign(successEndpoint);
+          } else {
+            // clear the form
+            form.reset();
+          }
+        } else if (data.errors) {
+          displayFormError(form, data.errors);
+        }
+      } catch (err) {
+        // display the error to the user
+        displayFormError(form, [
+          { name: "", message: `<b>${err.name}</b>: ${err.message}` },
+        ]);
+      }
+    });
+  }
+</script>

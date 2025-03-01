@@ -4,34 +4,47 @@
   "version": "0.0.1",
   "type": "module",
   "scripts": {
+    "test": "vitest",
     "dev": "vite",
     "build": "tsc && vite build",
     "preview": "vite preview",
     "serve": "tsx watch server/apiEntry.ts",
-    "docker": "docker compose --profile dev up -d"
+    "host": "tsx watch server/publicHost.ts",
+    "docker": "docker compose --profile dev up"
   },
   "devDependencies": {
+    "@types/bull": "^3.15.9",
     "@types/express": "^5.0.0",
     "@types/multer": "^1.4.12",
     "@types/node": "^22.13.1",
+    "@types/nodemailer": "^6.4.17",
+    "@types/sanitize-html": "^2.13.0",
     "sass": "^1.84.0",
     "typescript": "~5.6.2",
     "vite": "^6.0.5",
-    "vite-svg-loader": "^5.1.0"
+    "vite-svg-loader": "^5.1.0",
+    "vitest": "^3.0.7"
   },
   "dependencies": {
+    "@bull-board/express": "^6.7.9",
     "@grapesjs/studio-sdk": "^1.0.30",
     "@popperjs/core": "^2.11.8",
     "@treimer/grapesjs-blocks-bootstrap-5": "^10.0.4",
     "bootstrap": "^5.3.3",
+    "bullmq": "^5.41.5",
     "dotenv": "^16.4.7",
     "express": "^5.0.1",
     "grapesjs-custom-code": "^1.0.2",
     "grapesjs-parser-postcss": "^1.0.3",
+    "handlebars": "^4.7.8",
     "i": "^0.3.7",
     "knex": "^3.1.0",
     "multer": "^1.4.5-lts.1",
     "mysql2": "^3.12.0",
-    "npm": "^11.1.0"
+    "nodemailer": "^6.10.0",
+    "npm": "^11.1.0",
+    "prompts": "^2.4.2",
+    "redis": "^4.7.0",
+    "sanitize-html": "^2.14.0"
   }
 }

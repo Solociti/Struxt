@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Form Submission</title>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <meta name="generator" content="Struxt using GrapesJS Studio" />
+    <style>
+      * {
+        box-sizing: border-box;
+      }
+
+      body {
+        margin: 0;
+      }
+
+      #izvc {
+        font-family: Arial, Helvetica, sans-serif;
+      }
+
+      #ibk0k {
+        padding: 0.5rem;
+      }
+
+      #ihd7j {
+        padding: 10px;
+      }
+
+      #ig294 {
+        margin-bottom: 0px;
+      }
+
+      .gjs-container {
+        width: 90%;
+        margin: 0 auto;
+        max-width: 1200px;
+      }
+
+      .gjs-section {
+        display: flex;
+        padding: 50px 0;
+      }
+    </style>
+  </head>
+
+  <body id="izvc">
+    <section class="gjs-section" id="ih5vh">
+      <div class="gjs-container" id="iu1nx">
+        <h1 id="i0k32">{{ formName }}</h1>
+
+        {{#each formFields}}
+        <div id="ibk0k" class="form-field">
+          <h3 id="ig294">{{ label }}</h3>
+          <div id="ihd7j">{{ value }}</div>
+        </div>
+        {{/each}}
+      </div>
+    </section>
+  </body>
+</html>

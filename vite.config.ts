@@ -8,6 +8,11 @@ export default defineConfig({
       input: {
         editor: "./index.html",
       },
+      output: {
+        assetFileNames: "resource/[name]-[hash].[ext]",
+        entryFileNames: "resource/[name]-[hash].js",
+        chunkFileNames: "resource/[name]-[hash].js",
+      },
     },
   },
   css: {

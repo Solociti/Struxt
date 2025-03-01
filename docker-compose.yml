@@ -14,12 +14,77 @@ services:
       - dev
       - prod
 
-  editor-api:
+  dragonfly:
+    image: "docker.dragonflydb.io/dragonflydb/dragonfly"
+    ulimits:
+      memlock: -1
+    ports:
+      - "6379:6379"
+    volumes:
+      - dragonflydata:/data
+      - ./config/dragonFlyFlags.txt:/flags.txt
+    networks:
+      - struxt-net
+    command: "dragonfly --flagfile=/flags.txt"
+    profiles:
+      - dev
+      - prod
+
+  web-host:
     build:
       context: .
       dockerfile: Dockerfile
     restart: unless-stopped
     scale: 2
+    environment:
+      - IS_DOCKER=true
+      - MARIADB_ROOT_PASSWORD=${MARIADB_ROOT_PASSWORD}
+      - PRIMARY_DB=${PRIMARY_DB}
+      - UPLOAD_DIR=/uploads
+    command: "node server/publicHost.js"
+    volumes:
+      - ${UPLOAD_DIR}:/uploads
+      - ${SITE_STORAGE_DIR}:/sites
+    depends_on:
+      - mariadb
+      - dragonfly
+      - nginx
+    # ports:
+    #   - "127.0.0.1:3000:3000"
+    networks:
+      - struxt-net
+    profiles:
+      - prod
+
+  web-host-dev:
+    build:
+      context: .
+      dockerfile: dev.Dockerfile
+    environment:
+      - IS_DOCKER=true
+      - MARIADB_ROOT_PASSWORD=${MARIADB_ROOT_PASSWORD}
+      - PRIMARY_DB=${PRIMARY_DB}
+      - UPLOAD_DIR=/uploads
+    command: "tsx watch --clear-screen=false server/publicHost.ts"
+    volumes:
+      - .:/app
+      - ${UPLOAD_DIR}:/uploads
+      - ${SITE_STORAGE_DIR}:/sites
+    depends_on:
+      - mariadb
+      - dragonfly
+      - nginx
+    networks:
+      - struxt-net
+    profiles:
+      - dev
+
+  editor-api:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    restart: unless-stopped
+    scale: 1
     environment:
       - IS_DOCKER=true
       - MARIADB_ROOT_PASSWORD=${MARIADB_ROOT_PASSWORD}
@@ -31,6 +96,7 @@ services:
       - ${SITE_STORAGE_DIR}:/sites
     depends_on:
       - mariadb
+      - dragonfly
       - nginx
     # ports:
     #   - "127.0.0.1:3000:3000"
@@ -39,12 +105,37 @@ services:
     profiles:
       - prod
 
+  editor-api-dev:
+    build:
+      context: .
+      dockerfile: dev.Dockerfile
+    environment:
+      - IS_DOCKER=true
+      - MARIADB_ROOT_PASSWORD=${MARIADB_ROOT_PASSWORD}
+      - PRIMARY_DB=${PRIMARY_DB}
+      - UPLOAD_DIR=/uploads
+    command: "tsx watch --clear-screen=false server/apiEntry.ts"
+    volumes:
+      - .:/app
+      - ${UPLOAD_DIR}:/uploads
+      - ${SITE_STORAGE_DIR}:/sites
+    depends_on:
+      - mariadb
+      - dragonfly
+      - nginx
+    ports:
+      - "127.0.0.1:3000:3000"
+    networks:
+      - struxt-net
+    profiles:
+      - dev
+
   nginx:
     image: "jc21/nginx-proxy-manager:latest"
     restart: unless-stopped
     ports:
       - "80:80"
-      - "127.0.0.1:8181:81"
+      - "127.0.0.1:81:81"
       - "443:443"
     volumes:
       - nginx_data:/data
@@ -53,11 +144,13 @@ services:
       - struxt-net
     profiles:
       - prod
+      - dev
 
 volumes:
   mariadb_data:
   nginx_data:
   nginx_letsencrypt:
+  dragonflydata:
 
 networks:
   struxt-net:

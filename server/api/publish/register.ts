@@ -1,10 +1,19 @@
 import express from "express";
-import { writeFile } from "node:fs/promises";
-import { dirname, join } from "node:path";
+import { existsSync } from "node:fs";
+import { copyFile, writeFile } from "node:fs/promises";
+import path, { dirname, join } from "node:path";
+import { getFormValidationFromProject } from "../../forms/getFormValidationFromProject";
+import { saveValidationData } from "../../forms/saveValidationData";
+import {
+  defaultFormSettings,
+  saveNewFormSettings,
+} from "../../forms/sendEmail/saveFormSettings";
+import { getFormSettings } from "../../forms/settings/getFormSettings";
 import { cleanDir } from "../../utils/cleanDir";
+import { copyDir } from "../../utils/copyDir";
 import { getTable } from "../../utils/database";
 import { mkDirRecursive } from "../../utils/mkDir";
-import { getSiteDir } from "../../utils/uploadDir";
+import { getAssetDir, getSiteDir } from "../../utils/uploadDir";
 
 export const router = express.Router();
 
@@ -34,10 +43,12 @@ router.post("/:projectId", async (req, res) => {
   if (req.body.projectId !== projectId) {
     res.status(400).json({
       success: false,
-      error: `Project id mismatch!`,
+      error: "Project id mismatch!",
     });
     return;
   }
+
+  const project = JSON.parse(row.project);
 
   const body: {
     projectId: string;
@@ -49,14 +60,72 @@ router.post("/:projectId", async (req, res) => {
   await cleanDir(siteDir);
   await mkDirRecursive(siteDir);
 
+  // copy the asset files to the project directory
+  const assetFiles = project.assets as { src: string; type: "image" }[];
+
+  for (const asset of assetFiles) {
+    if (asset.src.startsWith("http")) {
+      continue;
+    }
+
+    const basename = path.basename(asset.src);
+
+    const srcFile = join(getAssetDir(projectId), basename);
+    // check if the src file exists
+    if (!existsSync(srcFile)) {
+      continue;
+    }
+
+    const destFile = join(siteDir, "assets", projectId, basename);
+
+    await mkDirRecursive(dirname(destFile));
+    await copyFile(srcFile, destFile);
+  }
+
+  // save the project files
   for (const file of body.files) {
     const filePath = join(siteDir, file.filename);
     await mkDirRecursive(dirname(filePath));
 
-    await writeFile(filePath, file.content, {
+    let content = file.content;
+    await writeFile(filePath, content, {
       encoding: "utf-8",
     });
   }
+
+  // copy the directory of custom project files
+  const customFilesDir = join(getAssetDir(projectId), "custom");
+  if (existsSync(customFilesDir)) {
+    await copyDir(customFilesDir, siteDir, {
+      replace: true,
+      preserveTimestamps: true,
+    });
+  }
+
+  // get the form validation data
+  const validation = await getFormValidationFromProject(
+    projectId,
+    body.type,
+    project
+  );
+
+  const formNames = [...new Set(validation.map((v) => v.formName))];
+
+  for (const formName of formNames) {
+    const formSettings = await getFormSettings(projectId, body.type, formName);
+
+    if (!formSettings) {
+      const formSettings = await defaultFormSettings(
+        parseInt(projectId),
+        body.type,
+        formName
+      );
+      await saveNewFormSettings(formSettings);
+    }
+  }
+
+  // save the form validation data
+  await saveValidationData(validation);
 
   // Create a new project
   res.json({
