@@ -32,6 +32,7 @@
     "@treimer/grapesjs-blocks-bootstrap-5": "^10.0.4",
     "bootstrap": "^5.3.3",
     "bullmq": "^5.41.5",
+    "cross-dirname": "^0.1.0",
     "dotenv": "^16.4.7",
     "express": "^5.0.1",
     "grapesjs-custom-code": "^1.0.2",
