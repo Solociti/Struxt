@@ -20,6 +20,7 @@ COPY --from=build /app/node_modules /app/node_modules
 COPY --from=build /app/docker-package.json /app/package.json
 COPY --from=build /app/dist /app/dist
 COPY --from=build /app/dist-server /app
+COPY --from=build /app/server/email/templates/*.html /app/server/email/templates/
 
 WORKDIR /app
 
