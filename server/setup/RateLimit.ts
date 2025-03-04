@@ -62,6 +62,7 @@ export async function rateLimit(options: {
   };
 
   const slowDown = async (
+    req: Request,
     res: Response,
     next: () => void,
     remaining: number
@@ -73,6 +74,7 @@ export async function rateLimit(options: {
 
     const percent = remaining / options.maxCapacity;
     const delay = (0.3 - percent) * 5000;
+    (req as any).rlSlowDown = delay;
 
     setTimeout(next, delay);
   };
@@ -88,6 +90,9 @@ export async function rateLimit(options: {
         options.unitCost(req, ip || "").toString()
       );
 
+      // store the result for logging
+      (req as any).rlResult = result;
+
       // rate limit the requests
       if (result.limited) {
         limit(res);
@@ -96,7 +101,7 @@ export async function rateLimit(options: {
 
       // if close to the rate limit, start throttling
       if (result.remaining < options.maxCapacity * 0.3) {
-        slowDown(res, next, result.remaining);
+        slowDown(req, res, next, result.remaining);
         return;
       }
     } catch (err) {

@@ -52,6 +52,17 @@ async function main() {
     ].join("\n");
   }
 
+  if (!contents.includes("RL_LEAK_RATE")) {
+    contents += [
+      "",
+      "# Leaky bucket rate limiting values",
+      "# leak rate is the number of tokens added per window time",
+      "RL_LEAK_RATE=1200",
+      "RL_WINDOW_SECONDS=600",
+      "RL_MAX_TOKENS=200",
+    ].join("\n");
+  }
+
   if (contents !== original) {
     // allow the value to be edited
     const lines = contents.split("\n");
