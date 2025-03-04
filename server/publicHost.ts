@@ -1,7 +1,7 @@
 import "dotenv/config";
 
 import express from "express";
-import { expressSetup } from "./setup/expressSetup";
+import { expressSetup, setupSiteLogs } from "./setup/expressSetup";
 import { getSiteDir } from "./utils/uploadDir";
 
 // run init scripts and then start the server
@@ -13,6 +13,20 @@ async function main() {
   const port = 3000;
 
   await expressSetup(app);
+
+  setupSiteLogs(app, (path) => {
+    if (path.startsWith("/sites/")) {
+      // remove the /sites/:projectId/:env from the path
+      const parts = path.split("/");
+
+      return {
+        projectId: parts[2],
+        path: parts.slice(4).join("/"),
+      };
+    }
+
+    return { path };
+  });
 
   // enable static files
   app.use("/", express.static("./dist"));
