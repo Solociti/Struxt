@@ -1,12 +1,14 @@
+import react from "@vitejs/plugin-react";
 import { defineConfig } from "vite";
 import svgLoader from "vite-svg-loader";
 
 export default defineConfig({
-  plugins: [svgLoader()],
+  plugins: [react(), svgLoader()],
   build: {
     rollupOptions: {
       input: {
-        editor: "./index.html",
+        dashboard: "./index.html",
+        editor: "./editor.html",
       },
       output: {
         assetFileNames: "resource/[name]-[hash].[ext]",
