@@ -170,7 +170,6 @@ services:
       - struxt-net
     profiles:
       - prod
-      - dev
     depends_on:
       - mariadb
 
