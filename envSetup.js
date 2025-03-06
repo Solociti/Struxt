@@ -1,6 +1,5 @@
 // @ts-check
 import { readFile, writeFile } from "node:fs/promises";
-import { exec } from "node:child_process";
 import * as path from "node:path";
 import prompts from "prompts";
 
@@ -60,6 +59,16 @@ async function main() {
       "RL_LEAK_RATE=1200",
       "RL_WINDOW_SECONDS=600",
       "RL_MAX_TOKENS=200",
+    ].join("\n");
+  }
+
+  if (!contents.includes("KEYCLOAK_DB_PASSWORD")) {
+    contents += [
+      "",
+      "# Setup the keycloak variables",
+      "KEYCLOAK_DB_PASSWORD=set-password",
+      "KEYCLOAK_HOSTNAME=accounts.solociti.com",
+      "KEYCLOAK_ADMIN_HOSTNAME=localhost:8080",
     ].join("\n");
   }
 
