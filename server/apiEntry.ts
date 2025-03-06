@@ -7,10 +7,12 @@ import {
 } from "./api/assets/register";
 import { router as projectsRouter } from "./api/projects/register";
 import { router as publishRouter } from "./api/publish/register";
+import { serverAdapter } from "./database/dashboard";
 import { router as formsRouter } from "./forms/register";
 import { expressSetup } from "./setup/expressSetup";
 import { dbInit } from "./utils/database";
-import { serverAdapter } from "./database/dashboard";
+import "./cron/queue";
+import "./cron/worker";
 
 // run init scripts and then start the server
 Promise.all([dbInit()]).then(() => {
