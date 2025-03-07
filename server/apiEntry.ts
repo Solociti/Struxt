@@ -1,6 +1,6 @@
 import "dotenv/config";
 
-import express, { Request, Response } from "express";
+import express, { NextFunction, Request, Response } from "express";
 import {
   router as assetsRouter,
   staticFiles as assetStaticFiles,
@@ -41,6 +41,9 @@ async function main() {
     })
   );
 
+  app.set("view engine", "ejs");
+  app.set("views", "./server/views");
+
   await setupAuthEndpoints(app, authConfig);
 
   app.use("/api", protectEndpoint([], { onFail: "json" }));
@@ -66,6 +69,43 @@ async function main() {
 
   // setup the admin pages. This should be moved to a separate server at some point
   app.use("/admin/queues", serverAdapter.getRouter());
+
+  // Error handling middleware for 400-level errors
+  app.use((req, res, next) => {
+    res.status(404).render("error", {
+      statusCode: 404,
+      title: "Page Not Found",
+      message: "The page you are looking for does not exist.",
+    });
+  });
+
+  // Error handling middleware for 500-level errors
+  app.use(
+    "/api",
+    (err: Error, req: Request, res: Response, next: NextFunction) => {
+      console.error(err.stack);
+      const statusCode = err.status || err.statusCode || 500;
+
+      res.status(statusCode).json({
+        error: {
+          name: statusCode >= 500 ? "Server Error" : err.name || "Error",
+          message:
+            err.message || "Something went wrong. Please try again later.",
+        },
+      });
+    }
+  );
+
+  app.use((err: Error, req: Request, res: Response, next: NextFunction) => {
+    console.error(err.stack);
+    const statusCode = err.status || err.statusCode || 500;
+
+    res.status(statusCode).render("error", {
+      statusCode: statusCode,
+      title: statusCode === 500 ? "Server Error" : "Request Error",
+      message: err.message || "Something went wrong. Please try again later.",
+    });
+  });
 
   const server = app.listen(port, () => {
     console.log(`Server listening at http://localhost:${port}`);
