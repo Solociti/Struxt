@@ -1,4 +1,5 @@
 // @ts-check
+import { randomBytes } from "node:crypto";
 import { readFile, writeFile } from "node:fs/promises";
 import * as path from "node:path";
 import prompts from "prompts";
@@ -72,6 +73,37 @@ async function main() {
     ].join("\n");
   }
 
+  if (!contents.includes("KEYCLOAK_REALM")) {
+    contents += ["KEYCLOAK_REALM=Solociti"].join("\n");
+  }
+
+  if (!contents.includes("KEYCLOAK_CLIENT_ID")) {
+    contents += [
+      "",
+      "KEYCLOAK_CLIENT_ID=struxt",
+      "KEYCLOAK_CLIENT_SECRET=secret",
+    ].join("\n");
+  }
+
+  if (!contents.includes("PASSPORT_SESSION_SECRET")) {
+    // use the crypto module to generate a random key
+    const randomKey = randomBytes(32).toString("hex");
+
+    contents += [
+      "",
+      "# Passport session secret",
+      `PASSPORT_SESSION_SECRET=${randomKey}`,
+    ].join("\n");
+  }
+
+  if (!contents.includes("AUTH_VALID_HOSTS")) {
+    contents += [
+      "",
+      "# Auth valid hosts",
+      "AUTH_VALID_HOSTS=struxt.solociti.com",
+    ].join("\n");
+  }
+
   if (contents !== original) {
     // allow the value to be edited
     const lines = contents.split("\n");
@@ -112,7 +144,11 @@ async function main() {
       });
 
       if (response.value && response.value !== value) {
-        lines[i] = `${key}=${response.value}`;
+        if (response.value.includes(",")) {
+          lines[i] = `${key}="${response.value}"`;
+        } else {
+          lines[i] = `${key}=${response.value}`;
+        }
       }
     }
 

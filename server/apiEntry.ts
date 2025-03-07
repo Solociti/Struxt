@@ -1,18 +1,24 @@
 import "dotenv/config";
 
-import express from "express";
+import express, { Request, Response } from "express";
 import {
   router as assetsRouter,
   staticFiles as assetStaticFiles,
 } from "./api/assets/register";
 import { router as projectsRouter } from "./api/projects/register";
 import { router as publishRouter } from "./api/publish/register";
+import { protectEndpoint } from "./auth/protectEndpoint";
+import {
+  setupAuthEndpoints,
+  setupAuthMiddleware,
+  startAuthSetup,
+} from "./auth/setupKeycloak";
+import "./cron/queue";
+import "./cron/worker";
 import { serverAdapter } from "./database/dashboard";
 import { router as formsRouter } from "./forms/register";
 import { expressSetup } from "./setup/expressSetup";
 import { dbInit } from "./utils/database";
-import "./cron/queue";
-import "./cron/worker";
 
 // run init scripts and then start the server
 Promise.all([dbInit()]).then(() => {
@@ -26,15 +32,27 @@ async function main() {
 
   await expressSetup(app);
 
+  const authConfig = await startAuthSetup();
+  await setupAuthMiddleware(app, authConfig);
+
   app.use(
     express.json({
       limit: "5mb",
     })
   );
 
-  app.get("/api", (req, res) => {
+  await setupAuthEndpoints(app, authConfig);
+
+  app.use("/api", protectEndpoint([], { onFail: "json" }));
+
+  app.get("/api", (req: Request, res: Response) => {
     res.json({
       now: new Date(),
+      user: {
+        id: req.user?.sub,
+        name: req.user?.name,
+        email: req.user?.email,
+      },
     });
   });
 
