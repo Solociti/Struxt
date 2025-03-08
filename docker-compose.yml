@@ -36,10 +36,10 @@ services:
       dockerfile: Dockerfile
     restart: unless-stopped
     scale: 2
+    env_file:
+      - .env
     environment:
       - IS_DOCKER=true
-      - MARIADB_ROOT_PASSWORD=${MARIADB_ROOT_PASSWORD}
-      - PRIMARY_DB=${PRIMARY_DB}
       - UPLOAD_DIR=/uploads
     command: "node server/publicHost.js"
     volumes:
@@ -61,10 +61,10 @@ services:
     build:
       context: .
       dockerfile: dev.Dockerfile
+    env_file:
+      - .env
     environment:
       - IS_DOCKER=true
-      - MARIADB_ROOT_PASSWORD=${MARIADB_ROOT_PASSWORD}
-      - PRIMARY_DB=${PRIMARY_DB}
       - UPLOAD_DIR=/uploads
     command: "tsx watch --clear-screen=false server/publicHost.ts"
     volumes:
@@ -86,10 +86,10 @@ services:
       dockerfile: Dockerfile
     restart: unless-stopped
     scale: 1
+    env_file:
+      - .env
     environment:
       - IS_DOCKER=true
-      - MARIADB_ROOT_PASSWORD=${MARIADB_ROOT_PASSWORD}
-      - PRIMARY_DB=${PRIMARY_DB}
       - UPLOAD_DIR=/uploads
     command: "node server/apiEntry.js"
     volumes:
@@ -111,10 +111,10 @@ services:
     build:
       context: .
       dockerfile: dev.Dockerfile
+    env_file:
+      - .env
     environment:
       - IS_DOCKER=true
-      - MARIADB_ROOT_PASSWORD=${MARIADB_ROOT_PASSWORD}
-      - PRIMARY_DB=${PRIMARY_DB}
       - UPLOAD_DIR=/uploads
     command: "tsx watch --clear-screen=false server/apiEntry.ts"
     volumes:
