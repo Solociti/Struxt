@@ -69,16 +69,21 @@ export async function callApi(url: string | URL, options: ApiOptions) {
   let responseCode: number = 0;
 
   try {
-    const body =
-      options.body instanceof FormData
-        ? options.body
-        : JSON.stringify(options.body);
+    const headers: Record<string, string> = {};
+    let body: any = undefined;
+
+    if (options.body instanceof FormData) {
+      body = options.body;
+    } else {
+      body = JSON.stringify(options.body);
+      headers["Content-Type"] = "application/json";
+    }
 
     // start the fetch request
     const res = await fetch(fetchUrl, {
       method: options.method,
       headers: {
-        "Content-Type": "application/json",
+        ...headers,
         ...(options.headers || {}),
       },
       body,
