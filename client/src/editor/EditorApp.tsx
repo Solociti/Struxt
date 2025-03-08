@@ -3,6 +3,7 @@ import { Editor } from "grapesjs";
 import customCodePlugin from "grapesjs-custom-code";
 import parserPostCSS from "grapesjs-parser-postcss";
 import { useEffect, useState } from "react";
+import { ErrorNames } from "../../../common/custom-error/custom-error";
 import { loadCurrentUser } from "../auth/user";
 import { registerElements } from "../components/htmlElements";
 import { registerImageViewer } from "../components/imageViewer";
@@ -17,13 +18,16 @@ import "@grapesjs/studio-sdk/style";
 export function EditorApp() {
   const [projectId, setProjectId] = useState<string | null>(null);
   const [loggedIn, setLoggedIn] = useState(true);
+  const [error, setError] = useState<Error | null>(null);
+
+  const [projectIdInput, setProjectIdInput] = useState("");
 
   useEffect(() => {
     // the project id is a parameter in the URL
     // e.g. http://localhost/editor?projectId=123
 
     const urlParams = new URLSearchParams(location.search);
-    const projectId = urlParams.get("projectId");
+    const projectId = urlParams.get("projectId") || urlParams.get("project_id");
 
     let _mounted = true;
 
@@ -31,8 +35,6 @@ export function EditorApp() {
       // check if the user logged in
       loadCurrentUser()
         .then((user) => {
-          console.log("User", user);
-
           if (user.isAuthenticated() && _mounted) {
             setProjectId(projectId);
             setLoggedIn(true);
@@ -41,6 +43,8 @@ export function EditorApp() {
         .catch((err) => {
           if (err.name === "Unauthorized") {
             setLoggedIn(false);
+          } else {
+            setError(err);
           }
         });
     } else {
@@ -53,12 +57,14 @@ export function EditorApp() {
     };
   }, []);
 
-  if (!loggedIn || !projectId) {
+  if (!loggedIn || !projectId || error) {
     return (
       <>
         <style>
           {`.error-content {
           display: flex;
+          flex-direction: column;
+          gap: 1rem;
           justify-content: center;
           align-items: center;
           height: 100vh;
@@ -71,6 +77,7 @@ export function EditorApp() {
           border: 1px solid rgba(0, 0, 0, 0.4);
           border-radius: 6px;
           font-size: 1.2rem;
+          background-color: rgb(41, 41, 41);
         }
 
         .error-content h3 {
@@ -95,26 +102,59 @@ export function EditorApp() {
         .error-content a:hover, .error-content button:hover {
           background-color: #0b5ed7;
         } 
+
+        .error-content input {
+          padding: 10px;
+          margin: 0.5rem;
+          border-radius: 4px;
+          font-size: 16px;
+        }
 `}
         </style>
 
         <div className="error-content">
-          {!loggedIn ? (
+          {error && (
+            <section>
+              <h3>{error.name}</h3>
+
+              <p>{error.message}</p>
+            </section>
+          )}
+
+          {!loggedIn && (
             <section>
               <h3>Please login to access the editor</h3>
 
               <a href={`/auth/login`}>Login</a>
             </section>
-          ) : (
+          )}
+
+          {!projectId && (
             <section>
               <h3>Please choose a project to continue.</h3>
 
-              <input type="text" placeholder="Project ID" />
+              <input
+                type="text"
+                value={projectIdInput}
+                onChange={(event) => {
+                  setProjectIdInput(event.target.value);
+                }}
+                onKeyUp={(event) => {
+                  if (event.key === "Enter") {
+                    const projectId = projectIdInput.trim();
+
+                    if (projectId) {
+                      location.assign(
+                        `${location.pathname}?projectId=${projectId}`
+                      );
+                    }
+                  }
+                }}
+                placeholder="Project ID"
+              />
               <button
                 onClick={() => {
-                  const projectId = (
-                    document.querySelector("input") as HTMLInputElement
-                  )?.value;
+                  const projectId = projectIdInput.trim();
 
                   if (projectId) {
                     location.assign(
@@ -273,9 +313,19 @@ export function EditorApp() {
           },
           // Provide a custom handler for loading project data.
           onLoad: async () => {
-            const response = await getProject(projectId);
+            try {
+              const response = await getProject(projectId);
 
-            return { project: response.project };
+              return { project: response.project };
+            } catch (err) {
+              setError(err as Error);
+
+              if ((err as Error).name === ErrorNames.ProjectNotFound) {
+                setProjectId(null);
+              }
+
+              throw err;
+            }
           },
           autosaveChanges: 10,
           autosaveIntervalMs: 60000,

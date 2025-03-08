@@ -2,6 +2,7 @@ import express from "express";
 import { existsSync } from "node:fs";
 import { copyFile, writeFile } from "node:fs/promises";
 import path, { dirname, join } from "node:path";
+import { customError } from "../../../common/custom-error/custom-error";
 import { getFormValidationFromProject } from "../../forms/getFormValidationFromProject";
 import { saveValidationData } from "../../forms/saveValidationData";
 import {
@@ -28,24 +29,19 @@ router.post("/:projectId", async (req, res) => {
   });
 
   if (!row) {
-    res.status(404).json({ error: "Project not found" });
-    return;
+    throw customError(
+      404,
+      "Could not load the requested project.",
+      "ProjectNotFound"
+    );
   }
 
   if (!validTypes.includes(req.body.type)) {
-    res.status(400).json({
-      success: false,
-      error: `Type '${req.body.type}' not implemented!`,
-    });
-    return;
+    throw customError(400, `Type '${req.body.type}' not implemented!`);
   }
 
   if (req.body.projectId !== projectId) {
-    res.status(400).json({
-      success: false,
-      error: "Project id mismatch!",
-    });
-    return;
+    throw customError(400, "Project id mismatch!");
   }
 
   const project = JSON.parse(row.project);
