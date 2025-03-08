@@ -7,7 +7,6 @@ import {
   ErrorNames,
 } from "../../common/custom-error/custom-error";
 import {
-  Strategy,
   type StrategyOptions,
   type VerifyFunction,
 } from "../../node_modules/openid-client/build/passport";
@@ -49,6 +48,7 @@ const validHosts = process.env.AUTH_VALID_HOSTS?.split(",") || [];
 const validBaseHosts = validHosts.map((host) => new URL(host).hostname);
 
 let openid: typeof import("openid-client");
+let Strategy: typeof import("openid-client/build/passport").Strategy;
 
 /**
  * Get the openid configuration from the keycloak server
@@ -58,6 +58,8 @@ let openid: typeof import("openid-client");
 export async function startAuthSetup() {
   const load = await import("openid-client");
   openid = load;
+  const strategyLoad = await import("openid-client/build/passport");
+  Strategy = strategyLoad.Strategy;
 
   // get the openid config from the keycloak server
   const config = await openid.discovery(
