@@ -5,6 +5,8 @@ import {
   router as assetsRouter,
   staticFiles as assetStaticFiles,
 } from "./api/assets/register";
+import { router as userEndpoints } from "./api/auth/register";
+import { userFromReq } from "./api/auth/userFromReq";
 import { router as projectsRouter } from "./api/projects/register";
 import { router as publishRouter } from "./api/publish/register";
 import { protectEndpoint } from "./auth/protectEndpoint";
@@ -46,16 +48,16 @@ async function main() {
 
   app.use("/api", protectEndpoint([], { onFail: "json" }));
 
-  app.get("/api", (req: Request, res: Response) => {
+  app.get("/api", async (req: Request, res: Response) => {
+    const user = await userFromReq(req);
+
     res.json({
       now: new Date(),
-      user: {
-        id: req.user?.sub,
-        name: req.user?.name,
-        email: req.user?.email,
-      },
+      user,
     });
   });
+
+  app.use("/api/auth/user", userEndpoints);
 
   app.use("/api/assets", assetsRouter);
   app.use("/assets", assetStaticFiles);

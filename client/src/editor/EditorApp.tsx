@@ -3,6 +3,7 @@ import { Editor } from "grapesjs";
 import customCodePlugin from "grapesjs-custom-code";
 import parserPostCSS from "grapesjs-parser-postcss";
 import { useEffect, useState } from "react";
+import { loadCurrentUser } from "../auth/user";
 import { registerElements } from "../components/htmlElements";
 import { registerImageViewer } from "../components/imageViewer";
 import { addFonts } from "../fonts/addFonts";
@@ -20,18 +21,42 @@ export function EditorApp() {
     // the project id is a parameter in the URL
     // e.g. http://localhost/editor?projectId=123
 
-    const urlParams = new URLSearchParams(window.location.search);
+    const urlParams = new URLSearchParams(location.search);
     const projectId = urlParams.get("projectId");
 
+    let _mounted = true;
+
     if (projectId) {
-      setProjectId(projectId);
+      // check if the user logged in
+      loadCurrentUser()
+        .then((user) => {
+          console.log("User", user);
+
+          if (user.isAuthenticated() && _mounted) {
+            setProjectId(projectId);
+          }
+        })
+        .catch((err) => {
+          if (err.name === "Unauthorized") {
+            const redirect = location.pathname + location.search;
+
+            location.assign(
+              `/auth/login?redirect=${encodeURIComponent(redirect)}`
+            );
+          }
+        });
     } else {
-      // if no project id is provided, we can use a default project id
+      // don't load the editor if there is no project id
       setProjectId(null);
     }
+
+    return () => {
+      _mounted = false;
+    };
   }, []);
 
   if (!projectId) {
+    // TODO: show the project selection list
     return <div>Please choose a project to open.</div>;
   }
 
@@ -42,13 +67,6 @@ export function EditorApp() {
           "39b0a964ef184394a659bb8015cc8822efcbe5c371a44a9f86883d45806f1065",
         project: {
           type: "web",
-          default: {
-            pages: [
-              { name: "Home", component: "<h1>Home page</h1>" },
-              { name: "About", component: "<h1>About page</h1>" },
-              { name: "Contact", component: "<h1>Contact page</h1>" },
-            ],
-          },
           id: projectId,
         },
         plugins: [
