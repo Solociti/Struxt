@@ -29,7 +29,7 @@ async function main() {
   });
 
   // enable static files
-  app.use("/", express.static("./dist"));
+  app.use("/", express.static("./client/dist"));
 
   const siteDir = getSiteDir("staging", "_").replace("/_/staging", "");
   app.use("/sites", express.static(siteDir));

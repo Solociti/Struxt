@@ -1,4 +1,5 @@
 import react from "@vitejs/plugin-react";
+import { resolve } from "path";
 import { defineConfig } from "vite";
 import svgLoader from "vite-svg-loader";
 
@@ -7,8 +8,9 @@ export default defineConfig({
   build: {
     rollupOptions: {
       input: {
-        dashboard: "./index.html",
-        editor: "./editor.html",
+        home: "index.html",
+        dashboard: "dashboard/index.html",
+        editor: "editor/index.html",
       },
       output: {
         assetFileNames: "resource/[name]-[hash].[ext]",
@@ -16,6 +18,9 @@ export default defineConfig({
         chunkFileNames: "resource/[name]-[hash].js",
       },
     },
+  },
+  resolve: {
+    alias: { "/src": resolve(process.cwd(), "src") },
   },
   css: {
     preprocessorOptions: {
