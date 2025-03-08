@@ -79,8 +79,9 @@ export async function setupAuthMiddleware(
       saveUninitialized: true,
       store: store,
       cookie: {
-        secure: true,
-        maxAge: 1000 * 60 * 10,
+        // TODO: setup cert for local dev and allow https
+        secure: process.env.NODE_ENV === "production" ? true : "auto",
+        maxAge: 1000 * 60 * 60 * 24 * 7,
       },
     })
   );

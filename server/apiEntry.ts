@@ -17,6 +17,7 @@ import "./cron/queue";
 import "./cron/worker";
 import { serverAdapter } from "./database/dashboard";
 import { router as formsRouter } from "./forms/register";
+import { registerErrorPage } from "./setup/errorPages";
 import { expressSetup } from "./setup/expressSetup";
 import { dbInit } from "./utils/database";
 
@@ -40,9 +41,6 @@ async function main() {
       limit: "5mb",
     })
   );
-
-  app.set("view engine", "ejs");
-  app.set("views", "./server/views");
 
   await setupAuthEndpoints(app, authConfig);
 
@@ -70,16 +68,7 @@ async function main() {
   // setup the admin pages. This should be moved to a separate server at some point
   app.use("/admin/queues", serverAdapter.getRouter());
 
-  // Error handling middleware for 400-level errors
-  app.use((req, res, next) => {
-    res.status(404).render("error", {
-      statusCode: 404,
-      title: "Page Not Found",
-      message: "The page you are looking for does not exist.",
-    });
-  });
-
-  // Error handling middleware for 500-level errors
+  // Error handling middleware for the api
   app.use(
     "/api",
     (err: Error, req: Request, res: Response, next: NextFunction) => {
@@ -89,6 +78,7 @@ async function main() {
       res.status(statusCode).json({
         error: {
           name: statusCode >= 500 ? "Server Error" : err.name || "Error",
+          status: statusCode,
           message:
             err.message || "Something went wrong. Please try again later.",
         },
@@ -96,16 +86,8 @@ async function main() {
     }
   );
 
-  app.use((err: Error, req: Request, res: Response, next: NextFunction) => {
-    console.error(err.stack);
-    const statusCode = err.status || err.statusCode || 500;
-
-    res.status(statusCode).render("error", {
-      statusCode: statusCode,
-      title: statusCode === 500 ? "Server Error" : "Request Error",
-      message: err.message || "Something went wrong. Please try again later.",
-    });
-  });
+  // register the last middleware for the app
+  registerErrorPage(app);
 
   const server = app.listen(port, () => {
     console.log(`Server listening at http://localhost:${port}`);
