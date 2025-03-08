@@ -72,7 +72,6 @@ async function main() {
   app.use(
     "/api",
     (err: Error, req: Request, res: Response, next: NextFunction) => {
-      console.error(err.stack);
       const statusCode = err.status || err.statusCode || 500;
 
       res.status(statusCode).json({

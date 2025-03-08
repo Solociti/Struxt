@@ -29,6 +29,7 @@ export function protectEndpoint(
       res.status(401).json({
         error: {
           name: "Unauthorized",
+          status: 401,
           message: "You must be logged in to access this resource",
         },
       });

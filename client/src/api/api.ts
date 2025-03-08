@@ -1,0 +1,192 @@
+type Params = URLSearchParams | Record<string, string>;
+
+/**
+ * Build the url to use for the api request
+ *
+ * @param url
+ * @param params
+ * @returns
+ */
+function buildUrl(url: string | URL, params?: Params) {
+  url = new URL(url.toString(), window.location.origin);
+  if (params) {
+    if (params instanceof URLSearchParams) {
+      url.search = params.toString();
+    } else {
+      url.search = new URLSearchParams(params).toString();
+    }
+  }
+  return url;
+}
+
+interface ApiOptions {
+  /**
+   * The method to use for the request
+   */
+  method: "GET" | "POST" | "PUT" | "DELETE";
+
+  /**
+   * Optionally add headers to the request
+   *
+   * json content type is added by default
+   */
+  headers?: Record<string, string>;
+
+  /**
+   * Set a timeout for the request.
+   *
+   * Defaults to 10 seconds
+   * Only set this value if the timeout needs to be longer.
+   */
+  timeoutMs?: number;
+
+  /**
+   * The query parameters to add to the request
+   */
+  params?: Params;
+
+  /**
+   * The body to send with the request
+   */
+  body?: any;
+}
+
+/**
+ * Send an api request
+ *
+ * @param url
+ * @param options
+ * @returns
+ */
+export async function callApi(url: string | URL, options: ApiOptions) {
+  const fetchUrl = buildUrl(url, options.params);
+
+  // setup the abort controller for timeouts
+  const controller = new AbortController();
+  const timeout = options.timeoutMs || 10000;
+  const timeoutId = setTimeout(() => controller.abort(), timeout);
+
+  let responseCode: number = 0;
+
+  try {
+    const body =
+      options.body instanceof FormData
+        ? options.body
+        : JSON.stringify(options.body);
+
+    // start the fetch request
+    const res = await fetch(fetchUrl, {
+      method: options.method,
+      headers: {
+        "Content-Type": "application/json",
+        ...(options.headers || {}),
+      },
+      body,
+    });
+    responseCode = res.status;
+
+    const data = await res.json();
+
+    // check if the server sent an error
+    if (data.error) {
+      // build a new error object
+      const err = new Error(data.error.message);
+      err.name = data.error.name;
+      err.status = data.error.status;
+      throw err;
+    }
+
+    return data;
+  } catch (err) {
+    if (err instanceof Error && err.name === "AbortError") {
+      err.name = "TimeoutError";
+      err.message = "Request timed out.";
+    }
+
+    // set the response code on the error
+    if (err instanceof Error && !err.status) {
+      err.status = responseCode;
+    }
+
+    throw err;
+  } finally {
+    clearTimeout(timeoutId);
+  }
+}
+
+/**
+ * Send a get request to the api
+ *
+ * @param url
+ * @param params
+ * @param options
+ * @returns
+ */
+export async function getApi(
+  url: string | URL,
+  params?: Params,
+  options?: Omit<ApiOptions, "body" | "params">
+) {
+  return await callApi(url, {
+    method: "GET",
+    params,
+    ...options,
+  });
+}
+
+/**
+ * Send a post request to the api
+ *
+ * @param url
+ * @param body
+ * @param options
+ * @returns
+ */
+export async function postApi(
+  url: string | URL,
+  body: any,
+  options?: Omit<ApiOptions, "body">
+) {
+  return await callApi(url, {
+    method: "POST",
+    body,
+    ...options,
+  });
+}
+
+/**
+ * Send a put request to the api
+ *
+ * @param url
+ * @param body
+ * @param options
+ * @returns
+ */
+export async function putApi(
+  url: string | URL,
+  body: any,
+  options?: Omit<ApiOptions, "body">
+) {
+  return await callApi(url, {
+    method: "PUT",
+    body,
+    ...options,
+  });
+}
+
+/**
+ * Send a delete request to the api
+ *
+ * @param url
+ * @param options
+ * @returns
+ */
+export async function deleteApi(
+  url: string | URL,
+  options?: Omit<ApiOptions, "body">
+) {
+  return await callApi(url, {
+    method: "DELETE",
+    ...options,
+  });
+}
