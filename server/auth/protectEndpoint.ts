@@ -1,4 +1,5 @@
 import { NextFunction, Request, Response } from "express";
+import { ErrorNames } from "../../common/custom-error/custom-error";
 
 export interface ProtectEndpointOptions {
   onFail: "redirect" | "json";
@@ -28,9 +29,9 @@ export function protectEndpoint(
     } else {
       res.status(401).json({
         error: {
-          name: "Unauthorized",
+          name: ErrorNames.Unauthorized,
           status: 401,
-          message: "You must be logged in to access this resource",
+          message: "You must be logged in to access this resource.",
         },
       });
       return;

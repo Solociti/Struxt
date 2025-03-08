@@ -4,6 +4,10 @@ import session from "express-session";
 import * as openid from "openid-client";
 import passport from "passport";
 import {
+  customError,
+  ErrorNames,
+} from "../../common/custom-error/custom-error";
+import {
   Strategy,
   type StrategyOptions,
   type VerifyFunction,
@@ -115,20 +119,6 @@ export async function setupAuthMiddleware(
   });
 }
 
-function setupError(status: 401, message: string) {
-  const err = new Error(message);
-  err.status = status;
-
-  switch (status) {
-    case 401:
-      err.name = "Unauthorized";
-      break;
-    default:
-      err.name = "Error";
-      break;
-  }
-}
-
 /**
  * Setup the authentication endpoints for the app
  *
@@ -138,14 +128,14 @@ function setupError(status: 401, message: string) {
 export function setupAuthEndpoints(app: Express, config: openid.Configuration) {
   app.get("/auth/login", (req, res, next) => {
     if (!validBaseHosts.includes(req.hostname)) {
-      throw setupError(401, "Invalid hostname.");
+      throw customError(401, "Invalid hostname.");
     }
 
     const authRedirect = req.query?.auth_redirect?.toString() || "/";
     const url = new URL(authRedirect, `${req.protocol}://${req.hostname}`);
 
     if (url.hostname !== req.hostname) {
-      throw setupError(401, "Invalid redirect URL.");
+      throw customError(401, "Invalid redirect URL.");
     }
 
     passport.authenticate(req.hostname, {
@@ -156,7 +146,7 @@ export function setupAuthEndpoints(app: Express, config: openid.Configuration) {
 
   app.get("/auth/login/callback", (req, res, next) => {
     if (!validBaseHosts.includes(req.hostname)) {
-      throw setupError(401, "Invalid hostname.");
+      throw customError(401, "Invalid hostname.");
     }
 
     passport.authenticate(req.hostname, {
@@ -167,7 +157,7 @@ export function setupAuthEndpoints(app: Express, config: openid.Configuration) {
 
   app.get("/auth/logout", (req, res) => {
     if (!validBaseHosts.includes(req.hostname)) {
-      throw setupError(401, "Invalid hostname.");
+      throw customError(401, "Invalid hostname.");
     }
 
     res.redirect(
@@ -179,7 +169,7 @@ export function setupAuthEndpoints(app: Express, config: openid.Configuration) {
 
   app.get("/auth/logout/callback", (req, res, next) => {
     if (!validBaseHosts.includes(req.hostname)) {
-      throw setupError(401, "Invalid hostname.");
+      throw customError(401, "Invalid hostname.");
     }
 
     req.logout(() => {
@@ -190,7 +180,7 @@ export function setupAuthEndpoints(app: Express, config: openid.Configuration) {
   app.get("/auth/failed", (req, res) => {
     res.status(401).render("error", {
       statusCode: 401,
-      title: "Authentication Failed",
+      title: ErrorNames.AuthFailed,
       message:
         "Something went wrong while authenticating. Please try again momentarily.",
     });

@@ -1,4 +1,5 @@
 import express from "express";
+import { customError } from "../../../common/custom-error/custom-error";
 import { getTable } from "../../utils/database";
 
 export const router = express.Router();
@@ -11,8 +12,11 @@ router.get("/:projectId", async (req, res) => {
   });
 
   if (!row) {
-    res.status(404).json({ error: "Project not found" });
-    return;
+    throw customError(
+      404,
+      "Could not load the requested project.",
+      "ProjectNotFound"
+    );
   }
 
   res.json({ project: JSON.parse(row.project) });
