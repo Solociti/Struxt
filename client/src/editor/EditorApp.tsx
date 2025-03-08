@@ -80,7 +80,7 @@ export function EditorApp() {
           font-weight: 500;
         }
 
-        .error-content a {
+        .error-content a, .error-content button {
           background-color: #0d6efd;
           color: white;
           border: none;
@@ -92,9 +92,9 @@ export function EditorApp() {
           text-decoration: none;
           transition: background-color 0.3s;
         }
-        .error-content a:hover {
+        .error-content a:hover, .error-content button:hover {
           background-color: #0b5ed7;
-        }
+        } 
 `}
         </style>
 
@@ -103,13 +103,28 @@ export function EditorApp() {
             <section>
               <h3>Please login to access the editor</h3>
 
-              <a href={`/auth/login?test=${encodeURIComponent(location.href)}`}>
-                Login
-              </a>
+              <a href={`/auth/login`}>Login</a>
             </section>
           ) : (
             <section>
               <h3>Please choose a project to continue.</h3>
+
+              <input type="text" placeholder="Project ID" />
+              <button
+                onClick={() => {
+                  const projectId = (
+                    document.querySelector("input") as HTMLInputElement
+                  )?.value;
+
+                  if (projectId) {
+                    location.assign(
+                      `${location.pathname}?projectId=${projectId}`
+                    );
+                  }
+                }}
+              >
+                Open Project
+              </button>
             </section>
           )}
         </div>
