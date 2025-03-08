@@ -56,6 +56,21 @@
       .home-button:hover {
         background-color: #0b5ed7;
       }
+      .back-button {
+        background-color: #6c757d;
+        color: white;
+        border: none;
+        padding: 10px 20px;
+        border-radius: 4px;
+        font-size: 16px;
+        cursor: pointer;
+        text-decoration: none;
+        transition: background-color 0.3s;
+        margin-right: 10px;
+      }
+      .back-button:hover {
+        background-color: #5c636a;
+      }
     </style>
   </head>
   <body>
@@ -63,7 +78,20 @@
       <h1 class="error-code"><%- statusCode %></h1>
       <h2 class="error-title"><%- title %></h2>
       <p class="error-message"><%- message %></p>
-      <a href="/" class="home-button">Back to Home</a>
+
+      <div>
+        <a href="/" id="back-button" class="back-button">Go Back</a>
+        <a href="/" class="home-button">Go Home</a>
+      </div>
+
+      <script>
+        document
+          .getElementById("back-button")
+          .addEventListener("click", (e) => {
+            e.preventDefault();
+            window.history.back();
+          });
+      </script>
     </div>
   </body>
 </html>

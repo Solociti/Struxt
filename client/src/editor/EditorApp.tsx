@@ -16,6 +16,7 @@ import "@grapesjs/studio-sdk/style";
 
 export function EditorApp() {
   const [projectId, setProjectId] = useState<string | null>(null);
+  const [loggedIn, setLoggedIn] = useState(true);
 
   useEffect(() => {
     // the project id is a parameter in the URL
@@ -34,15 +35,12 @@ export function EditorApp() {
 
           if (user.isAuthenticated() && _mounted) {
             setProjectId(projectId);
+            setLoggedIn(true);
           }
         })
         .catch((err) => {
           if (err.name === "Unauthorized") {
-            const redirect = location.pathname + location.search;
-
-            location.assign(
-              `/auth/login?redirect=${encodeURIComponent(redirect)}`
-            );
+            setLoggedIn(false);
           }
         });
     } else {
@@ -55,9 +53,68 @@ export function EditorApp() {
     };
   }, []);
 
-  if (!projectId) {
-    // TODO: show the project selection list
-    return <div>Please choose a project to open.</div>;
+  if (!loggedIn || !projectId) {
+    return (
+      <>
+        <style>
+          {`.error-content {
+          display: flex;
+          justify-content: center;
+          align-items: center;
+          height: 100vh;
+        }
+
+        .error-content section {
+          text-align: center;
+          padding: 3rem;
+          margin: 1rem;
+          border: 1px solid rgba(0, 0, 0, 0.4);
+          border-radius: 6px;
+          font-size: 1.2rem;
+        }
+
+        .error-content h3 {
+          margin: 0;
+          margin-bottom: 1.5rem;
+          font-size: 1.5rem;
+          font-weight: 500;
+        }
+
+        .error-content a {
+          background-color: #0d6efd;
+          color: white;
+          border: none;
+          padding: 10px 20px;
+          margin: 0.5rem;
+          border-radius: 4px;
+          font-size: 16px;
+          cursor: pointer;
+          text-decoration: none;
+          transition: background-color 0.3s;
+        }
+        .error-content a:hover {
+          background-color: #0b5ed7;
+        }
+`}
+        </style>
+
+        <div className="error-content">
+          {!loggedIn ? (
+            <section>
+              <h3>Please login to access the editor</h3>
+
+              <a href={`/auth/login?test=${encodeURIComponent(location.href)}`}>
+                Login
+              </a>
+            </section>
+          ) : (
+            <section>
+              <h3>Please choose a project to continue.</h3>
+            </section>
+          )}
+        </div>
+      </>
+    );
   }
 
   return (
