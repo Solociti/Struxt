@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="robots" content="noindex, nofollow" />
+    <title>Error</title>
+    <style>
+      body {
+        font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI",
+          Roboto, Oxygen, Ubuntu, Cantarell, "Open Sans", "Helvetica Neue",
+          sans-serif;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        height: calc(100vh - 40px);
+        margin: 20px;
+        background-color: #f8f9fa;
+        color: #333;
+        text-align: center;
+      }
+      .error-container {
+        background-color: white;
+        border-radius: 8px;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        padding: 40px;
+        max-width: 500px;
+        width: 100%;
+      }
+      .error-code {
+        font-size: 72px;
+        font-weight: bold;
+        margin: 0;
+        color: #aa2f3c;
+      }
+      .error-title {
+        font-size: 24px;
+        margin: 10px 0 20px;
+      }
+      .error-message {
+        margin-bottom: 30px;
+        color: #6c757d;
+      }
+      .home-button {
+        background-color: #0d6efd;
+        color: white;
+        border: none;
+        padding: 10px 20px;
+        border-radius: 4px;
+        font-size: 16px;
+        cursor: pointer;
+        text-decoration: none;
+        transition: background-color 0.3s;
+      }
+      .home-button:hover {
+        background-color: #0b5ed7;
+      }
+      .back-button {
+        background-color: #6c757d;
+        color: white;
+        border: none;
+        padding: 10px 20px;
+        border-radius: 4px;
+        font-size: 16px;
+        cursor: pointer;
+        text-decoration: none;
+        transition: background-color 0.3s;
+        margin-right: 10px;
+      }
+      .back-button:hover {
+        background-color: #5c636a;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="error-container">
+      <h1 class="error-code"><%- statusCode %></h1>
+      <h2 class="error-title"><%- title %></h2>
+      <p class="error-message"><%- message %></p>
+
+      <div>
+        <a href="/" id="back-button" class="back-button">Go Back</a>
+        <a href="/" class="home-button">Go Home</a>
+      </div>
+
+      <script>
+        document
+          .getElementById("back-button")
+          .addEventListener("click", (e) => {
+            e.preventDefault();
+            window.history.back();
+          });
+      </script>
+    </div>
+  </body>
+</html>

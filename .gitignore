@@ -25,3 +25,6 @@ uploads
 *.sln
 *.sw?
 .env
+
+# ignore dev certs
+certs/*.pem

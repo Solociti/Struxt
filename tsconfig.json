@@ -22,5 +22,9 @@
     "noFallthroughCasesInSwitch": true,
     "noUncheckedSideEffectImports": true
   },
-  "include": ["src"]
+  "include": [
+    "client/src",
+    "./custom-error.d.ts",
+    "common/models/user/CurrentUserModel.ts"
+  ]
 }
