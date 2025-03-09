@@ -8,7 +8,7 @@
     "dev": "cd client && vite",
     "build": "tsc && cd client && vite build",
     "preview": "cd client && vite preview",
-    "docker": "docker compose --profile dev up"
+    "docker": "./docker.sh up"
   },
   "devDependencies": {
     "@grapesjs/react": "^2.0.0",
@@ -39,7 +39,6 @@
     "bootstrap": "^5.3.3",
     "bullmq": "^5.41.5",
     "connect-session-knex": "^5.0.0",
-    "cross-dirname": "^0.1.0",
     "dotenv": "^16.4.7",
     "express": "^5.0.1",
     "express-session": "^1.18.1",

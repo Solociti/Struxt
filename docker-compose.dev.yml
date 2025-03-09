@@ -1,0 +1,80 @@
+services:
+  ts-build:
+    build:
+      context: .
+      dockerfile: dev.Dockerfile
+    command: "npx tsc -p server/tsconfig.json --watch"
+    volumes:
+      - ./node_modules/:/app/node_modules
+      - ./docker-package.json:/app/package.json
+      - ./package-lock.json:/app/package-lock.json
+      - .env:/app/.env:ro
+      - ./common/:/app/common
+      - ./migrations/:/app/migrations
+      - ./knexfile.js:/app/knexfile.js
+      - ./server/:/app/server
+      - ./dist-server/:/app/dist-server
+    networks:
+      - struxt-net
+
+  web-host:
+    build:
+      context: .
+      dockerfile: dev.Dockerfile
+    env_file:
+      - .env
+    environment:
+      - IS_DOCKER=true
+      - UPLOAD_DIR=/uploads
+    command: bash -c "sleep 10 && nodemon --delay 2 server/publicHost.js"
+    volumes:
+      - ./node_modules/:/app/node_modules
+      - ./docker-package.json:/app/package.json
+      - ./package-lock.json:/app/package-lock.json
+      - .env:/app/.env:ro
+      - ./dist-server/common:/app/common
+      - ./dist-server/migrations:/app/migrations
+      - ./dist-server/server:/app/server
+      - ./knexfile.js:/app/knexfile.js
+      - ./client/dist:/app/client/dist
+      - ${UPLOAD_DIR}:/uploads
+      - ${SITE_STORAGE_DIR}:/sites
+    depends_on:
+      - mariadb
+      - dragonfly
+      - nginx
+      - ts-build
+    networks:
+      - struxt-net
+
+  editor-api:
+    build:
+      context: .
+      dockerfile: dev.Dockerfile
+    env_file:
+      - .env
+    environment:
+      - IS_DOCKER=true
+      - UPLOAD_DIR=/uploads
+    command: bash -c "sleep 10 && nodemon --delay 2 server/apiEntry.js"
+    volumes:
+      - ./node_modules/:/app/node_modules
+      - ./package.json:/app/package.json
+      - ./package-lock.json:/app/package-lock.json
+      - .env:/app/.env:ro
+      - ./dist-server/common:/app/common
+      - ./dist-server/migrations:/app/migrations
+      - ./dist-server/server:/app/server
+      - ./knexfile.js:/app/knexfile.js
+      - ./client/dist/:/app/client/dist
+      - ${UPLOAD_DIR}:/uploads
+      - ${SITE_STORAGE_DIR}:/sites
+    depends_on:
+      - mariadb
+      - dragonfly
+      - nginx
+      - ts-build
+    ports:
+      - "127.0.0.1:3000:3000"
+    networks:
+      - struxt-net
