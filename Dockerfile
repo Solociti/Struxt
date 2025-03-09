@@ -22,8 +22,7 @@ COPY --from=build /app/client/dist /app/client/dist
 COPY --from=build /app/dist-server /app
 
 # copy template files
-COPY --from=build /app/server/views/*.ejs /app/server/views/
-COPY --from=build /app/server/email/templates/*.html /app/server/email/templates/
+COPY --from=build /app/templates /app/templates/
 
 WORKDIR /app
 

@@ -3,7 +3,7 @@ services:
     build:
       context: .
       dockerfile: dev.Dockerfile
-    command: "npx tsc -p server/tsconfig.json --watch"
+    command: "npx tsc -p server/tsconfig.json --watch --preserveWatchOutput"
     volumes:
       - ./node_modules/:/app/node_modules
       - ./docker-package.json:/app/package.json
@@ -35,7 +35,7 @@ services:
       - ./dist-server/common:/app/common
       - ./dist-server/migrations:/app/migrations
       - ./dist-server/server:/app/server
-      - ./server/views:/app/server/views
+      - ./templates:/app/templates
       - ./knexfile.js:/app/knexfile.js
       - ./client/dist:/app/client/dist
       - ${UPLOAD_DIR}:/uploads
@@ -66,7 +66,7 @@ services:
       - ./dist-server/common:/app/common
       - ./dist-server/migrations:/app/migrations
       - ./dist-server/server:/app/server
-      - ./server/views:/app/server/views
+      - ./templates:/app/templates
       - ./knexfile.js:/app/knexfile.js
       - ./client/dist/:/app/client/dist
       - ${UPLOAD_DIR}:/uploads

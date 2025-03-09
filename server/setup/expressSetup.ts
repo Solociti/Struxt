@@ -22,10 +22,11 @@ export async function expressSetup(app: Express) {
   // reduce fingerprinting
   app.disable("x-powered-by");
   app.set("trust proxy", true);
+  // change
 
   // setup render engine for error pages
   app.set("view engine", "ejs");
-  app.set("views", "./server/views");
+  app.set("views", "templates/views");
 
   // setup the request start time
   app.use((req: Request, res: Response, next: () => void) => {

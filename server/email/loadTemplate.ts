@@ -2,7 +2,7 @@ import Handlebars from "handlebars";
 import { readFile } from "node:fs/promises";
 import { join } from "node:path";
 
-const __dirname = join(process.cwd(), "server/email/templates");
+const __dirname = join(process.cwd(), "templates/email");
 
 /**
  * Load the given html template file

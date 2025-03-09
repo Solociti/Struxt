@@ -1,6 +1,6 @@
 import { basename, join } from "node:path";
 import { sendEmail } from "../../email/sendEmail.ts";
-import { loadTemplate } from "../../email/templates/loadTemplate.ts";
+import { loadTemplate } from "../../email/loadTemplate.ts";
 import { formatLabel } from "../../utils/formatText.ts";
 import { getProjectFormUploadDir } from "../../utils/uploadDir.ts";
 import { getFormSubmission } from "../getFormSubmission.ts";
