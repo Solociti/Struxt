@@ -1,5 +1,5 @@
-import { getTable } from "../utils/database";
-import { FormValidation } from "./validateFormData";
+import { getTable } from "../utils/database.ts";
+import { FormValidation } from "./validateFormData.ts";
 
 export async function loadValidationData(
   projectId: string,

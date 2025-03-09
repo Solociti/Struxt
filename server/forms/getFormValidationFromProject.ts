@@ -1,4 +1,4 @@
-import { FormValidation } from "./validateFormData";
+import { FormValidation } from "./validateFormData.ts";
 
 /**
  * Get the form validation data from the project

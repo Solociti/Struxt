@@ -6,13 +6,13 @@ import passport from "passport";
 import {
   customError,
   ErrorNames,
-} from "../../common/custom-error/custom-error";
+} from "../../common/custom-error/custom-error.ts";
 import {
   Strategy,
   type StrategyOptions,
   type VerifyFunction,
-} from "../../node_modules/openid-client/build/passport";
-import { knex } from "../utils/database";
+} from "../../node_modules/openid-client/build/passport.ts";
+import { knex } from "../utils/database.ts";
 
 // setup the express session storage
 const store = new ConnectSessionKnexStore({

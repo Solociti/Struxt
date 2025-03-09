@@ -1,10 +1,10 @@
 import { basename, join } from "node:path";
-import { sendEmail } from "../../email/sendEmail";
-import { loadTemplate } from "../../email/templates/loadTemplate";
-import { formatLabel } from "../../utils/formatText";
-import { getProjectFormUploadDir } from "../../utils/uploadDir";
-import { getFormSubmission } from "../getFormSubmission";
-import { getFormSettings } from "../settings/getFormSettings";
+import { sendEmail } from "../../email/sendEmail.ts";
+import { loadTemplate } from "../../email/templates/loadTemplate.ts";
+import { formatLabel } from "../../utils/formatText.ts";
+import { getProjectFormUploadDir } from "../../utils/uploadDir.ts";
+import { getFormSubmission } from "../getFormSubmission.ts";
+import { getFormSettings } from "../settings/getFormSettings.ts";
 
 export interface FormTemplateData {
   formName: string;

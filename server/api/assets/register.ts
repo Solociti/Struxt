@@ -2,8 +2,8 @@ import express from "express";
 import multer from "multer";
 import { existsSync, renameSync } from "node:fs";
 import { basename, extname, join } from "node:path";
-import { mkDirRecursive } from "../../utils/mkDir";
-import { getAssetDir, getUploadDir } from "../../utils/uploadDir";
+import { mkDirRecursive } from "../../utils/mkDir.ts";
+import { getAssetDir, getUploadDir } from "../../utils/uploadDir.ts";
 
 // Get the upload directory
 const uploadDir = getAssetDir();

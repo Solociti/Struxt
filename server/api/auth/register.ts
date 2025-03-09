@@ -1,5 +1,5 @@
 import express from "express";
-import { userFromReq } from "./userFromReq";
+import { userFromReq } from "./userFromReq.ts";
 
 export const router = express.Router();
 

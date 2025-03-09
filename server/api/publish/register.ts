@@ -2,19 +2,19 @@ import express from "express";
 import { existsSync } from "node:fs";
 import { copyFile, writeFile } from "node:fs/promises";
 import path, { dirname, join } from "node:path";
-import { customError } from "../../../common/custom-error/custom-error";
-import { getFormValidationFromProject } from "../../forms/getFormValidationFromProject";
-import { saveValidationData } from "../../forms/saveValidationData";
+import { customError } from "../../../common/custom-error/custom-error.ts";
+import { getFormValidationFromProject } from "../../forms/getFormValidationFromProject.ts";
+import { saveValidationData } from "../../forms/saveValidationData.ts";
 import {
   defaultFormSettings,
   saveNewFormSettings,
-} from "../../forms/sendEmail/saveFormSettings";
-import { getFormSettings } from "../../forms/settings/getFormSettings";
-import { cleanDir } from "../../utils/cleanDir";
-import { copyDir } from "../../utils/copyDir";
-import { getTable } from "../../utils/database";
-import { mkDirRecursive } from "../../utils/mkDir";
-import { getAssetDir, getSiteDir } from "../../utils/uploadDir";
+} from "../../forms/sendEmail/saveFormSettings.ts";
+import { getFormSettings } from "../../forms/settings/getFormSettings.ts";
+import { cleanDir } from "../../utils/cleanDir.ts";
+import { copyDir } from "../../utils/copyDir.ts";
+import { getTable } from "../../utils/database.ts";
+import { mkDirRecursive } from "../../utils/mkDir.ts";
+import { getAssetDir, getSiteDir } from "../../utils/uploadDir.ts";
 
 export const router = express.Router();
 
