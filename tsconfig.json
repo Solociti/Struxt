@@ -24,7 +24,7 @@
   },
   "include": [
     "client/src",
-    "./custom-error.d.ts",
+    "common/custom-error.d.ts",
     "common/models/user/CurrentUserModel.ts"
   ]
 }

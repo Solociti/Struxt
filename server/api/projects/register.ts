@@ -1,6 +1,6 @@
 import express from "express";
-import { customError } from "../../../common/custom-error/custom-error";
-import { getTable } from "../../utils/database";
+import { customError } from "../../../common/custom-error/custom-error.ts";
+import { getTable } from "../../utils/database.ts";
 
 export const router = express.Router();
 

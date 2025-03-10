@@ -1,9 +1,9 @@
-import { knex } from "../utils/database";
+import { knex } from "../utils/database.ts";
 import {
   FormSubmission,
   toFormAttachmentRow,
   toFormSubmissionRow,
-} from "./convertRows";
+} from "./convertRows.ts";
 
 /**
  * Saves a public form submission to the database.

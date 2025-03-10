@@ -1,6 +1,6 @@
-import { knex } from "../utils/database";
-import { loadValidationData } from "./loadValidationData";
-import { FormValidation } from "./validateFormData";
+import { knex } from "../utils/database.ts";
+import { loadValidationData } from "./loadValidationData.ts";
+import { FormValidation } from "./validateFormData.ts";
 
 /**
  * Save the validation data to the database

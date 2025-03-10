@@ -1,5 +1,5 @@
 import { Request } from "express";
-import { CurrentUserModel } from "../../../common/models/user/CurrentUserModel";
+import { CurrentUserModel } from "../../../common/models/user/CurrentUserModel.ts";
 
 // Extend Express Request interface
 declare global {

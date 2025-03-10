@@ -1,7 +1,7 @@
 import { Express, Request, Response } from "express";
-import { knex } from "../utils/database";
-import { getIp } from "../utils/requests";
-import { rateLimit } from "./RateLimit";
+import { knex } from "../utils/database.ts";
+import { getIp } from "../utils/requests.ts";
+import { rateLimit } from "./RateLimit.ts";
 
 const leakRate = process.env.RL_LEAK_RATE
   ? parseInt(process.env.RL_LEAK_RATE)
@@ -25,7 +25,7 @@ export async function expressSetup(app: Express) {
 
   // setup render engine for error pages
   app.set("view engine", "ejs");
-  app.set("views", "./server/views");
+  app.set("views", "templates/views");
 
   // setup the request start time
   app.use((req: Request, res: Response, next: () => void) => {

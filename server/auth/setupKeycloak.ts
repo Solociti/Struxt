@@ -1,17 +1,18 @@
 import { ConnectSessionKnexStore } from "connect-session-knex";
 import { Express } from "express";
 import session from "express-session";
+import * as openid from "openid-client";
 import passport from "passport";
 import {
   customError,
   ErrorNames,
-} from "../../common/custom-error/custom-error";
+} from "../../common/custom-error/custom-error.ts";
 import {
+  Strategy,
   type StrategyOptions,
   type VerifyFunction,
-} from "../../node_modules/openid-client/build/passport";
-import { knex } from "../utils/database";
-import { Configuration } from "openid-client";
+} from "../../node_modules/openid-client/build/passport.ts";
+import { knex } from "../utils/database.ts";
 
 // setup the express session storage
 const store = new ConnectSessionKnexStore({
@@ -47,20 +48,12 @@ declare global {
 const validHosts = process.env.AUTH_VALID_HOSTS?.split(",") || [];
 const validBaseHosts = validHosts.map((host) => new URL(host).hostname);
 
-let openid: typeof import("openid-client");
-let Strategy: typeof import("openid-client/build/passport").Strategy;
-
 /**
  * Get the openid configuration from the keycloak server
  *
  * @returns
  */
 export async function startAuthSetup() {
-  const load = await import("openid-client");
-  openid = load;
-  const strategyLoad = await import("openid-client/build/passport");
-  Strategy = strategyLoad.Strategy;
-
   // get the openid config from the keycloak server
   const config = await openid.discovery(
     new URL(
@@ -79,7 +72,10 @@ export async function startAuthSetup() {
  *
  * @param app
  */
-export async function setupAuthMiddleware(app: Express, config: Configuration) {
+export async function setupAuthMiddleware(
+  app: Express,
+  config: openid.Configuration
+) {
   app.use(
     session({
       secret: process.env.PASSPORT_SESSION_SECRET || "temp",
@@ -129,7 +125,7 @@ export async function setupAuthMiddleware(app: Express, config: Configuration) {
  * @param app
  * @param config
  */
-export function setupAuthEndpoints(app: Express, config: Configuration) {
+export function setupAuthEndpoints(app: Express, config: openid.Configuration) {
   app.get("/auth/login", (req, res, next) => {
     if (!validBaseHosts.includes(req.hostname)) {
       throw customError(401, "Invalid hostname.");

@@ -1,5 +1,5 @@
-import { setupQueue, setupWorker } from "../../database/setupQueue";
-import { sendFormEmail } from "./sendFormEmail";
+import { setupQueue, setupWorker } from "../../database/setupQueue.ts";
+import { sendFormEmail } from "./sendFormEmail.ts";
 
 const { queue } = setupQueue("public", "form-submission", {});
 

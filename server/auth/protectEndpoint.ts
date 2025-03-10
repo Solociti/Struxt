@@ -1,5 +1,5 @@
 import { NextFunction, Request, Response } from "express";
-import { ErrorNames } from "../../common/custom-error/custom-error";
+import { ErrorNames } from "../../common/custom-error/custom-error.ts";
 
 export interface ProtectEndpointOptions {
   onFail: "redirect" | "json";

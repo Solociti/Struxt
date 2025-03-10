@@ -1,6 +1,6 @@
-import { downloadPasswordLists } from "../auth/downloadPasswordLists";
-import { setupWorker } from "../database/setupQueue";
-import { cronName, cronPrefix } from "./queue";
+import { downloadPasswordLists } from "../auth/downloadPasswordLists.ts";
+import { setupWorker } from "../database/setupQueue.ts";
+import { cronName, cronPrefix } from "./queue.ts";
 
 // setup a cron worker
 setupWorker(
