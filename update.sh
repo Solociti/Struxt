@@ -5,5 +5,5 @@ git pull
 
 node envSetup.js
 
-docker compose --profile prod build
-docker compose --profile prod up -d
+./docker.sh build
+./docker.sh up -d
