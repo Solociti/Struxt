@@ -22,7 +22,6 @@ export async function expressSetup(app: Express) {
   // reduce fingerprinting
   app.disable("x-powered-by");
   app.set("trust proxy", true);
-  // change
 
   // setup render engine for error pages
   app.set("view engine", "ejs");
