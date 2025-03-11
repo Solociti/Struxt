@@ -17,7 +17,7 @@ import "@grapesjs/studio-sdk/style";
 
 export function EditorApp() {
   const [projectId, setProjectId] = useState<string | null>(null);
-  const [loggedIn, setLoggedIn] = useState(true);
+  const [loggedIn, setLoggedIn] = useState(false);
   const [error, setError] = useState<Error | null>(null);
 
   const [projectIdInput, setProjectIdInput] = useState("");
@@ -30,23 +30,23 @@ export function EditorApp() {
     const projectId = urlParams.get("projectId") || urlParams.get("project_id");
 
     let _mounted = true;
+    // check if the user logged in
+    loadCurrentUser()
+      .then((user) => {
+        if (user.isAuthenticated() && _mounted) {
+          setLoggedIn(true);
+        }
+      })
+      .catch((err) => {
+        if (err.name === "Unauthorized") {
+          setLoggedIn(false);
+        } else {
+          setError(err);
+        }
+      });
 
     if (projectId) {
-      // check if the user logged in
-      loadCurrentUser()
-        .then((user) => {
-          if (user.isAuthenticated() && _mounted) {
-            setProjectId(projectId);
-            setLoggedIn(true);
-          }
-        })
-        .catch((err) => {
-          if (err.name === "Unauthorized") {
-            setLoggedIn(false);
-          } else {
-            setError(err);
-          }
-        });
+      setProjectId(projectId);
     } else {
       // don't load the editor if there is no project id
       setProjectId(null);
