@@ -1,10 +1,11 @@
+import tailwindcss from "@tailwindcss/vite";
 import react from "@vitejs/plugin-react";
 import { resolve } from "path";
 import { defineConfig } from "vite";
 import svgLoader from "vite-svg-loader";
 
 export default defineConfig({
-  plugins: [react(), svgLoader()],
+  plugins: [react(), svgLoader(), tailwindcss()],
   build: {
     sourcemap: true,
     rollupOptions: {
