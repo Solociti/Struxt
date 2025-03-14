@@ -59,18 +59,15 @@ export function realms(realmName?: string) {
                     briefRepresentation.toString()
                   );
                 }
+                console.log(url.toString());
 
                 const bearerToken = await getBearerToken();
-
-                console.log(url.toString());
 
                 const result = await axios.get(url.toString(), {
                   headers: {
                     Authorization: `Bearer ${bearerToken}`,
                   },
                 });
-
-                console.log(result);
 
                 if (result.status === 200) {
                   return result.data;

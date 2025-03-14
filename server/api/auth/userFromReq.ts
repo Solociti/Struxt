@@ -46,10 +46,18 @@ async function getUserRoles(userId: string) {
     return JSON.parse(cachedRoles);
   }
 
-  const roles = await realms().users(userId).roleMappings.realm.composite.get();
+  try {
+    const roles = await realms()
+      .users(userId)
+      .roleMappings.realm.composite.get();
 
-  const roleNames = roles.map((role) => role.name).filter(Boolean);
-  await setEx(`keycloak:roles:${userId}`, 600, JSON.stringify(roleNames));
+    const roleNames = roles.map((role) => role.name).filter(Boolean);
+    await setEx(`keycloak:roles:${userId}`, 600, JSON.stringify(roleNames));
 
-  return roleNames as string[];
+    return roleNames as string[];
+  } catch (err) {
+    console.error(err);
+
+    return [];
+  }
 }
