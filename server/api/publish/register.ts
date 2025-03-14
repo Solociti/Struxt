@@ -15,6 +15,7 @@ import { copyDir } from "../../utils/copyDir.ts";
 import { getTable } from "../../utils/database.ts";
 import { mkDirRecursive } from "../../utils/mkDir.ts";
 import { getAssetDir, getSiteDir } from "../../utils/uploadDir.ts";
+import { userFromReq } from "../auth/userFromReq.ts";
 
 export const router = express.Router();
 
@@ -22,6 +23,15 @@ const validTypes = ["staging", "production"];
 
 router.post("/:projectId", async (req, res) => {
   const projectId = req.params.projectId;
+
+  const user = await userFromReq(req);
+  if (!user.hasPermission(`struxt.projects.${projectId}`)) {
+    throw customError(
+      403,
+      "You do not have permission to publish this project.",
+      "Forbidden"
+    );
+  }
 
   // check if the project exists
   const [row] = await getTable("sites").where({
@@ -38,6 +48,13 @@ router.post("/:projectId", async (req, res) => {
 
   if (!validTypes.includes(req.body.type)) {
     throw customError(400, `Type '${req.body.type}' not implemented!`);
+  }
+
+  if (!user.hasPermission(`struxt.publish.${req.body.type}`)) {
+    throw customError(
+      403,
+      `You do not have permission to publish to ${req.body.type}!`
+    );
   }
 
   if (req.body.projectId !== projectId) {

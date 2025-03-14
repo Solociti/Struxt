@@ -7,7 +7,7 @@ export class CurrentUserModel {
   /**
    * The roles of the user
    */
-  public roles: any[] = [];
+  public roles: string[] = [];
 
   constructor(data?: Partial<CurrentUserModel>) {
     if (data) {

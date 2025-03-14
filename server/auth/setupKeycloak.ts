@@ -14,6 +14,9 @@ import {
 } from "../../node_modules/openid-client/build/passport.ts";
 import { knex } from "../utils/database.ts";
 
+export const keycloakRealmName = process.env.KEYCLOAK_REALM;
+export const keycloakHostname = process.env.KEYCLOAK_HOSTNAME;
+
 // setup the express session storage
 const store = new ConnectSessionKnexStore({
   knex: knex,
@@ -56,10 +59,7 @@ const validBaseHosts = validHosts.map((host) => new URL(host).hostname);
 export async function startAuthSetup() {
   // get the openid config from the keycloak server
   const config = await openid.discovery(
-    new URL(
-      "/realms/" + process.env.KEYCLOAK_REALM,
-      process.env.KEYCLOAK_HOSTNAME
-    ),
+    new URL("/realms/" + keycloakRealmName, keycloakHostname),
     process.env.KEYCLOAK_CLIENT_ID as string,
     process.env.KEYCLOAK_CLIENT_SECRET
   );

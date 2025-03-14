@@ -1,11 +1,21 @@
 import express from "express";
 import { customError } from "../../../common/custom-error/custom-error.ts";
 import { getTable } from "../../utils/database.ts";
+import { userFromReq } from "../auth/userFromReq.ts";
 
 export const router = express.Router();
 
 router.get("/:projectId", async (req, res) => {
   const projectId = req.params.projectId;
+
+  const user = await userFromReq(req);
+  if (!user.hasPermission(`struxt.projects.${projectId}`)) {
+    throw customError(
+      403,
+      "You do not have permission to view this project.",
+      "Forbidden"
+    );
+  }
 
   const [row] = await getTable("sites").where({
     id: projectId,
@@ -24,6 +34,15 @@ router.get("/:projectId", async (req, res) => {
 
 router.post("/:projectId", async (req, res) => {
   const projectId = req.params.projectId;
+
+  const user = await userFromReq(req);
+  if (!user.hasPermission(`struxt.projects.${projectId}`)) {
+    throw customError(
+      403,
+      "You do not have permission to modify this project.",
+      "Forbidden"
+    );
+  }
 
   await getTable("sites")
     .update({
