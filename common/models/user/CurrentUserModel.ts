@@ -1,3 +1,5 @@
+import { hasPermission, PermType } from "./Roles.ts";
+
 export class CurrentUserModel {
   public id: string = "";
   public email: string = "";
@@ -34,10 +36,10 @@ export class CurrentUserModel {
   /**
    * Check if the user has the permission required
    *
-   * @param role
+   * @param permission
    * @returns
    */
-  hasPermission(role: string) {
-    return this.isAuthenticated() && this.roles.includes(role);
+  hasPermission(permission: PermType) {
+    return this.isAuthenticated() && hasPermission(this.roles, permission);
   }
 }

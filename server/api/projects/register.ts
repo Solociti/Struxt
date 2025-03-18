@@ -1,15 +1,33 @@
 import express from "express";
 import { customError } from "../../../common/custom-error/custom-error.ts";
+import { ProjectListApi } from "../../../common/models/projects/api.ts";
 import { getTable } from "../../utils/database.ts";
 import { userFromReq } from "../auth/userFromReq.ts";
+import { getProjectsForUser } from "./getProjectList.ts";
 
 export const router = express.Router();
+
+router.get("/", async (req, res) => {
+  const user = await userFromReq(req);
+
+  // TODO: setup permission management
+  const rows: { id: string; name: string; description: string }[] =
+    await getProjectsForUser(user.id);
+
+  const response: ProjectListApi = {
+    list: rows,
+  };
+
+  res.json(response);
+});
 
 router.get("/:projectId", async (req, res) => {
   const projectId = req.params.projectId;
 
   const user = await userFromReq(req);
-  if (!user.hasPermission(`struxt.projects.${projectId}`)) {
+  if (
+    !user.hasPermission(`struxt.projects.${projectId}` as "struxt.projects")
+  ) {
     throw customError(
       403,
       "You do not have permission to view this project.",
@@ -36,7 +54,9 @@ router.post("/:projectId", async (req, res) => {
   const projectId = req.params.projectId;
 
   const user = await userFromReq(req);
-  if (!user.hasPermission(`struxt.projects.${projectId}`)) {
+  if (
+    !user.hasPermission(`struxt.projects.${projectId}` as "struxt.projects")
+  ) {
     throw customError(
       403,
       "You do not have permission to modify this project.",
