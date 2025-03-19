@@ -59,7 +59,6 @@ export function realms(realmName?: string) {
                     briefRepresentation.toString()
                   );
                 }
-                console.log(url.toString());
 
                 const bearerToken = await getBearerToken();
 
