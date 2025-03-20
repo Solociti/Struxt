@@ -1,4 +1,9 @@
-import { hasPermission, PermType } from "./Roles.ts";
+import {
+  hasPermission,
+  hasProjectPermission,
+  PermType,
+  ProjectPermType,
+} from "./Roles.ts";
 
 export class CurrentUserModel {
   public id: string = "";
@@ -10,6 +15,14 @@ export class CurrentUserModel {
    * The roles of the user
    */
   public roles: string[] = [];
+
+  /**
+   * The list of roles specific to projects
+   */
+  public projectRoles: {
+    projectId: string;
+    action: string;
+  }[] = [];
 
   constructor(data?: Partial<CurrentUserModel>) {
     if (data) {
@@ -39,7 +52,24 @@ export class CurrentUserModel {
    * @param permission
    * @returns
    */
-  hasPermission(permission: PermType) {
-    return this.isAuthenticated() && hasPermission(this.roles, permission);
+  hasPermission(permission: PermType | PermType[]) {
+    if (this.isAuthenticated()) {
+      return hasPermission(this.roles, permission);
+    }
+    return false;
+  }
+
+  /**
+   * Check if the user has the permission required for the project
+   *
+   * @param projectId
+   * @param permission
+   * @returns
+   */
+  hasProjectPermission(
+    projectId: string,
+    permission: ProjectPermType | ProjectPermType[]
+  ) {
+    return hasProjectPermission(this.projectRoles, projectId, permission);
   }
 }

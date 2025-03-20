@@ -1,5 +1,7 @@
+import { useEffect } from "react";
 import { DashboardHeader } from "./Header";
 import { DashboardSidebar } from "./Sidebar";
+import { loadCurrentUser } from "../auth/user";
 
 export default function DashboardApp() {
   /**
@@ -9,6 +11,15 @@ export default function DashboardApp() {
    * domain details,
    * change history
    */
+
+  useEffect(() => {
+    // Load the user data
+    loadCurrentUser().catch((err) => {
+      if (err.name === "Unauthorized") {
+        location.assign("/auth/login");
+      }
+    });
+  }, []);
 
   return (
     <>

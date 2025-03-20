@@ -1,21 +1,30 @@
 import { NextFunction, Request, Response } from "express";
 import { ErrorNames } from "../../common/custom-error/custom-error.ts";
+import { PermType } from "../../common/models/user/Roles.ts";
+import { userFromReq } from "../api/auth/userFromReq.ts";
 
 export interface ProtectEndpointOptions {
   onFail: "redirect" | "json";
 }
 
 export function protectEndpoint(
-  roles: string[],
+  roles: PermType[],
   options: ProtectEndpointOptions = {
     onFail: "redirect",
   }
 ) {
-  return (req: Request, res: Response, next: NextFunction) => {
+  return async (req: Request, res: Response, next: NextFunction) => {
     if (req.isAuthenticated && req.isAuthenticated()) {
-      //TODO check if the user has the correct role
-      next();
-      return;
+      // check if the user has the correct role
+      const user = await userFromReq(req);
+
+      if (
+        user.isAuthenticated() &&
+        (roles.length === 0 || user.hasPermission(roles))
+      ) {
+        next();
+        return;
+      }
     }
 
     if (options.onFail === "redirect") {

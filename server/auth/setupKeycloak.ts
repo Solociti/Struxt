@@ -150,7 +150,7 @@ export function setupAuthEndpoints(app: Express, config: openid.Configuration) {
     }
 
     passport.authenticate(req.hostname, {
-      successRedirect: "/",
+      successRedirect: "/dashboard/",
       failureRedirect: "/auth/failed",
     })(req, res, next);
   });

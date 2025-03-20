@@ -2,7 +2,7 @@ import { useCurrentUser } from "../auth/userCurrentUser";
 import SelectProject from "../projects/SelectProject";
 
 export function DashboardHeader() {
-  const { user, hasPermission } = useCurrentUser();
+  const { user } = useCurrentUser();
 
   return (
     <div className="bg-white p-4 flex items-center justify-between border-b">

@@ -10,10 +10,6 @@ export function useCurrentUser() {
     return onUserUpdate((user) => setUser(user), true);
   }, []);
 
-  useEffect(() => {
-    console.log("User", user);
-  }, [user]);
-
   return {
     user,
     hasPermission: (permission: PermType) => {
