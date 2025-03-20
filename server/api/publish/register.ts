@@ -3,6 +3,8 @@ import { existsSync } from "node:fs";
 import { copyFile, writeFile } from "node:fs/promises";
 import path, { dirname, join } from "node:path";
 import { customError } from "../../../common/custom-error/custom-error.ts";
+import { roles } from "../../../common/models/user/Roles.ts";
+import { protectEndpoint } from "../../auth/protectEndpoint.ts";
 import { getFormValidationFromProject } from "../../forms/getFormValidationFromProject.ts";
 import { saveValidationData } from "../../forms/saveValidationData.ts";
 import {
@@ -21,16 +23,67 @@ export const router = express.Router();
 
 const validTypes = ["staging", "production"];
 
+router.use(
+  protectEndpoint([
+    roles.struxt.publish.staging,
+    roles.struxt.publish.production,
+  ])
+);
+
 router.post("/:projectId", async (req, res) => {
+  if (!validTypes.includes(req.body.type)) {
+    throw customError(400, `Type '${req.body.type}' not implemented!`);
+  }
+
+  const publishType = req.body.type;
   const projectId = req.params.projectId;
 
+  if (req.body.projectId !== projectId) {
+    throw customError(400, "Project id mismatch!");
+  }
+
   const user = await userFromReq(req);
-  if (!user.hasPermission(`struxt.projects.${projectId}`)) {
-    throw customError(
-      403,
-      "You do not have permission to publish this project.",
-      "Forbidden"
-    );
+
+  if (!user.hasPermission(roles.struxt.admin)) {
+    if (
+      publishType === "production" &&
+      !user.hasPermission(roles.struxt.publish.production)
+    ) {
+      throw customError(
+        403,
+        "You do not have permission to publish to production!"
+      );
+    }
+
+    if (
+      publishType === "production" &&
+      !user.hasProjectPermission(projectId, roles.projects.publish.production)
+    ) {
+      throw customError(
+        403,
+        "You do not have permission to publish this site to production!"
+      );
+    }
+
+    if (
+      publishType === "staging" &&
+      !user.hasPermission(roles.struxt.publish.staging)
+    ) {
+      throw customError(
+        403,
+        "You do not have permission to publish to staging!"
+      );
+    }
+
+    if (
+      publishType === "staging" &&
+      !user.hasProjectPermission(projectId, roles.projects.publish.staging)
+    ) {
+      throw customError(
+        403,
+        "You do not have permission to publish this site to staging!"
+      );
+    }
   }
 
   // check if the project exists
@@ -46,21 +99,6 @@ router.post("/:projectId", async (req, res) => {
     );
   }
 
-  if (!validTypes.includes(req.body.type)) {
-    throw customError(400, `Type '${req.body.type}' not implemented!`);
-  }
-
-  if (!user.hasPermission(`struxt.publish.${req.body.type}`)) {
-    throw customError(
-      403,
-      `You do not have permission to publish to ${req.body.type}!`
-    );
-  }
-
-  if (req.body.projectId !== projectId) {
-    throw customError(400, "Project id mismatch!");
-  }
-
   const project = JSON.parse(row.project);
 
   const body: {
@@ -69,6 +107,7 @@ router.post("/:projectId", async (req, res) => {
     files: { filename: string; content: string; mimeType: string }[];
   } = req.body;
 
+  // TODO: create a zero downtime deployment
   const siteDir = getSiteDir(body.type, projectId);
   await cleanDir(siteDir);
   await mkDirRecursive(siteDir);

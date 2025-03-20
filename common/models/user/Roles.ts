@@ -12,16 +12,16 @@ export const RolesList: RoleTypes[] = [
 ];
 
 export type ProjectRoleTypes =
-  | "struxt.projects.admin"
-  | "struxt.projects.edit"
-  | "struxt.projects.publish.staging"
-  | "struxt.projects.publish.production";
+  | "projects.admin"
+  | "projects.edit"
+  | "projects.publish.staging"
+  | "projects.publish.production";
 
 export const ProjectRoleList: ProjectRoleTypes[] = [
-  "struxt.projects.admin",
-  "struxt.projects.edit",
-  "struxt.projects.publish.production",
-  "struxt.projects.publish.staging",
+  "projects.admin",
+  "projects.edit",
+  "projects.publish.production",
+  "projects.publish.staging",
 ];
 
 export namespace roles {
@@ -55,37 +55,37 @@ export namespace roles {
       staging: "struxt.publish.staging",
       production: "struxt.publish.production",
     };
-
-    export const projects: {
-      /**
-       * Allows editing the project in the struxt editor.
-       */
-      edit: ProjectRoleTypes;
-
-      /**
-       * Allows managing the project.
-       */
-      admin: ProjectRoleTypes;
-
-      publish: {
-        /**
-         * Allows publishing to staging environments.
-         */
-        staging: ProjectRoleTypes;
-        /**
-         * Allows publishing to production environments.
-         */
-        production: ProjectRoleTypes;
-      };
-    } = {
-      admin: "struxt.projects.admin",
-      edit: "struxt.projects.edit",
-      publish: {
-        staging: "struxt.projects.publish.staging",
-        production: "struxt.projects.publish.production",
-      },
-    };
   }
+
+  export const projects: {
+    /**
+     * Allows editing the project in the struxt editor.
+     */
+    edit: ProjectRoleTypes;
+
+    /**
+     * Allows managing the project.
+     */
+    admin: ProjectRoleTypes;
+
+    publish: {
+      /**
+       * Allows publishing to staging environments.
+       */
+      staging: ProjectRoleTypes;
+      /**
+       * Allows publishing to production environments.
+       */
+      production: ProjectRoleTypes;
+    };
+  } = {
+    admin: "projects.admin",
+    edit: "projects.edit",
+    publish: {
+      staging: "projects.publish.staging",
+      production: "projects.publish.production",
+    },
+  };
 }
 
 export type PermType = RoleTypes | { or: PermType[] } | { and: PermType[] };

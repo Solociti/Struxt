@@ -3,6 +3,8 @@ import multer from "multer";
 import { existsSync, renameSync } from "node:fs";
 import { basename, extname, join } from "node:path";
 import { customError } from "../../../common/custom-error/custom-error.ts";
+import { roles } from "../../../common/models/user/Roles.ts";
+import { protectEndpoint } from "../../auth/protectEndpoint.ts";
 import { mkDirRecursive } from "../../utils/mkDir.ts";
 import { getAssetDir, getUploadDir } from "../../utils/uploadDir.ts";
 import { userFromReq } from "../auth/userFromReq.ts";
@@ -24,6 +26,8 @@ export const staticFiles = express.static(uploadDir, {
 // setup a api endpoint for assets
 export const router = express.Router();
 
+router.use(protectEndpoint(["struxt.editor"]));
+
 router.get("/", async (req, res) => {
   // Return the list of assets
   res.json([]);
@@ -37,7 +41,7 @@ router.post(
     const files = Array.isArray((req as any).files) ? (req as any).files : [];
 
     const user = await userFromReq(req);
-    if (!user.hasPermission(`struxt.projects.${projectId}`)) {
+    if (!user.hasProjectPermission(projectId, [roles.projects.edit])) {
       throw customError(
         403,
         "You do not have permission to modify this project.",
