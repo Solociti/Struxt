@@ -22,16 +22,6 @@ export function DashboardSidebar() {
               className="flex items-center p-3 rounded-md bg-indigo-700"
             >
               <i className="fas fa-home mr-3"></i>
-              <span>Dashboard</span>
-            </a>
-          </li>
-
-          <li>
-            <a
-              href="#"
-              className="flex items-center p-3 rounded-md hover:bg-indigo-700"
-            >
-              <i className="fas fa-project-diagram mr-3"></i>
               <span>Projects</span>
             </a>
           </li>
@@ -41,28 +31,8 @@ export function DashboardSidebar() {
               href="#"
               className="flex items-center p-3 rounded-md hover:bg-indigo-700"
             >
-              <i className="fas fa-calendar mr-3"></i>
-              <span>Calendar</span>
-            </a>
-          </li>
-
-          <li>
-            <a
-              href="#"
-              className="flex items-center p-3 rounded-md hover:bg-indigo-700"
-            >
-              <i className="fas fa-file-alt mr-3"></i>
-              <span>Documents</span>
-            </a>
-          </li>
-
-          <li>
-            <a
-              href="#"
-              className="flex items-center p-3 rounded-md hover:bg-indigo-700"
-            >
-              <i className="fas fa-chart-bar mr-3"></i>
-              <span>Reports</span>
+              <i className="fas fa-project-diagram mr-3"></i>
+              <span>Assets</span>
             </a>
           </li>
         </ul>

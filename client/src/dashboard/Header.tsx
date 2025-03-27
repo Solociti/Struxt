@@ -1,13 +1,16 @@
 import { useCurrentUser } from "../auth/userCurrentUser";
+import { useCurrentProject } from "../projects/ProjectContext";
 import SelectProject from "../projects/SelectProject";
 
 export function DashboardHeader() {
   const { user } = useCurrentUser();
 
+  const { project, setProject } = useCurrentProject();
+
   return (
     <div className="bg-white p-4 flex items-center justify-between border-b">
       <div className="flex items-center w-64 bg-gray-100 rounded-md">
-        <SelectProject allowAll />
+        <SelectProject allowAll project={project} updateProject={setProject} />
       </div>
       <div className="flex items-center">
         <button className="p-2 mr-2">

@@ -1,7 +1,8 @@
 import { useEffect } from "react";
+import { loadCurrentUser } from "../auth/user";
+import { ProjectProvider } from "../projects/ProjectContext";
 import { DashboardHeader } from "./Header";
 import { DashboardSidebar } from "./Sidebar";
-import { loadCurrentUser } from "../auth/user";
 
 export default function DashboardApp() {
   /**
@@ -22,7 +23,7 @@ export default function DashboardApp() {
   }, []);
 
   return (
-    <>
+    <ProjectProvider>
       <DashboardSidebar />
 
       <div className="flex-1 flex flex-col">
@@ -35,6 +36,6 @@ export default function DashboardApp() {
           </div>
         </div>
       </div>
-    </>
+    </ProjectProvider>
   );
 }

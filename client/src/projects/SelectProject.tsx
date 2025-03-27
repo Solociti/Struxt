@@ -2,18 +2,32 @@ import { useState } from "react";
 import { ProjectListItem } from "../../../common/models/projects/ProjectItem";
 import { useLoadAsync } from "../api/useLoadAsync";
 import Dropdown from "../components/Dropdown";
+import { AllProjectsData } from "./ProjectContext";
 import { getAvailableProjects } from "./projects";
 
 export interface SelectProjectProps {
   allowAll?: boolean;
+
+  /**
+   * The current selected project id
+   */
+  project: ProjectListItem;
+
+  /**
+   * Handle selecting the project id
+   *
+   * @param project
+   * @returns
+   */
+  updateProject: (project: ProjectListItem) => void;
 }
 
 export default function SelectProject({
   allowAll = false,
+  project,
+  updateProject,
 }: SelectProjectProps) {
-  const [selectedProject, setSelectedProject] =
-    useState<ProjectListItem | null>(null);
-
+  // setup the dropdown states
   const [isOpen, setIsOpen] = useState(false);
 
   const {
@@ -32,13 +46,13 @@ export default function SelectProject({
 
   return (
     <Dropdown.Button
-      title={selectedProject?.name || "All Projects"}
+      title={project.name}
       isLoading={isLoading}
       onToggle={setIsOpen}
     >
       {allowAll && (
-        <Dropdown.Item onSelect={() => setSelectedProject(null)}>
-          All Projects
+        <Dropdown.Item onSelect={() => updateProject(AllProjectsData)}>
+          {AllProjectsData.name}
         </Dropdown.Item>
       )}
 
@@ -46,13 +60,13 @@ export default function SelectProject({
         projects.map((project) => (
           <Dropdown.Item
             key={project.id}
-            onSelect={() => setSelectedProject(project)}
+            onSelect={() => updateProject(project)}
           >
             {project.name}
           </Dropdown.Item>
         ))}
 
-      {projects && projects.length === 2 && (
+      {projects && projects.length === 0 && (
         <Dropdown.Item readOnly>No projects found</Dropdown.Item>
       )}
       {error && (
