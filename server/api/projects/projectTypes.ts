@@ -40,7 +40,10 @@ interface Component {
   src?: string;
   address?: string;
   zoom?: string;
+
   customName?: string;
+  "custom-name"?: string;
+
   content?: string;
   style?: string;
   droppable?: boolean;
