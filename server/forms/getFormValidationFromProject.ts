@@ -16,30 +16,38 @@ export function getFormValidationFromProject(
   const replaceFormId: { [key: string]: string } = {};
   const validation: FormValidation[] = [];
 
-  const recurse = (components: Component[], currentFormId: string) => {
+  const recurse = (
+    components: Component[],
+    currentFormId: string,
+    depth: number
+  ) => {
     const validation: FormValidation[] = [];
 
     for (const component of components) {
       const attributes = component.attributes;
-      if (!attributes) {
-        continue;
-      }
 
-      if (component.type === "form") {
+      if (component.type === "form" && attributes) {
         currentFormId = attributes.id;
       }
 
-      if (Array.isArray(component.components)) {
-        validation.push(...recurse(component.components, currentFormId));
+      if (Array.isArray(component.components) && component.type !== "select") {
+        validation.push(
+          ...recurse(component.components, currentFormId, depth + 1)
+        );
         continue;
       }
 
+      if (!attributes) {
+        continue;
+      }
       if (!currentFormId) {
         continue;
       }
 
       if (
-        (component.type === "input" || component.type === "textarea") &&
+        (component.type === "input" ||
+          component.type === "textarea" ||
+          component.type === "select") &&
         attributes.name
       ) {
         if (attributes.name === "form_name") {
@@ -76,7 +84,7 @@ export function getFormValidationFromProject(
         continue;
       }
 
-      validation.push(...recurse(components, ""));
+      validation.push(...recurse(components, "", 1));
     }
   }
 
