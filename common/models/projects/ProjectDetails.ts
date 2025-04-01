@@ -2,13 +2,9 @@ import { DomainDetails } from "./Domains";
 import { FormDetails } from "./Forms";
 
 export interface ProjectDetails {
+  id: string;
   name: string;
   description: string;
-
-  owner: {
-    userId: string;
-    displayName: string;
-  };
 
   /**
    * The list of domains for the project
@@ -20,7 +16,7 @@ export interface ProjectDetails {
       userId: string;
       displayName: string;
 
-      timestamp: number;
+      timestamp: Date | null;
     };
     screenshot: string;
   };
@@ -30,7 +26,7 @@ export interface ProjectDetails {
       userId: string;
       displayName: string;
 
-      timestamp: number;
+      timestamp: Date | null;
     };
     screenshot: string;
   };

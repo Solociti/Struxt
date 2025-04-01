@@ -5,7 +5,7 @@
  */
 export function DashboardSidebar() {
   return (
-    <div className="w-50 bg-indigo-600 text-white flex flex-col">
+    <div className="w-50 bg-indigo-600 text-white flex flex-col fixed left-0 top-0 h-full">
       {/* Logo */}
       <div className="p-4 flex items-center">
         <div className="text-2xl">

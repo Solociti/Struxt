@@ -6,6 +6,7 @@ import { protectEndpoint } from "../../auth/protectEndpoint.ts";
 import { getTable } from "../../utils/database.ts";
 import { userFromReq } from "../auth/userFromReq.ts";
 import { getProjectsAdmin, getProjectsForUser } from "./getProjectList.ts";
+import { getProjectDetails } from "./getProjectDetails.ts";
 
 export const router = express.Router();
 
@@ -114,3 +115,23 @@ router.post(
     });
   }
 );
+
+router.get("/details/:projectId", async (req, res) => {
+  const projectId = req.params.projectId;
+
+  const user = await userFromReq(req);
+  if (
+    !user.hasPermission(roles.struxt.admin) &&
+    !user.hasProjectPermission(projectId, [roles.projects.edit])
+  ) {
+    throw customError(
+      403,
+      "You do not have permission to view this project.",
+      "Forbidden"
+    );
+  }
+
+  const details = await getProjectDetails(projectId);
+
+  res.json({ details });
+});
