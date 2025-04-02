@@ -66,6 +66,11 @@ export async function getProjectDetails(projectId: string) {
       site_id: projectId,
       site_env: "production",
     })
+    .andWhere(
+      "created_at",
+      ">",
+      knex.raw("? - INTERVAL 30 DAY", [knex.fn.now()])
+    )
     .count({ count: "form_name" })
     .select("form_name")
     .groupBy("form_name");

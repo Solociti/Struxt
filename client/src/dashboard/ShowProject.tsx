@@ -67,7 +67,7 @@ export function ShowProject({ project }: { project: ProjectDetails }) {
             </table>
           </div>
         ) : (
-          <p className="text-sm text-gray-500">No forms available</p>
+          <p className="text-sm text-gray-500">No form submissions</p>
         )}
       </div>
     </div>
