@@ -8,7 +8,7 @@ export function DashboardHeader() {
   const { project, setProject } = useCurrentProject();
 
   return (
-    <div className="bg-white p-4 flex items-center justify-between border-b sticky top-0">
+    <div className="bg-white p-2 flex items-center justify-between border-b border-gray-200 sticky top-0">
       <div className="flex items-center w-64 bg-gray-100 rounded-md">
         <SelectProject allowAll project={project} updateProject={setProject} />
       </div>
