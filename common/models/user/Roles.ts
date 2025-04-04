@@ -148,7 +148,7 @@ export function hasProjectPermission(
   projectId: string,
   permission: ProjectPermType | ProjectPermType[]
 ): boolean {
-  const roles = projectRoles.filter((role) => role.projectId === projectId);
+  const roles = projectRoles.filter((role) => role.projectId == projectId);
 
   if (roles.length === 0) {
     return false;
