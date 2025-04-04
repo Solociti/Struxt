@@ -7,10 +7,10 @@ export const serverAdapter = new ExpressAdapter();
 serverAdapter.setBasePath("/admin/queues");
 
 const { setQueues } = createBullBoard({
-  queues: getQueues().map((queue) => new BullMQAdapter(queue)),
+  queues: getQueues().map((queue) => new BullMQAdapter(queue) as any),
   serverAdapter: serverAdapter,
 });
 
 onQueueUpdate((queues) => {
-  setQueues(queues.map((queue) => new BullMQAdapter(queue)));
+  setQueues(queues.map((queue) => new BullMQAdapter(queue) as any));
 });
