@@ -40,19 +40,23 @@ export function up(knex) {
       table.string("site_env").notNullable().defaultTo("").after("domain");
     })
     .alterTable("pub_form_settings", (table) => {
+      table.renameColumn("enabled", "legacy_enabled");
+      table.renameColumn("send_email", "legacy_send_email");
+    })
+    .alterTable("pub_form_settings", (table) => {
       table
         .boolean("enabled")
         .notNullable()
         .defaultTo(true)
-        .comment("When false, will not accept submissions")
-        .alter();
+        .after("legacy_enabled")
+        .comment("When false, will not accept submissions");
 
       table
         .boolean("send_email")
         .notNullable()
         .defaultTo(false)
-        .comment("When true, will send an email to the admin")
-        .alter();
+        .after("legacy_send_email")
+        .comment("When true, will send an email to the admin");
     });
 }
 
