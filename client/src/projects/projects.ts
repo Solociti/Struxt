@@ -1,3 +1,4 @@
+import { ProjectListApi } from "../../../common/models/projects/api";
 import { getApi, postApi } from "../api/api";
 
 /**
@@ -25,4 +26,14 @@ export async function saveProject(projectId: string, project: any) {
     id: projectId,
     project,
   });
+}
+
+/**
+ * Load the list of available projects from the server
+ *
+ * @returns
+ */
+export async function getAvailableProjects() {
+  const response: ProjectListApi = await getApi(`/api/projects`);
+  return response;
 }

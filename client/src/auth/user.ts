@@ -6,6 +6,8 @@ import { getApi } from "../api/api";
  */
 let currentUser = new CurrentUserModel();
 
+let loadStarted = false;
+
 /**
  * This function does not load the user from server.
  * Only returns the cached user.
@@ -30,6 +32,10 @@ const cbList: UserUpdateCallback[] = [];
  * @returns
  */
 export function onUserUpdate(callback: UserUpdateCallback, immediate = false) {
+  if (!loadStarted) {
+    loadCurrentUser();
+  }
+
   if (immediate) {
     callback(currentUser);
   }
@@ -72,6 +78,8 @@ function notifyUserUpdate() {
  */
 export async function loadCurrentUser() {
   try {
+    loadStarted = true;
+
     const response = await getApi(`/api/auth/user`);
 
     const user = new CurrentUserModel(response.user);

@@ -3,6 +3,9 @@ import { existsSync } from "node:fs";
 import { copyFile, writeFile } from "node:fs/promises";
 import path, { dirname, join } from "node:path";
 import { customError } from "../../../common/custom-error/custom-error.ts";
+import { db_site_publish_info } from "../../../common/models/database.ts";
+import { roles } from "../../../common/models/user/Roles.ts";
+import { protectEndpoint } from "../../auth/protectEndpoint.ts";
 import { getFormValidationFromProject } from "../../forms/getFormValidationFromProject.ts";
 import { saveValidationData } from "../../forms/saveValidationData.ts";
 import {
@@ -12,16 +15,77 @@ import {
 import { getFormSettings } from "../../forms/settings/getFormSettings.ts";
 import { cleanDir } from "../../utils/cleanDir.ts";
 import { copyDir } from "../../utils/copyDir.ts";
-import { getTable } from "../../utils/database.ts";
+import { getTable, knex } from "../../utils/database.ts";
 import { mkDirRecursive } from "../../utils/mkDir.ts";
 import { getAssetDir, getSiteDir } from "../../utils/uploadDir.ts";
+import { userFromReq } from "../auth/userFromReq.ts";
 
 export const router = express.Router();
 
 const validTypes = ["staging", "production"];
 
+router.use(
+  protectEndpoint([
+    roles.struxt.publish.staging,
+    roles.struxt.publish.production,
+  ])
+);
+
 router.post("/:projectId", async (req, res) => {
+  if (!validTypes.includes(req.body.type)) {
+    throw customError(400, `Type '${req.body.type}' not implemented!`);
+  }
+
+  const publishType = req.body.type;
   const projectId = req.params.projectId;
+
+  if (req.body.projectId !== projectId) {
+    throw customError(400, "Project id mismatch!");
+  }
+
+  const user = await userFromReq(req);
+
+  if (!user.hasPermission(roles.struxt.admin)) {
+    if (
+      publishType === "production" &&
+      !user.hasPermission(roles.struxt.publish.production)
+    ) {
+      throw customError(
+        403,
+        "You do not have permission to publish to production!"
+      );
+    }
+
+    if (
+      publishType === "production" &&
+      !user.hasProjectPermission(projectId, roles.projects.publish.production)
+    ) {
+      throw customError(
+        403,
+        "You do not have permission to publish this site to production!"
+      );
+    }
+
+    if (
+      publishType === "staging" &&
+      !user.hasPermission(roles.struxt.publish.staging)
+    ) {
+      throw customError(
+        403,
+        "You do not have permission to publish to staging!"
+      );
+    }
+
+    if (
+      publishType === "staging" &&
+      !user.hasProjectPermission(projectId, roles.projects.publish.staging)
+    ) {
+      throw customError(
+        403,
+        "You do not have permission to publish this site to staging!"
+      );
+    }
+  }
 
   // check if the project exists
   const [row] = await getTable("sites").where({
@@ -36,14 +100,6 @@ router.post("/:projectId", async (req, res) => {
     );
   }
 
-  if (!validTypes.includes(req.body.type)) {
-    throw customError(400, `Type '${req.body.type}' not implemented!`);
-  }
-
-  if (req.body.projectId !== projectId) {
-    throw customError(400, "Project id mismatch!");
-  }
-
   const project = JSON.parse(row.project);
 
   const body: {
@@ -52,6 +108,7 @@ router.post("/:projectId", async (req, res) => {
     files: { filename: string; content: string; mimeType: string }[];
   } = req.body;
 
+  // TODO: create a zero downtime deployment
   const siteDir = getSiteDir(body.type, projectId);
   await cleanDir(siteDir);
   await mkDirRecursive(siteDir);
@@ -122,6 +179,16 @@ router.post("/:projectId", async (req, res) => {
 
   // save the form validation data
   await saveValidationData(validation);
+
+  // save the publish details to database
+  const publishInfo: Omit<db_site_publish_info, "id"> = {
+    site_id: parseInt(projectId),
+    site_env: publishType,
+    published_at: new Date(),
+    published_by: user.id,
+    screenshot_url: "",
+  };
+  await knex.table("site_publish_info").insert(publishInfo);
 
   // Create a new project
   res.json({

@@ -21,6 +21,7 @@ import { serverAdapter } from "./database/dashboard.ts";
 import { router as formsRouter } from "./forms/register.ts";
 import { registerErrorPage } from "./setup/errorPages.ts";
 import { expressSetup } from "./setup/expressSetup.ts";
+import "./setup/startup.ts";
 import { dbInit } from "./utils/database.ts";
 
 // run init scripts and then start the server

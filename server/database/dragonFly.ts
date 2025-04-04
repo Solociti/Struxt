@@ -21,3 +21,49 @@ export async function setupNewClient() {
 
   return client;
 }
+
+// setup the client to use for dragon fly key storage
+const keyClient = createClient({
+  url: clientUrl,
+});
+let connected = false;
+
+/**
+ * Get a key value from dragonfly
+ *
+ * @param key
+ * @returns
+ */
+export async function getKey(key: string): Promise<string | null> {
+  try {
+    if (!connected) {
+      await keyClient.connect();
+      connected = true;
+    }
+
+    return await keyClient.get(key);
+  } catch {
+    return null;
+  }
+}
+
+/**
+ * Save a key to dragonfly
+ *
+ * @param key
+ * @param ttl
+ * @param value
+ * @returns
+ */
+export async function setEx(key: string, ttl: number, value: string) {
+  try {
+    if (!connected) {
+      await keyClient.connect();
+      connected = true;
+    }
+
+    return await keyClient.setEx(key, ttl, value);
+  } catch {
+    return null;
+  }
+}

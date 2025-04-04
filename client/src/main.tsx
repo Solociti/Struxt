@@ -1,5 +1,7 @@
 import { StrictMode } from "react";
 import { createRoot } from "react-dom/client";
+import ErrorBoundary from "./components/ErrorBoundary";
+import DashboardApp from "./dashboard/Dashboard";
 
 import "./style.css";
 
@@ -7,18 +9,8 @@ import "./style.css";
 const root = createRoot(document.getElementById("app") as any);
 root.render(
   <StrictMode>
-    <App />
+    <ErrorBoundary>
+      <DashboardApp />
+    </ErrorBoundary>
   </StrictMode>
 );
-
-function App() {
-  return (
-    <div>
-      <h1>Dashboard</h1>
-
-      {/* show the list of projects */}
-
-      {/* open project settings, form settings, publish details, domain details, change history */}
-    </div>
-  );
-}

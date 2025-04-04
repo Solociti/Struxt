@@ -8,7 +8,8 @@
     "dev": "cd client && vite",
     "build": "tsc && cd client && vite build",
     "preview": "cd client && vite preview",
-    "docker": "./docker.sh up"
+    "docker": "./docker.sh up",
+    "schema": "node tools/createSchema.js"
   },
   "devDependencies": {
     "@grapesjs/react": "^2.0.0",
@@ -35,7 +36,8 @@
   "dependencies": {
     "@bull-board/express": "^6.7.10",
     "@popperjs/core": "^2.11.8",
-    "bootstrap": "^5.3.3",
+    "@tailwindcss/vite": "^4.0.13",
+    "axios": "^1.8.3",
     "bullmq": "^5.41.8",
     "connect-session-knex": "^5.0.0",
     "dotenv": "^16.4.7",
@@ -53,6 +55,7 @@
     "passport": "^0.7.0",
     "prompts": "^2.4.2",
     "redis": "^4.7.0",
-    "sanitize-html": "^2.14.0"
+    "sanitize-html": "^2.14.0",
+    "tailwindcss": "^4.0.13"
   }
 }

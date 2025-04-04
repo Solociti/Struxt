@@ -7,8 +7,10 @@ type Params = URLSearchParams | Record<string, string>;
  * @param params
  * @returns
  */
-function buildUrl(url: string | URL, params?: Params) {
+function buildUrl(url: string | string[] | URL, params?: Params) {
+  url = Array.isArray(url) ? url.join("/") : url;
   url = new URL(url.toString(), window.location.origin);
+
   if (params) {
     if (params instanceof URLSearchParams) {
       url.search = params.toString();
@@ -58,7 +60,10 @@ interface ApiOptions {
  * @param options
  * @returns
  */
-export async function callApi(url: string | URL, options: ApiOptions) {
+export async function callApi(
+  url: string | string[] | URL,
+  options: ApiOptions
+) {
   const fetchUrl = buildUrl(url, options.params);
 
   // setup the abort controller for timeouts
@@ -128,7 +133,7 @@ export async function callApi(url: string | URL, options: ApiOptions) {
  * @returns
  */
 export async function getApi(
-  url: string | URL,
+  url: string | string[] | URL,
   params?: Params,
   options?: Omit<ApiOptions, "body" | "params">
 ) {
@@ -148,7 +153,7 @@ export async function getApi(
  * @returns
  */
 export async function postApi(
-  url: string | URL,
+  url: string | string[] | URL,
   body: any,
   options?: Omit<ApiOptions, "body">
 ) {
@@ -168,7 +173,7 @@ export async function postApi(
  * @returns
  */
 export async function putApi(
-  url: string | URL,
+  url: string | string[] | URL,
   body: any,
   options?: Omit<ApiOptions, "body">
 ) {
@@ -187,7 +192,7 @@ export async function putApi(
  * @returns
  */
 export async function deleteApi(
-  url: string | URL,
+  url: string | string[] | URL,
   options?: Omit<ApiOptions, "body">
 ) {
   return await callApi(url, {
