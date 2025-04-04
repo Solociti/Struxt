@@ -9,6 +9,11 @@ export function DashboardHeader() {
 
   return (
     <div className="bg-white p-2 flex items-center justify-between border-b border-gray-200 sticky top-0">
+      {/* Logo */}
+      <div className="text-2xl md:hidden">
+        <img src="/logo.svg" alt="Logo" className="w-8 h-8" />
+      </div>
+
       <div className="flex items-center w-64 bg-gray-100 rounded-md">
         <SelectProject allowAll project={project} updateProject={setProject} />
       </div>

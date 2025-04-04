@@ -18,7 +18,7 @@ export default function DashboardApp() {
   return (
     <ProjectProvider>
       <DashboardSidebar />
-      <div className="w-50 bg-indigo-600 text-white flex flex-col"></div>
+      <div className="w-50 hidden md:flex flex-col"></div>
 
       <div className="flex-1 flex flex-col">
         <DashboardHeader />

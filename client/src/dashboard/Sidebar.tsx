@@ -5,7 +5,7 @@
  */
 export function DashboardSidebar() {
   return (
-    <div className="w-50 bg-indigo-600 text-white flex flex-col fixed left-0 top-0 h-full">
+    <div className="w-50 bg-indigo-600 text-white hidden md:flex flex-col fixed left-0 top-0 h-full">
       {/* Logo */}
       <div className="p-4 flex items-center">
         <div className="text-2xl">
@@ -26,7 +26,7 @@ export function DashboardSidebar() {
             </a>
           </li>
 
-          <li>
+          {/* <li>
             <a
               href="#"
               className="flex items-center p-3 rounded-md hover:bg-indigo-700"
@@ -34,7 +34,7 @@ export function DashboardSidebar() {
               <i className="fas fa-project-diagram mr-3"></i>
               <span>Assets</span>
             </a>
-          </li>
+          </li> */}
         </ul>
       </nav>
 
@@ -42,7 +42,8 @@ export function DashboardSidebar() {
       <div className="mt-auto p-4">
         <a
           href="#"
-          className="flex items-center p-3 rounded-md hover:bg-indigo-700"
+          // className="flex items-center p-3 rounded-md hover:bg-indigo-700"
+          className="flex items-center p-3 rounded-md bg-indigo-500 cursor-not-allowed"
         >
           <i className="fas fa-cog mr-3"></i>
           <span>Settings</span>
