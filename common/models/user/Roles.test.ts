@@ -1,6 +1,6 @@
 import { describe, expect, test } from "vitest";
 import { CurrentUserModel } from "./CurrentUserModel";
-import { hasPermission, PermType, roles } from "./Roles";
+import { hasPermission, PermType } from "./Roles";
 
 describe("User Roles", () => {
   test("should check if the user has the permission", () => {
@@ -28,7 +28,7 @@ describe("User Roles", () => {
 
   test("should check a single false permission", () => {
     const roles = ["struxt.editor"];
-    const permissions: PermType = "struxt.projects";
+    const permissions: PermType = "struxt.publish.production";
 
     expect(hasPermission(roles, permissions)).to.equal(false);
   });
