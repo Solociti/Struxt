@@ -136,5 +136,31 @@ export async function getProjectDetails(projectId: string) {
     }),
   };
 
+  // get the staging user name
+  if (details.staging.published.userId) {
+    const stagingUser = await knex
+      .table("users")
+      .where({
+        uuid: details.staging.published.userId,
+      })
+      .first();
+    if (stagingUser) {
+      details.staging.published.displayName = stagingUser.display_name;
+    }
+  }
+
+  // get the production user name
+  if (details.production.published.userId) {
+    const productionUser = await knex
+      .table("users")
+      .where({
+        uuid: details.production.published.userId,
+      })
+      .first();
+    if (productionUser) {
+      details.production.published.displayName = productionUser.display_name;
+    }
+  }
+
   return details;
 }

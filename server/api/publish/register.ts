@@ -3,6 +3,7 @@ import { existsSync } from "node:fs";
 import { copyFile, writeFile } from "node:fs/promises";
 import path, { dirname, join } from "node:path";
 import { customError } from "../../../common/custom-error/custom-error.ts";
+import { db_site_publish_info } from "../../../common/models/database.ts";
 import { roles } from "../../../common/models/user/Roles.ts";
 import { protectEndpoint } from "../../auth/protectEndpoint.ts";
 import { getFormValidationFromProject } from "../../forms/getFormValidationFromProject.ts";
@@ -14,7 +15,7 @@ import {
 import { getFormSettings } from "../../forms/settings/getFormSettings.ts";
 import { cleanDir } from "../../utils/cleanDir.ts";
 import { copyDir } from "../../utils/copyDir.ts";
-import { getTable } from "../../utils/database.ts";
+import { getTable, knex } from "../../utils/database.ts";
 import { mkDirRecursive } from "../../utils/mkDir.ts";
 import { getAssetDir, getSiteDir } from "../../utils/uploadDir.ts";
 import { userFromReq } from "../auth/userFromReq.ts";
@@ -178,6 +179,16 @@ router.post("/:projectId", async (req, res) => {
 
   // save the form validation data
   await saveValidationData(validation);
+
+  // save the publish details to database
+  const publishInfo: Omit<db_site_publish_info, "id"> = {
+    site_id: parseInt(projectId),
+    site_env: publishType,
+    published_at: new Date(),
+    published_by: user.id,
+    screenshot_url: "",
+  };
+  await knex.table("site_publish_info").insert(publishInfo);
 
   // Create a new project
   res.json({
