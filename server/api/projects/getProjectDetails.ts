@@ -7,7 +7,9 @@ import {
 } from "../../../common/models/database.ts";
 import { EnvironmentTypes } from "../../../common/models/projects/Environment.ts";
 import { ProjectDetails } from "../../../common/models/projects/ProjectDetails.ts";
+import { calcDirSize } from "../../utils/calcDirSize.ts";
 import { knex } from "../../utils/database.ts";
+import { getAssetDir } from "../../utils/uploadDir.ts";
 
 /**
  * Load the project details from the database
@@ -75,6 +77,10 @@ export async function getProjectDetails(projectId: string) {
     .select("form_name")
     .groupBy("form_name");
 
+  // calculate the storage used
+  const dir = getAssetDir(projectId);
+  const storageUsed = await calcDirSize(dir);
+
   const details: ProjectDetails = {
     id: row.id.toString(),
     name: row.name,
@@ -105,6 +111,11 @@ export async function getProjectDetails(projectId: string) {
         timestamp: productionPublished?.published_at || null,
       },
       screenshot: "",
+    },
+
+    storage: {
+      usedBytes: storageUsed,
+      maxBytes: 1024 * 1024 * 1024, // 1GB
     },
 
     forms: formSubmissions.map((row) => {

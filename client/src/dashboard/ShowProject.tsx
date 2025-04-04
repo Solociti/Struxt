@@ -1,4 +1,5 @@
 import { ProjectDetails } from "../../../common/models/projects/ProjectDetails";
+import { formatStorageSize } from "../../../common/format/storageSize";
 import { useCurrentUser } from "../auth/userCurrentUser";
 import { AnchorButton, Button } from "../components/Button";
 import { ProjectEnvInfo } from "./ProjectEnvInfo";
@@ -62,6 +63,35 @@ export function ShowProject({ project }: { project: ProjectDetails }) {
             project={project}
           />
         )}
+      </div>
+
+      {/* Total Site Storage Used */}
+      <div className="mb-6">
+        <h3 className="text-lg font-semibold mb-2">Storage Used</h3>
+        <div className="flex items-center justify-between mb-2">
+          <p className="text-sm text-gray-600">
+            {formatStorageSize(project.storage.usedBytes)}
+          </p>
+          <p className="text-sm text-gray-600">
+            {formatStorageSize(project.storage.maxBytes)}
+          </p>
+        </div>
+        <div className="h-2 bg-gray-200 rounded-full overflow-hidden">
+          <div
+            className={
+              "h-full " +
+              (project.storage.usedBytes / project.storage.maxBytes > 0.8
+                ? "bg-red-600"
+                : "bg-blue-600")
+            }
+            style={{
+              width: `${Math.min(
+                100,
+                (project.storage.usedBytes / project.storage.maxBytes) * 100
+              )}%`,
+            }}
+          ></div>
+        </div>
       </div>
 
       {/* Forms section */}

@@ -31,6 +31,11 @@ export interface ProjectDetails {
     screenshot: string;
   };
 
+  storage: {
+    usedBytes: number;
+    maxBytes: number;
+  };
+
   /**
    * the list of forms for the project
    */
