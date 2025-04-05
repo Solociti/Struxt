@@ -11,10 +11,6 @@
     "docker": "./docker.sh up",
     "schema": "node tools/createSchema.js"
   },
-  "_moduleAliases": {
-    "common": "./server/common",
-    "server": "./server/server"
-  },
   "devDependencies": {
     "@babel/cli": "^7.27.0",
     "@babel/core": "^7.26.10",

@@ -22,7 +22,11 @@ export default defineConfig({
     },
   },
   resolve: {
-    alias: { "/src": resolve(process.cwd(), "src") },
+    alias: {
+      "/src": resolve(process.cwd(), "src"),
+      common: resolve(process.cwd(), "../common"),
+      client: resolve(process.cwd(), "src"),
+    },
   },
   css: {
     preprocessorOptions: {
