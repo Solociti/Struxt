@@ -51,6 +51,6 @@ jobs:
         uses: docker/build-push-action@v6
         with:
           context: ./keycloak
-          file: keycloak.Dockerfile
+          file: ./keycloak/keycloak.Dockerfile
           push: true
           tags: ghcr.io/solociti/struxt-keycloak:${{ github.event.release.tag_name }}
