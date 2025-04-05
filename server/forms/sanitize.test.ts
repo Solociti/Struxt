@@ -1,5 +1,5 @@
 import { expect, test, describe } from "vitest";
-import { sanitizeValue } from "./sanitize.ts";
+import { sanitizeValue } from "./sanitize";
 
 describe("sanitize values", () => {
   test("should remove the entire script html", () => {

@@ -2,12 +2,12 @@ import express from "express";
 import multer from "multer";
 import { existsSync, renameSync } from "node:fs";
 import { basename, extname, join } from "node:path";
-import { customError } from "../../../common/custom-error/custom-error.ts";
-import { roles } from "../../../common/models/user/Roles.ts";
-import { protectEndpoint } from "../../auth/protectEndpoint.ts";
-import { mkDirRecursive } from "../../utils/mkDir.ts";
-import { getAssetDir, getUploadDir } from "../../utils/uploadDir.ts";
-import { userFromReq } from "../auth/userFromReq.ts";
+import { customError } from "common/custom-error/custom-error";
+import { roles } from "common/models/user/Roles";
+import { protectEndpoint } from "../../auth/protectEndpoint";
+import { mkDirRecursive } from "../../utils/mkDir";
+import { getAssetDir, getUploadDir } from "../../utils/uploadDir";
+import { userFromReq } from "../auth/userFromReq";
 
 // Get the upload directory
 const uploadDir = getAssetDir();

@@ -1,4 +1,4 @@
-import { ProjectDetails } from "../../../common/models/projects/ProjectDetails";
+import { ProjectDetails } from "common/models/projects/ProjectDetails";
 import { getApi } from "../api/api";
 import { useLoadAsync } from "../api/useLoadAsync";
 import { useCurrentProject } from "../projects/ProjectContext";

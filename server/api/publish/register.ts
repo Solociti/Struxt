@@ -2,23 +2,23 @@ import express from "express";
 import { existsSync } from "node:fs";
 import { copyFile, writeFile } from "node:fs/promises";
 import path, { dirname, join } from "node:path";
-import { customError } from "../../../common/custom-error/custom-error.ts";
-import { db_site_publish_info } from "../../../common/models/database.ts";
-import { roles } from "../../../common/models/user/Roles.ts";
-import { protectEndpoint } from "../../auth/protectEndpoint.ts";
-import { getFormValidationFromProject } from "../../forms/getFormValidationFromProject.ts";
-import { saveValidationData } from "../../forms/saveValidationData.ts";
+import { customError } from "common/custom-error/custom-error";
+import { db_site_publish_info } from "common/models/database";
+import { roles } from "common/models/user/Roles";
+import { protectEndpoint } from "../../auth/protectEndpoint";
+import { getFormValidationFromProject } from "../../forms/getFormValidationFromProject";
+import { saveValidationData } from "../../forms/saveValidationData";
 import {
   defaultFormSettings,
   saveNewFormSettings,
-} from "../../forms/sendEmail/saveFormSettings.ts";
-import { getFormSettings } from "../../forms/settings/getFormSettings.ts";
-import { cleanDir } from "../../utils/cleanDir.ts";
-import { copyDir } from "../../utils/copyDir.ts";
-import { getTable, knex } from "../../utils/database.ts";
-import { mkDirRecursive } from "../../utils/mkDir.ts";
-import { getAssetDir, getSiteDir } from "../../utils/uploadDir.ts";
-import { userFromReq } from "../auth/userFromReq.ts";
+} from "../../forms/sendEmail/saveFormSettings";
+import { getFormSettings } from "../../forms/settings/getFormSettings";
+import { cleanDir } from "../../utils/cleanDir";
+import { copyDir } from "../../utils/copyDir";
+import { getTable, knex } from "../../utils/database";
+import { mkDirRecursive } from "../../utils/mkDir";
+import { getAssetDir, getSiteDir } from "../../utils/uploadDir";
+import { userFromReq } from "../auth/userFromReq";
 
 export const router = express.Router();
 

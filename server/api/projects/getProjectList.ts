@@ -1,4 +1,4 @@
-import { knex } from "../../utils/database.ts";
+import { knex } from "../../utils/database";
 
 /**
  * Get the list of projects for a user

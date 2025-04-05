@@ -1,5 +1,5 @@
-import { CurrentUserModel } from "../../common/models/user/CurrentUserModel.ts";
-import { knex } from "../utils/database.ts";
+import { CurrentUserModel } from "common/models/user/CurrentUserModel";
+import { knex } from "../utils/database";
 
 /**
  * Update the user info in mariadb

@@ -1,9 +1,9 @@
 import "dotenv/config";
 
 import express from "express";
-import { registerErrorPage } from "./setup/errorPages.ts";
-import { expressSetup, setupSiteLogs } from "./setup/expressSetup.ts";
-import { getSiteDir } from "./utils/uploadDir.ts";
+import { registerErrorPage } from "./setup/errorPages";
+import { expressSetup, setupSiteLogs } from "./setup/expressSetup";
+import { getSiteDir } from "./utils/uploadDir";
 
 // run init scripts and then start the server
 main();

@@ -1,4 +1,4 @@
-import { ProjectListItem } from "./ProjectItem.ts";
+import { ProjectListItem } from "./ProjectItem";
 
 export interface ProjectListApi {
   list: ProjectListItem[];

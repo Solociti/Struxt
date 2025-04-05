@@ -1,4 +1,4 @@
-import { knex } from "./database.ts";
+import { knex } from "./database";
 
 export type IdCounterName = "submission";
 

@@ -1,8 +1,8 @@
 import { get } from "https";
 import { createWriteStream } from "node:fs";
 import { join } from "node:path";
-import { mkDirRecursive } from "../utils/mkDir.ts";
-import { getUploadDir } from "../utils/uploadDir.ts";
+import { mkDirRecursive } from "../utils/mkDir";
+import { getUploadDir } from "../utils/uploadDir";
 import { Job } from "bullmq";
 
 const urls = [

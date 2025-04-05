@@ -1,9 +1,9 @@
-import { Request } from "express";
-import { CurrentUserModel } from "../../../common/models/user/CurrentUserModel.ts";
-import { realms } from "../../auth/keycloak.ts";
-import { updateLocalUser } from "../../auth/updateLocalUser.ts";
-import { getKey, setEx } from "../../database/dragonFly.ts";
-import { getProjectRoles } from "./projectRoles.ts";
+import { CurrentUserModel } from "common/models/user/CurrentUserModel";
+import { realms } from "../../auth/keycloak";
+import { updateLocalUser } from "../../auth/updateLocalUser";
+import { getKey, setEx } from "../../database/dragonFly";
+import { getProjectRoles } from "./projectRoles";
+import express from "express";
 
 // Extend Express Request interface
 declare global {
@@ -14,7 +14,7 @@ declare global {
   }
 }
 
-export async function userFromReq(req: Request) {
+export async function userFromReq(req: express.Request) {
   if (req.loadedUser) {
     return req.loadedUser;
   }

@@ -1,5 +1,5 @@
-import { loadValidationData } from "./loadValidationData.ts";
-import { sanitizeValue } from "./sanitize.ts";
+import { loadValidationData } from "./loadValidationData";
+import { sanitizeValue } from "./sanitize";
 
 export interface FormValidation {
   id?: string;

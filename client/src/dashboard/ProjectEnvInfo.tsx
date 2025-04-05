@@ -1,6 +1,6 @@
-import { formatDate } from "../../../common/format/date";
-import { EnvironmentTypes } from "../../../common/models/projects/Environment";
-import { ProjectDetails } from "../../../common/models/projects/ProjectDetails";
+import { formatDate } from "common/format/date";
+import { EnvironmentTypes } from "common/models/projects/Environment";
+import { ProjectDetails } from "common/models/projects/ProjectDetails";
 
 /**
  * Show the project env value information

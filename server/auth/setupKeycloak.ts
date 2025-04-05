@@ -1,18 +1,15 @@
+import { customError, ErrorNames } from "common/custom-error/custom-error";
 import { ConnectSessionKnexStore } from "connect-session-knex";
-import { Express } from "express";
+import e from "express";
 import session from "express-session";
 import * as openid from "openid-client";
 import passport from "passport";
 import {
-  customError,
-  ErrorNames,
-} from "../../common/custom-error/custom-error.ts";
-import {
   Strategy,
   type StrategyOptions,
   type VerifyFunction,
-} from "../../node_modules/openid-client/build/passport.ts";
-import { knex } from "../utils/database.ts";
+} from "../../node_modules/openid-client/build/passport";
+import { knex } from "../utils/database";
 
 export const keycloakRealmName = process.env.KEYCLOAK_REALM;
 export const keycloakHostname = process.env.KEYCLOAK_HOSTNAME;
@@ -73,7 +70,7 @@ export async function startAuthSetup() {
  * @param app
  */
 export async function setupAuthMiddleware(
-  app: Express,
+  app: e.Express,
   config: openid.Configuration
 ) {
   app.use(
@@ -125,7 +122,10 @@ export async function setupAuthMiddleware(
  * @param app
  * @param config
  */
-export function setupAuthEndpoints(app: Express, config: openid.Configuration) {
+export function setupAuthEndpoints(
+  app: e.Express,
+  config: openid.Configuration
+) {
   app.get("/auth/login", (req, res, next) => {
     if (!validBaseHosts.includes(req.hostname)) {
       throw customError(401, "Invalid hostname.");

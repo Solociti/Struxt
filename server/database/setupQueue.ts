@@ -1,5 +1,5 @@
 import { DefaultJobOptions, Queue, Worker, WorkerOptions } from "bullmq";
-import { clientUrl } from "./dragonFly.ts";
+import { clientUrl } from "./dragonFly";
 
 const queues: Queue[] = [];
 

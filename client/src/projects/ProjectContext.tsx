@@ -1,5 +1,5 @@
 import { createContext, useContext, useState } from "react";
-import { ProjectListItem } from "../../../common/models/projects/ProjectItem";
+import { ProjectListItem } from "common/models/projects/ProjectItem";
 
 export const AllProjectsData: ProjectListItem = {
   id: "*",

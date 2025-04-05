@@ -1,4 +1,4 @@
-import { ProjectListApi } from "../../../common/models/projects/api";
+import { ProjectListApi } from "common/models/projects/api";
 import { getApi, postApi } from "../api/api";
 
 /**

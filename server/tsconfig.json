@@ -1,6 +1,6 @@
 {
   "extends": "../tsconfig.json",
-  "include": [".", "../migrations", "../common/custom-error.d.ts", "../common"],
+  "include": [".", "../migrations", "common/custom-error.d.ts", "common"],
   "compilerOptions": {
     "noEmit": true,
 
@@ -20,7 +20,6 @@
     "forceConsistentCasingInFileNames": true,
     "strict": true,
     "skipLibCheck": true,
-    "allowImportingTsExtensions": true,
     "rewriteRelativeImportExtensions": true,
 
     "noUnusedParameters": false,

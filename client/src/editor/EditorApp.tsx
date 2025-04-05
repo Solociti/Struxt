@@ -3,7 +3,7 @@ import { Editor } from "grapesjs";
 import customCodePlugin from "grapesjs-custom-code";
 import parserPostCSS from "grapesjs-parser-postcss";
 import { useEffect, useState } from "react";
-import { ErrorNames } from "../../../common/custom-error/custom-error";
+import { ErrorNames } from "common/custom-error/custom-error";
 import { loadCurrentUser } from "../auth/user";
 import { registerElements } from "./components/htmlElements";
 import { registerImageViewer } from "./components/imageViewer";

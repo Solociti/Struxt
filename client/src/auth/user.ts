@@ -1,4 +1,4 @@
-import { CurrentUserModel } from "../../../common/models/user/CurrentUserModel";
+import { CurrentUserModel } from "common/models/user/CurrentUserModel";
 import { getApi } from "../api/api";
 
 /**

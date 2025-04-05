@@ -1,4 +1,4 @@
-import { Request } from "express";
+import express from "express";
 
 /**
  * Get the client ip from the request object
@@ -6,6 +6,6 @@ import { Request } from "express";
  * @param req
  * @returns
  */
-export function getIp(req: Request) {
+export function getIp(req: express.Request) {
   return req.ip;
 }

@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { ProjectListItem } from "../../../common/models/projects/ProjectItem";
+import { ProjectListItem } from "common/models/projects/ProjectItem";
 import { useLoadAsync } from "../api/useLoadAsync";
 import Dropdown from "../components/Dropdown";
 import { AllProjectsData } from "./ProjectContext";
