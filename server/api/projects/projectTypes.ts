@@ -18,7 +18,7 @@ interface Style {
   group?: string;
 }
 
-interface Component {
+export interface Component {
   type: string;
   attributes?: {
     id: string;
@@ -85,7 +85,7 @@ interface ProjectSettings {
   customCodeBody: string;
 }
 
-interface Project {
+export interface Project {
   assets: Asset[];
   styles: Style[];
   pages: Page[];

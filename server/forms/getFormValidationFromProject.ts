@@ -1,3 +1,4 @@
+import { Component, Project } from "server/api/projects/projectTypes.ts";
 import { FormValidation } from "./validateFormData.ts";
 
 /**

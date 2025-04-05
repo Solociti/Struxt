@@ -4,25 +4,25 @@ import express, { NextFunction, Request, Response } from "express";
 import {
   router as assetsRouter,
   staticFiles as assetStaticFiles,
-} from "./api/assets/register.ts";
-import { router as userEndpoints } from "./api/auth/register.ts";
-import { userFromReq } from "./api/auth/userFromReq.ts";
-import { router as projectsRouter } from "./api/projects/register.ts";
-import { router as publishRouter } from "./api/publish/register.ts";
-import { protectEndpoint } from "./auth/protectEndpoint.ts";
+} from "server/api/assets/register";
+import { router as userEndpoints } from "server/api/auth/register";
+import { userFromReq } from "server/api/auth/userFromReq";
+import { router as projectsRouter } from "server/api/projects/register";
+import { router as publishRouter } from "server/api/publish/register";
+import { protectEndpoint } from "server/auth/protectEndpoint";
 import {
   setupAuthEndpoints,
   setupAuthMiddleware,
   startAuthSetup,
-} from "./auth/setupKeycloak.ts";
-import "./cron/queue.ts";
-import "./cron/worker.ts";
-import { serverAdapter } from "./database/dashboard.ts";
-import { router as formsRouter } from "./forms/register.ts";
-import { registerErrorPage } from "./setup/errorPages.ts";
-import { expressSetup } from "./setup/expressSetup.ts";
-import "./setup/startup.ts";
-import { dbInit } from "./utils/database.ts";
+} from "server/auth/setupKeycloak";
+import "server/cron/queue";
+import "server/cron/worker";
+import { serverAdapter } from "server/database/dashboard";
+import { router as formsRouter } from "server/forms/register";
+import { registerErrorPage } from "server/setup/errorPages";
+import { expressSetup } from "server/setup/expressSetup";
+import "server/setup/startup";
+import { dbInit } from "server/utils/database";
 
 // run init scripts and then start the server
 Promise.all([dbInit()]).then(() => {
