@@ -1,6 +1,6 @@
 services:
   web-host:
-    image: docker pull ghcr.io/solociti/struxt:${VERSION:-latest}
+    image: ghcr.io/solociti/struxt:${VERSION:-latest}
     restart: unless-stopped
     scale: 2
     env_file:
@@ -21,7 +21,7 @@ services:
       - struxt-net
 
   editor-api:
-    image: docker pull ghcr.io/solociti/struxt:${VERSION:-latest}
+    image: ghcr.io/solociti/struxt:${VERSION:-latest}
     restart: unless-stopped
     scale: 1
     env_file:
@@ -42,7 +42,7 @@ services:
       - struxt-net
 
   keycloak:
-    image: docker pull ghcr.io/solociti/struxt-keycloak:${VERSION:-latest}
+    image: ghcr.io/solociti/struxt-keycloak:${VERSION:-latest}
     restart: unless-stopped
     command: "start --optimized --http-enabled true"
     environment:
