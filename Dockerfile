@@ -11,7 +11,12 @@ COPY . /app/
 
 RUN npm run build
 RUN node copyDockerPackageJson.js
+# running typescript to check for errors
 RUN npx tsc -p server/tsconfig.json
+
+# build the server and common directories
+RUN npx babel server --out-dir dist-server/server --extensions '.ts,.js'
+RUN npx babel common --out-dir dist-server/common --extensions '.ts,.js'
 
 FROM node:20.18 AS prod
 
