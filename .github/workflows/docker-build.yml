@@ -29,8 +29,8 @@ jobs:
           file: Dockerfile
           push: true
           tags: |
-            ghcr.io/${{ github.repository_owner }}/${{ github.event.repository.name }}:latest
-            ghcr.io/${{ github.repository_owner }}/${{ github.event.repository.name }}:${{ github.event.release.tag_name }}
+            ghcr.io/${{ github.repository_owner }}/${{ github.event.repository.name | toLowerCase }}:latest
+            ghcr.io/${{ github.repository_owner }}/${{ github.event.repository.name | toLowerCase }}:${{ github.event.release.tag_name }}
 
       - name: Build and push Keycloak Docker image
         uses: docker/build-push-action@v4
@@ -39,5 +39,5 @@ jobs:
           file: keycloak.Dockerfile
           push: true
           tags: |
-            ghcr.io/${{ github.repository_owner }}/${{ github.event.repository.name }}-keycloak:latest
-            ghcr.io/${{ github.repository_owner }}/${{ github.event.repository.name }}-keycloak:${{ github.event.release.tag_name }}
+            ghcr.io/${{ github.repository_owner }}/${{ github.event.repository.name | toLowerCase }}-keycloak:latest
+            ghcr.io/${{ github.repository_owner }}/${{ github.event.repository.name | toLowerCase }}-keycloak:${{ github.event.release.tag_name }}
