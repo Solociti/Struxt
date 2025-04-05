@@ -28,7 +28,7 @@ jobs:
           context: .
           file: Dockerfile
           push: true
-          tags: ghcr.io/${{ github.repository_owner }}/struxt:${{ github.event.release.tag_name }}
+          tags: ghcr.io/solociti/struxt:${{ github.event.release.tag_name }}
 
       - name: Build and push Keycloak Docker image
         uses: docker/build-push-action@v6
@@ -36,4 +36,4 @@ jobs:
           context: ./keycloak
           file: keycloak.Dockerfile
           push: true
-          tags: ghcr.io/${{ github.repository_owner }}/struxt-keycloak:${{ github.event.release.tag_name }}
+          tags: ghcr.io/solociti/struxt-keycloak:${{ github.event.release.tag_name }}
