@@ -1,5 +1,5 @@
-import { ProjectDetails } from "../../../common/models/projects/ProjectDetails";
-import { formatStorageSize } from "../../../common/format/storageSize";
+import { ProjectDetails } from "common/models/projects/ProjectDetails";
+import { formatStorageSize } from "common/format/storageSize";
 import { useCurrentUser } from "../auth/userCurrentUser";
 import { AnchorButton, Button } from "../components/Button";
 import { ProjectEnvInfo } from "./ProjectEnvInfo";

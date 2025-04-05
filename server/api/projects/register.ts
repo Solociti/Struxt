@@ -1,12 +1,12 @@
 import express from "express";
-import { customError } from "../../../common/custom-error/custom-error.ts";
-import { ProjectListApi } from "../../../common/models/projects/api.ts";
-import { roles } from "../../../common/models/user/Roles.ts";
-import { protectEndpoint } from "../../auth/protectEndpoint.ts";
-import { getTable } from "../../utils/database.ts";
-import { userFromReq } from "../auth/userFromReq.ts";
-import { getProjectsAdmin, getProjectsForUser } from "./getProjectList.ts";
-import { getProjectDetails } from "./getProjectDetails.ts";
+import { customError } from "common/custom-error/custom-error";
+import { ProjectListApi } from "common/models/projects/api";
+import { roles } from "common/models/user/Roles";
+import { protectEndpoint } from "../../auth/protectEndpoint";
+import { getTable } from "../../utils/database";
+import { userFromReq } from "../auth/userFromReq";
+import { getProjectDetails } from "./getProjectDetails";
+import { getProjectsAdmin, getProjectsForUser } from "./getProjectList";
 
 export const router = express.Router();
 

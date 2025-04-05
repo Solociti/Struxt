@@ -3,7 +3,7 @@ import {
   hasProjectPermission,
   PermType,
   ProjectPermType,
-} from "./Roles.ts";
+} from "./Roles";
 
 export class CurrentUserModel {
   public id: string = "";

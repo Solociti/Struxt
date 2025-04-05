@@ -1,6 +1,6 @@
 import { Request, Response } from "express";
-import { setupNewClient } from "../database/dragonFly.ts";
-import { getIp } from "../utils/requests.ts";
+import { setupNewClient } from "../database/dragonFly";
+import { getIp } from "../utils/requests";
 
 export async function rateLimit(options: {
   prefix: string;

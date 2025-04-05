@@ -2,14 +2,14 @@ import express from "express";
 import multer from "multer";
 import { existsSync, renameSync } from "node:fs";
 import { basename, extname, join } from "node:path";
-import { createSimpleId } from "../utils/createId.ts";
-import { mkDirRecursive } from "../utils/mkDir.ts";
-import { getProjectFormUploadDir, getUploadDir } from "../utils/uploadDir.ts";
-import { FormAttachment, FormSubmission } from "./convertRows.ts";
-import { saveFormSubmission } from "./saveFormSubmission.ts";
-import { scheduleFormSubmissionEmail } from "./sendEmail/queue.ts";
-import { getFormSettings } from "./settings/getFormSettings.ts";
-import { FormValidationError, validateFormData } from "./validateFormData.ts";
+import { createSimpleId } from "../utils/createId";
+import { mkDirRecursive } from "../utils/mkDir";
+import { getProjectFormUploadDir, getUploadDir } from "../utils/uploadDir";
+import { FormAttachment, FormSubmission } from "./convertRows";
+import { saveFormSubmission } from "./saveFormSubmission";
+import { scheduleFormSubmissionEmail } from "./sendEmail/queue";
+import { getFormSettings } from "./settings/getFormSettings";
+import { FormValidationError, validateFormData } from "./validateFormData";
 
 // Get the upload directory
 const saveDir = getUploadDir("temp", "forms");

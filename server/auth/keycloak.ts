@@ -1,6 +1,6 @@
 import axios from "axios";
-import { keycloakHostname, keycloakRealmName } from "./setupKeycloak.ts";
-import { getBearerToken } from "./getBearerToken.ts";
+import { keycloakHostname, keycloakRealmName } from "./setupKeycloak";
+import { getBearerToken } from "./getBearerToken";
 
 interface RoleRepresentation {
   id: string;

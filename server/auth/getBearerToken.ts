@@ -1,6 +1,6 @@
 import * as openid from "openid-client";
-import { getKey, setEx } from "../database/dragonFly.ts";
-import { startAuthSetup } from "./setupKeycloak.ts";
+import { getKey, setEx } from "../database/dragonFly";
+import { startAuthSetup } from "./setupKeycloak";
 
 let config: openid.Configuration;
 

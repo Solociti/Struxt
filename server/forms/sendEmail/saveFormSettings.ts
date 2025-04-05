@@ -1,5 +1,5 @@
-import { knex } from "../../utils/database.ts";
-import { FormSettings, toFormSettingsRow } from "../convertRows.ts";
+import { knex } from "../../utils/database";
+import { FormSettings, toFormSettingsRow } from "../convertRows";
 
 export function defaultFormSettings(
   siteId: number,

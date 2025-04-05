@@ -1,7 +1,7 @@
 import { useEffect } from "react";
 import { loadCurrentUser } from "../auth/user";
 import { ProjectProvider } from "../projects/ProjectContext";
-import { DashboardContent } from "./DashboardContent.tsx";
+import { DashboardContent } from "./DashboardContent";
 import { DashboardHeader } from "./Header";
 import { DashboardSidebar } from "./Sidebar";
 

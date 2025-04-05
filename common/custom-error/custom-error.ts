@@ -12,6 +12,13 @@ export const ErrorNames = {
 type HTTPStatus = 400 | 401 | 403 | 404 | 500;
 type ErrorNames = keyof typeof ErrorNames;
 
+declare global {
+  interface Error {
+    status?: number;
+    statusCode?: number;
+  }
+}
+
 /**
  * Create a custom error with the provided status, message, and name.
  *

@@ -1,15 +1,15 @@
-import { customError } from "../../../common/custom-error/custom-error.ts";
+import { customError } from "common/custom-error/custom-error";
 import {
   db_domains,
   db_pub_form_settings,
   db_site_publish_info,
   db_sites,
-} from "../../../common/models/database.ts";
-import { EnvironmentTypes } from "../../../common/models/projects/Environment.ts";
-import { ProjectDetails } from "../../../common/models/projects/ProjectDetails.ts";
-import { calcDirSize } from "../../utils/calcDirSize.ts";
-import { knex } from "../../utils/database.ts";
-import { getAssetDir } from "../../utils/uploadDir.ts";
+} from "common/models/database";
+import { EnvironmentTypes } from "common/models/projects/Environment";
+import { ProjectDetails } from "common/models/projects/ProjectDetails";
+import { calcDirSize } from "../../utils/calcDirSize";
+import { knex } from "../../utils/database";
+import { getAssetDir } from "../../utils/uploadDir";
 
 /**
  * Load the project details from the database

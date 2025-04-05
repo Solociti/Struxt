@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
-import { CurrentUserModel } from "../../../common/models/user/CurrentUserModel";
-import { PermType } from "../../../common/models/user/Roles";
+import { CurrentUserModel } from "common/models/user/CurrentUserModel";
+import { PermType } from "common/models/user/Roles";
 import { onUserUpdate } from "./user";
 
 export function useCurrentUser() {

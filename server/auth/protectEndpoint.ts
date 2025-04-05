@@ -1,7 +1,7 @@
 import { NextFunction, Request, Response } from "express";
-import { ErrorNames } from "../../common/custom-error/custom-error.ts";
-import { PermType } from "../../common/models/user/Roles.ts";
-import { userFromReq } from "../api/auth/userFromReq.ts";
+import { ErrorNames } from "common/custom-error/custom-error";
+import { PermType } from "common/models/user/Roles";
+import { userFromReq } from "../api/auth/userFromReq";
 
 export interface ProtectEndpointOptions {
   onFail: "redirect" | "json";

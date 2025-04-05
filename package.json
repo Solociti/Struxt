@@ -12,6 +12,11 @@
     "schema": "node tools/createSchema.js"
   },
   "devDependencies": {
+    "@babel/cli": "^7.27.0",
+    "@babel/core": "^7.26.10",
+    "@babel/plugin-transform-typescript": "^7.27.0",
+    "@babel/preset-env": "^7.26.9",
+    "@babel/preset-typescript": "^7.27.0",
     "@grapesjs/react": "^2.0.0",
     "@grapesjs/studio-sdk": "^1.0.33",
     "@types/bull": "^4.10.4",
@@ -25,6 +30,8 @@
     "@types/react-dom": "^19.0.4",
     "@types/sanitize-html": "^2.13.0",
     "@vitejs/plugin-react": "^4.3.4",
+    "babel-plugin-module-extension-resolver": "^1.0.0",
+    "babel-plugin-module-resolver": "^5.0.2",
     "react": "^19.0.0",
     "react-dom": "^19.0.0",
     "sass": "^1.84.0",

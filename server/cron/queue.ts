@@ -1,4 +1,4 @@
-import { setupQueue } from "../database/setupQueue.ts";
+import { setupQueue } from "../database/setupQueue";
 
 export const cronPrefix = "cron";
 export const cronName = "cron";
