@@ -1,6 +1,6 @@
 import { customError, ErrorNames } from "common/custom-error/custom-error";
 import { ConnectSessionKnexStore } from "connect-session-knex";
-import e from "express";
+import express from "express";
 import session from "express-session";
 import * as openid from "openid-client";
 import passport from "passport";
@@ -70,7 +70,7 @@ export async function startAuthSetup() {
  * @param app
  */
 export async function setupAuthMiddleware(
-  app: e.Express,
+  app: express.Express,
   config: openid.Configuration
 ) {
   app.use(
@@ -123,7 +123,7 @@ export async function setupAuthMiddleware(
  * @param config
  */
 export function setupAuthEndpoints(
-  app: e.Express,
+  app: express.Express,
   config: openid.Configuration
 ) {
   app.get("/auth/login", (req, res, next) => {
