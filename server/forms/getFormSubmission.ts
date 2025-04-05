@@ -1,5 +1,5 @@
-import { knex } from "../utils/database.ts";
-import { fromFormAttachmentRow, fromFormSubmissionRow } from "./convertRows.ts";
+import { knex } from "server/utils/database";
+import { fromFormAttachmentRow, fromFormSubmissionRow } from "./convertRows";
 
 /**
  * Load the submission data from server

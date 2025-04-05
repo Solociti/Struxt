@@ -1,5 +1,5 @@
-import { Component, Project } from "server/api/projects/projectTypes.ts";
-import { FormValidation } from "./validateFormData.ts";
+import { Component, Project } from "server/api/projects/projectTypes";
+import { FormValidation } from "./validateFormData";
 
 /**
  * Get the form validation data from the project

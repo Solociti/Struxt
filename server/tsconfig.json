@@ -2,7 +2,7 @@
   "extends": "../tsconfig.json",
   "include": [".", "../migrations", "../common/custom-error.d.ts", "../common"],
   "compilerOptions": {
-    "noEmit": false,
+    "noEmit": true,
 
     "module": "ESNext",
     "moduleResolution": "node",
@@ -24,16 +24,6 @@
     "rewriteRelativeImportExtensions": true,
 
     "noUnusedParameters": false,
-    "noUnusedLocals": false,
-
-    "plugins": [
-      // {
-      //   "transform": "typescript-transform-paths"
-      // },
-      // {
-      //   "transform": "typescript-transform-paths",
-      //   "afterDeclarations": true
-      // }
-    ]
+    "noUnusedLocals": false
   }
 }
