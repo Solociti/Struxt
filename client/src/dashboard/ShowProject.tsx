@@ -3,9 +3,11 @@ import { formatStorageSize } from "common/format/storageSize";
 import { useCurrentUser } from "../auth/userCurrentUser";
 import { AnchorButton, Button } from "../components/Button";
 import { ProjectEnvInfo } from "./ProjectEnvInfo";
+import { useCurrentProject } from "client/projects/ProjectContext";
 
 export function ShowProject({ project }: { project: ProjectDetails }) {
   const { user } = useCurrentUser();
+  const { setProject } = useCurrentProject();
 
   return (
     <div className="p-6 my-4 bg-white shadow rounded-lg border border-gray-200">
@@ -32,10 +34,10 @@ export function ShowProject({ project }: { project: ProjectDetails }) {
             <Button
               variant="secondary"
               outline
-              disabled
               onClick={() => {
                 /* Handle settings click */
-                console.log("Settings clicked");
+                setProject(project);
+                location.assign("#/settings");
               }}
             >
               Settings

@@ -1,9 +1,13 @@
+import { useLocation } from "react-router";
+
 /**
  * Create the side bar for the dashboards
  *
  * @returns
  */
 export function DashboardSidebar() {
+  const location = useLocation();
+
   return (
     <div className="w-50 bg-indigo-600 text-white hidden md:flex flex-col fixed left-0 top-0 h-full">
       {/* Logo */}
@@ -16,39 +20,48 @@ export function DashboardSidebar() {
       {/* Main Navigation */}
       <nav className="flex-1 p-4">
         <ul className="space-y-2">
-          <li>
-            <a
-              href="#"
-              className="flex items-center p-3 rounded-md bg-indigo-700"
-            >
-              <i className="fas fa-home mr-3"></i>
-              <span>Projects</span>
-            </a>
-          </li>
+          <SidebarItem
+            label="Projects"
+            hash="/"
+            activeHash={location.pathname}
+          />
 
-          {/* <li>
-            <a
-              href="#"
-              className="flex items-center p-3 rounded-md hover:bg-indigo-700"
-            >
-              <i className="fas fa-project-diagram mr-3"></i>
-              <span>Assets</span>
-            </a>
-          </li> */}
+          <SidebarItem
+            label="Settings"
+            hash="/settings"
+            activeHash={location.pathname}
+          />
         </ul>
       </nav>
 
-      {/* Settings */}
-      <div className="mt-auto p-4">
-        <a
-          href="#"
-          // className="flex items-center p-3 rounded-md hover:bg-indigo-700"
-          className="flex items-center p-3 rounded-md bg-indigo-500 cursor-not-allowed"
-        >
-          <i className="fas fa-cog mr-3"></i>
-          <span>Settings</span>
-        </a>
-      </div>
+      {/* Bottom section */}
+      {/* <div className="mt-auto p-4">
+        <SidebarItem />
+      </div> */}
     </div>
+  );
+}
+
+function SidebarItem({
+  label,
+  hash,
+  activeHash,
+}: {
+  label: string;
+  hash: string;
+  activeHash: string;
+}) {
+  return (
+    <li>
+      <a
+        href={`#${hash}`}
+        className={`flex items-center p-3 rounded-md ${
+          activeHash === hash ? "bg-indigo-700" : "hover:bg-indigo-700"
+        }`}
+      >
+        <i className="fas fa-home mr-3"></i>
+        <span>{label}</span>
+      </a>
+    </li>
   );
 }
