@@ -1,4 +1,9 @@
+import Nav from "react-bootstrap/Nav";
 import { useLocation } from "react-router";
+
+const sidebarStyle = {
+  width: "150px",
+};
 
 /**
  * Create the side bar for the dashboards
@@ -8,60 +13,47 @@ import { useLocation } from "react-router";
 export function DashboardSidebar() {
   const location = useLocation();
 
+  // TODO: improve the sidebar colour scheme
   return (
-    <div className="w-50 bg-indigo-600 text-white hidden md:flex flex-col fixed left-0 top-0 h-full">
-      {/* Logo */}
-      <div className="p-4 flex items-center">
-        <div className="text-2xl">
-          <img src="/logo.svg" alt="Logo" className="w-8 h-8" />
+    <>
+      <div
+        className="d-none d-md-flex flex-column bg-primary bg-400 text-white position-fixed fixed-top h-100 p-2"
+        style={{ ...sidebarStyle }}
+      >
+        {/* Logo */}
+        <div className="p-3 d-flex align-items-center">
+          <div className="fs-4">
+            <img src="/logo.svg" alt="Logo" width="32" height="32" />
+          </div>
         </div>
+
+        {/* Main Navigation */}
+        <Nav variant="pills" className="flex-column">
+          <Nav.Item className="">
+            <Nav.Link
+              className="text-light"
+              href="#/"
+              active={location.pathname === "/"}
+            >
+              <i className="fas fa-home me-2"></i>
+              Projects
+            </Nav.Link>
+          </Nav.Item>
+
+          <Nav.Item className="">
+            <Nav.Link
+              className="text-light"
+              href="#/settings"
+              active={location.pathname === "/settings"}
+            >
+              <i className="fas fa-cog me-2"></i>
+              Settings
+            </Nav.Link>
+          </Nav.Item>
+        </Nav>
       </div>
 
-      {/* Main Navigation */}
-      <nav className="flex-1 p-4">
-        <ul className="space-y-2">
-          <SidebarItem
-            label="Projects"
-            hash="/"
-            activeHash={location.pathname}
-          />
-
-          <SidebarItem
-            label="Settings"
-            hash="/settings"
-            activeHash={location.pathname}
-          />
-        </ul>
-      </nav>
-
-      {/* Bottom section */}
-      {/* <div className="mt-auto p-4">
-        <SidebarItem />
-      </div> */}
-    </div>
-  );
-}
-
-function SidebarItem({
-  label,
-  hash,
-  activeHash,
-}: {
-  label: string;
-  hash: string;
-  activeHash: string;
-}) {
-  return (
-    <li>
-      <a
-        href={`#${hash}`}
-        className={`flex items-center p-3 rounded-md ${
-          activeHash === hash ? "bg-indigo-700" : "hover:bg-indigo-700"
-        }`}
-      >
-        <i className="fas fa-home mr-3"></i>
-        <span>{label}</span>
-      </a>
-    </li>
+      <div className="d-none d-md-block" style={{ ...sidebarStyle }}></div>
+    </>
   );
 }

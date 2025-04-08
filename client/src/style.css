@@ -1,1 +1,6 @@
-@import "tailwindcss";
+/* Add more background colours for bootstrap */
+@import "./bg-colours.css";
+
+.shadow {
+  box-shadow: 0 0 5px rgba(0, 0, 0, 0.5);
+}

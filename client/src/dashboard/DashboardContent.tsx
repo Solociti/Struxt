@@ -1,4 +1,5 @@
 import { ProjectDetails } from "common/models/projects/ProjectDetails";
+import Spinner from "react-bootstrap/Spinner";
 import { useLoadAsync } from "../api/useLoadAsync";
 import { useCurrentProject } from "../projects/ProjectContext";
 import { getAvailableProjects, getProjectDetails } from "../projects/projects";
@@ -40,7 +41,13 @@ export default function DashboardContent() {
   }, [project.id]);
 
   if (isLoading) {
-    return <div>Loading...</div>;
+    return (
+      <div className="d-flex flex-column justify-content-center align-items-center my-5">
+        <Spinner animation="border" variant="secondary" />
+
+        <span className="ms-2 text-muted">Loading Content...</span>
+      </div>
+    );
   }
 
   if (error) {

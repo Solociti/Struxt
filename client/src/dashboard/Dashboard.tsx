@@ -1,9 +1,12 @@
 import { lazy, Suspense, useEffect } from "react";
+import Spinner from "react-bootstrap/Spinner";
 import { Route, HashRouter as Router, Routes } from "react-router";
 import { loadCurrentUser } from "../auth/user";
 import { ProjectProvider } from "../projects/ProjectContext";
 import { DashboardHeader } from "./Header";
 import { DashboardSidebar } from "./Sidebar";
+
+import "bootstrap/dist/css/bootstrap.min.css";
 
 const DashboardContent = lazy(
   () => import("client/dashboard/DashboardContent")
@@ -26,14 +29,21 @@ export default function DashboardApp() {
     <Router>
       <ProjectProvider>
         <DashboardSidebar />
-        <div className="w-50 hidden md:flex flex-col"></div>
 
-        <div className="flex-1 flex flex-col">
+        <div className="d-flex flex-column flex-grow-1">
           <DashboardHeader />
 
           {/* Content Area */}
-          <div className="flex-1 p-6">
-            <Suspense fallback={<div>Loading...</div>}>
+          <div className="p-3">
+            <Suspense
+              fallback={
+                <div className="d-flex flex-column justify-content-center align-items-center my-5">
+                  <Spinner animation="border" variant="secondary" />
+
+                  <span className="ms-2 text-muted">Loading Page...</span>
+                </div>
+              }
+            >
               <Routes>
                 <Route path="/" element={<DashboardContent />} />
                 <Route path="/settings" element={<SettingsContent />} />

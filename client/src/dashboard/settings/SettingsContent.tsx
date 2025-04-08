@@ -1,8 +1,4 @@
 import { useLoadAsync } from "client/api/useLoadAsync";
-import { Button } from "client/components/Button";
-import { Card } from "client/components/Card";
-import { InputGroup, TextareaGroup } from "client/components/InputGroup";
-import { TabCardWithState } from "client/components/TabCard";
 import { useHtmlId } from "client/components/useHtmlId";
 import { useCurrentProject } from "client/projects/ProjectContext";
 import { getProjectDetails } from "client/projects/projects";
@@ -10,6 +6,19 @@ import { formatStorageSize } from "common/format/storageSize";
 import { EnvironmentTypes } from "common/models/projects/Environment";
 import { ProjectDetails } from "common/models/projects/ProjectDetails";
 import { useId, useState } from "react";
+import Badge from "react-bootstrap/Badge";
+import Button from "react-bootstrap/Button";
+import Card from "react-bootstrap/Card";
+import Col from "react-bootstrap/Col";
+import Container from "react-bootstrap/Container";
+import Form from "react-bootstrap/Form";
+import InputGroup from "react-bootstrap/InputGroup";
+import ListGroup from "react-bootstrap/ListGroup";
+import Modal from "react-bootstrap/Modal";
+import ProgressBar from "react-bootstrap/ProgressBar";
+import Row from "react-bootstrap/Row";
+import Tab from "react-bootstrap/Tab";
+import Tabs from "react-bootstrap/Tabs";
 
 export default function SettingsContent() {
   const { id } = useHtmlId();
@@ -32,111 +41,129 @@ export default function SettingsContent() {
 
   if (project.id === "*") {
     return (
-      <div className="p-6">
-        <h1 className="text-2xl font-bold">Settings</h1>
-        <p className="mt-4">Please select a project to continue...</p>
-      </div>
+      <Container className="py-4">
+        <h1 className="fw-bold mb-3">Settings</h1>
+        <p>Please select a project to continue...</p>
+      </Container>
     );
   }
 
   if (loadingProjectDetails) {
     return (
-      <div className="p-6">
-        <h1 className="text-2xl font-bold">Settings</h1>
-        <p className="mt-4">Loading...</p>
-      </div>
+      <Container className="py-4">
+        <h1 className="fw-bold mb-3">Settings</h1>
+        <p>Loading...</p>
+      </Container>
     );
   }
 
   if (projectDetails) {
     return (
-      <div>
-        <h1 className="text-2xl text-gray-900">Settings</h1>
+      <Container>
+        <h1 className="fw-bold mb-4">Settings</h1>
 
-        <Card title="Project Details" className="my-8">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <InputGroup
-              label="Project Name"
-              value={project.name}
-              onChange={(name: string) => {
-                // handle project name change
-                console.log({ name });
-              }}
-            />
-
-            <InputGroup label="Project Id" value={project.id} disabled />
-          </div>
-
-          <TextareaGroup
-            className="mt-4"
-            label="Project Description"
-            value={project.description}
-            onChange={(description: string) => {
-              // handle project description change
-              console.log({ description });
-            }}
-            placeholder="Project Description"
-          />
+        <Card className="my-4">
+          <Card.Header as="h5">Project Details</Card.Header>
+          <Card.Body>
+            <Row className="g-3">
+              <Col md={6}>
+                <Form.Group controlId="projectName">
+                  <Form.Label>Project Name</Form.Label>
+                  <Form.Control
+                    type="text"
+                    value={project.name}
+                    onChange={(e) => {
+                      // handle project name change
+                      console.log({ name: e.target.value });
+                    }}
+                  />
+                </Form.Group>
+              </Col>
+              <Col md={6}>
+                <Form.Group controlId="projectId">
+                  <Form.Label>Project Id</Form.Label>
+                  <Form.Control type="text" value={project.id} disabled />
+                </Form.Group>
+              </Col>
+            </Row>
+            <Form.Group controlId="projectDescription" className="mt-3">
+              <Form.Label>Project Description</Form.Label>
+              <Form.Control
+                as="textarea"
+                rows={3}
+                value={project.description}
+                onChange={(e) => {
+                  // handle project description change
+                  console.log({ description: e.target.value });
+                }}
+                placeholder="Project Description"
+              />
+            </Form.Group>
+          </Card.Body>
         </Card>
 
         {/* TODO: add users access control */}
 
-        <Card title="Storage Usage" className="my-8">
-          <div className="flex items-center justify-between mb-2">
-            <p className="text-sm text-gray-600">
-              {formatStorageSize(projectDetails.storage.usedBytes)}
-            </p>
-            <p className="text-sm text-gray-600">
-              {formatStorageSize(projectDetails.storage.maxBytes)}
-            </p>
-          </div>
-
-          <div className="h-2 bg-gray-200 rounded-full overflow-hidden">
-            <div
-              className={
-                "h-full " +
-                (projectDetails.storage.usedBytes /
+        <Card className="my-4">
+          <Card.Header as="h5">Storage Usage</Card.Header>
+          <Card.Body>
+            <div className="d-flex justify-content-between mb-2">
+              <small className="text-muted">
+                {formatStorageSize(projectDetails.storage.usedBytes)}
+              </small>
+              <small className="text-muted">
+                {formatStorageSize(projectDetails.storage.maxBytes)}
+              </small>
+            </div>
+            <ProgressBar
+              variant={
+                projectDetails.storage.usedBytes /
                   projectDetails.storage.maxBytes >
                 0.8
-                  ? "bg-red-600"
-                  : "bg-blue-600")
+                  ? "danger"
+                  : "primary"
               }
-              style={{
-                width: `${Math.min(
-                  100,
-                  (projectDetails.storage.usedBytes /
-                    projectDetails.storage.maxBytes) *
-                    100
-                )}%`,
-              }}
-            ></div>
-          </div>
+              now={Math.min(
+                100,
+                (projectDetails.storage.usedBytes /
+                  projectDetails.storage.maxBytes) *
+                  100
+              )}
+            />
+          </Card.Body>
         </Card>
 
-        <TabCardWithState
-          tabs={[
-            { label: "Production", id: "production" },
-            { label: "Staging", id: "staging" },
-          ]}
-          className="my-8"
-          render={(env) => {
-            return (
-              <EnvironmentSettings
-                environment={env as EnvironmentTypes}
-                project={projectDetails}
-              />
-            );
-          }}
-        />
-      </div>
+        <Card className="my-4">
+          <Card.Body>
+            <Tabs
+              defaultActiveKey="production"
+              id="environment-tabs"
+              className="mb-3"
+            >
+              <Tab eventKey="production" title="Production">
+                <EnvironmentSettings
+                  environment="production"
+                  project={projectDetails}
+                />
+              </Tab>
+              <Tab eventKey="staging" title="Staging">
+                <EnvironmentSettings
+                  environment="staging"
+                  project={projectDetails}
+                />
+              </Tab>
+            </Tabs>
+          </Card.Body>
+        </Card>
+      </Container>
     );
   }
 
   return (
-    <div className="p-6">
-      <h1 className="text-2xl font-bold">Settings</h1>
-      <p className="mt-4">Project details not found.</p>
-    </div>
+    <Container className="py-4">
+      <h1 className="fw-bold mb-3">Settings</h1>
+      <p>Project details not found.</p>
+    </Container>
   );
 }
 
@@ -152,47 +179,44 @@ function EnvironmentSettings({
   const [showAddDomain, setShowAddDomain] = useState(false);
 
   return (
-    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-      <div>
-        <h3 className="text-lg font-medium text-gray-900 mb-4 capitalize">
-          {environment} Environment
-        </h3>
+    <Row className="g-4">
+      <Col md={6}>
+        <h3 className="mb-4 text-capitalize">{environment} Environment</h3>
 
-        <div className="flex items-start mb-4">
-          <div className="flex-1">
-            <p className="text-sm font-medium text-gray-500">
-              Last published by
-            </p>
-            <p className="text-sm text-gray-900">John Doe on April 5, 2025</p>
+        <div className="d-flex align-items-start mb-4">
+          <div className="flex-grow-1">
+            <p className="text-muted small fw-medium">Last published by</p>
+            <p className="small">John Doe on April 5, 2025</p>
           </div>
 
-          {/* <button className="ml-3 inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
+          {/* <Button 
+            variant="primary" 
+            size="sm" 
+            className="ms-3"
+          >
             Deploy to Production
-          </button> */}
+          </Button> */}
         </div>
 
-        <div className="mt-6">
-          <h4 className="text-base font-medium text-gray-900 mb-3">
-            Custom Domains
-          </h4>
-          <div className="bg-gray-50 border border-gray-200 rounded-md mb-4">
-            <ul className="divide-y divide-gray-200">
-              <li className="py-3 px-4 flex items-center justify-between">
+        <div className="mt-4">
+          <h4 className="mb-3 fw-medium">Custom Domains</h4>
+          <Card className="mb-4">
+            <ListGroup variant="flush">
+              <ListGroup.Item className="py-3 d-flex justify-content-between align-items-center">
                 <div>
-                  <span className="text-sm font-medium text-gray-900">
-                    example.com
-                  </span>
-                  <span className="ml-2 px-2 py-0.5 text-xs font-medium bg-green-100 text-green-800 rounded-full">
+                  <span className="fw-medium small">example.com</span>
+                  <Badge bg="success" className="ms-2">
                     Primary
-                  </span>
+                  </Badge>
                 </div>
-                <div className="flex space-x-2">
-                  <button className="text-gray-500 hover:text-gray-700">
+                <div>
+                  <Button variant="link" className="text-secondary p-0">
                     <svg
                       xmlns="http://www.w3.org/2000/svg"
-                      className="h-5 w-5"
-                      viewBox="0 0 20 20"
+                      width="16"
+                      height="16"
                       fill="currentColor"
+                      viewBox="0 0 20 20"
                     >
                       <path d="M11 5a1 1 0 112 0v8a1 1 0 11-2 0V5zm-6 4a1 1 0 112 0v4a1 1 0 11-2 0V9z" />
                       <path
@@ -201,25 +225,24 @@ function EnvironmentSettings({
                         clipRule="evenodd"
                       />
                     </svg>
-                  </button>
+                  </Button>
                 </div>
-              </li>
-              <li className="py-3 px-4 flex items-center justify-between">
+              </ListGroup.Item>
+              <ListGroup.Item className="py-3 d-flex justify-content-between align-items-center">
                 <div>
-                  <span className="text-sm font-medium text-gray-900">
-                    www.example.com
-                  </span>
-                  <span className="ml-2 px-2 py-0.5 text-xs font-medium bg-blue-100 text-blue-800 rounded-full">
+                  <span className="fw-medium small">www.example.com</span>
+                  <Badge bg="primary" className="ms-2">
                     SSL Enabled
-                  </span>
+                  </Badge>
                 </div>
-                <div className="flex space-x-2">
-                  <button className="text-indigo-600 hover:text-indigo-800">
+                <div className="d-flex gap-2">
+                  <Button variant="link" className="text-primary p-0">
                     <svg
                       xmlns="http://www.w3.org/2000/svg"
-                      className="h-5 w-5"
-                      viewBox="0 0 20 20"
+                      width="16"
+                      height="16"
                       fill="currentColor"
+                      viewBox="0 0 20 20"
                     >
                       <path d="M17.414 2.586a2 2 0 00-2.828 0L7 10.172V13h2.828l7.586-7.586a2 2 0 000-2.828z" />
                       <path
@@ -228,13 +251,14 @@ function EnvironmentSettings({
                         clipRule="evenodd"
                       />
                     </svg>
-                  </button>
-                  <button className="text-red-600 hover:text-red-800">
+                  </Button>
+                  <Button variant="link" className="text-danger p-0">
                     <svg
                       xmlns="http://www.w3.org/2000/svg"
-                      className="h-5 w-5"
-                      viewBox="0 0 20 20"
+                      width="16"
+                      height="16"
                       fill="currentColor"
+                      viewBox="0 0 20 20"
                     >
                       <path
                         fillRule="evenodd"
@@ -242,124 +266,111 @@ function EnvironmentSettings({
                         clipRule="evenodd"
                       />
                     </svg>
-                  </button>
+                  </Button>
                 </div>
-              </li>
-            </ul>
-          </div>
+              </ListGroup.Item>
+            </ListGroup>
+          </Card>
 
+          {/* Replace the existing code with this */}
           <div className="mt-4">
-            <Button
-              variant="primary"
-              onClick={() => {
-                setShowAddDomain(true);
-              }}
-            >
+            <Button variant="primary" onClick={() => setShowAddDomain(true)}>
               Add Domain
             </Button>
-          </div>
-
-          <div className="mt-4">
-            <div className="bg-gray-50 border border-gray-200 rounded-md p-4">
-              <h5 className="text-sm font-medium text-gray-900 mb-3">
-                Add a Domain
-              </h5>
-              <div className="flex flex-col space-y-4">
-                <div>
-                  <label className="inline-flex items-center">
-                    <input
-                      type="radio"
-                      className="form-radio text-indigo-600"
-                      name="domain-type"
-                      value="custom"
-                    />
-                    <span className="ml-2 text-sm text-gray-700">
-                      Custom Domain
-                    </span>
-                  </label>
-                  <div className="mt-2">
-                    <input
-                      type="text"
-                      placeholder="yourdomain.com"
-                      className="block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
-                    />
-                  </div>
-                </div>
-
-                <div>
-                  <label className="inline-flex items-center">
-                    <input
-                      type="radio"
-                      className="form-radio text-indigo-600"
-                      name="domain-type"
-                      value="free"
-                      checked
-                    />
-                    <span className="ml-2 text-sm text-gray-700">
-                      Free Subdomain
-                    </span>
-                  </label>
-                  <div className="mt-2 flex">
-                    <input
-                      type="text"
-                      placeholder="your-project"
-                      className="flex-1 block border border-gray-300 rounded-l-md shadow-sm py-2 px-3 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
-                    />
-                    <span className="inline-flex items-center px-3 border border-l-0 border-gray-300 bg-gray-50 text-gray-500 sm:text-sm rounded-r-md">
-                      .sitehost.com
-                    </span>
-                  </div>
-                </div>
-
-                <div className="flex items-center space-x-2">
-                  <label className="inline-flex items-center">
-                    <input
-                      type="checkbox"
-                      className="form-checkbox text-indigo-600"
-                      checked
-                    />
-                    <span className="ml-2 text-sm text-gray-700">
-                      Enable SSL
-                    </span>
-                  </label>
-                </div>
-
-                <div>
-                  <label
-                    htmlFor="ssl-email"
-                    className="block text-sm font-medium text-gray-700"
-                  >
-                    SSL Email (for certificate notifications)
-                  </label>
-                  <input
-                    type="email"
-                    id="ssl-email"
-                    placeholder="you@example.com"
-                    className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
-                  />
-                </div>
-
-                <div>
-                  <button className="inline-flex justify-center py-2 px-4 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
-                    Add Domain
-                  </button>
-                </div>
-              </div>
-            </div>
+            <AddDomainModal
+              show={showAddDomain}
+              onHide={() => setShowAddDomain(false)}
+            />
           </div>
         </div>
-      </div>
+      </Col>
 
-      <div>
-        <h3 className="text-lg font-medium text-gray-900 mb-4">Preview</h3>
-        <div className="bg-gray-100 border border-gray-200 rounded-md h-64 flex items-center justify-center">
+      <Col md={6}>
+        <h3 className="mb-4 fw-medium">Preview</h3>
+        <div
+          className="bg-light border rounded d-flex align-items-center justify-content-center"
+          style={{ height: "16rem" }}
+        >
           <img
             src="/api/placeholder/400/320"
             alt="Production site preview"
-            className="max-w-full max-h-full rounded shadow"
+            className="img-fluid rounded shadow"
           />
         </div>
-      </div>
-    </div>
+      </Col>
+    </Row>
+  );
+}
+
+function AddDomainModal({
+  show,
+  onHide,
+}: {
+  show: boolean;
+  onHide: () => void;
+}) {
+  return (
+    <Modal show={show} onHide={onHide}>
+      <Modal.Header closeButton>
+        <Modal.Title>Add a Domain</Modal.Title>
+      </Modal.Header>
+      <Modal.Body>
+        <Form>
+          <Form.Group className="mb-3">
+            <Form.Check
+              type="radio"
+              id="domain-type-custom"
+              name="domain-type"
+              value="custom"
+              label="Custom Domain"
+            />
+            <Form.Control
+              type="text"
+              placeholder="yourdomain.com"
+              className="mt-2"
+            />
+          </Form.Group>
+
+          <Form.Group className="mb-3">
+            <Form.Check
+              type="radio"
+              id="domain-type-free"
+              name="domain-type"
+              value="free"
+              defaultChecked
+              label="Free Subdomain"
+            />
+            <InputGroup className="mt-2">
+              <Form.Control type="text" placeholder="your-project" />
+              <InputGroup.Text>.struxt.solociti.com</InputGroup.Text>
+            </InputGroup>
+          </Form.Group>
+
+          <Form.Group className="mb-3">
+            <Form.Check
+              type="checkbox"
+              id="enable-ssl"
+              defaultChecked
+              label="Enable SSL"
+            />
+          </Form.Group>
+
+          <Form.Group className="mb-3">
+            <Form.Label>SSL Email (for certificate notifications)</Form.Label>
+            <Form.Control
+              type="email"
+              id="ssl-email"
+              placeholder="you@example.com"
+            />
+          </Form.Group>
+        </Form>
+      </Modal.Body>
+      <Modal.Footer>
+        <Button variant="secondary" onClick={onHide}>
+          Cancel
+        </Button>
+        <Button variant="primary">Add Domain</Button>
+      </Modal.Footer>
+    </Modal>
   );
 }
