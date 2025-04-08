@@ -1,0 +1,8 @@
+{
+  "globalCssFiles": [
+    "https://getbootstrap.com/docs/5.2/dist/css/bootstrap.css",
+    "src/style.css",
+    "src/bg-colours.css"
+  ],
+  "include": ["src/**/*.tsx"]
+}
