@@ -28,7 +28,10 @@ export function epochToDate(epoch: number): Date {
  * @param date
  * @returns
  */
-export function formatDate(date: Date | string | number): string {
+export function formatDate(
+  date: Date | string | number,
+  time?: boolean
+): string {
   if (typeof date === "number") {
     date = epochToDate(date);
   }
@@ -39,7 +42,9 @@ export function formatDate(date: Date | string | number): string {
   // Format the date to a more readable format
   return date.toLocaleDateString("en-CA", {
     year: "numeric",
-    month: "2-digit",
-    day: "2-digit",
+    month: "long",
+    day: "numeric",
+    hour: time ? "2-digit" : undefined,
+    minute: time ? "2-digit" : undefined,
   });
 }

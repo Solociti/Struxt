@@ -41,15 +41,17 @@ export function ProjectEnvInfo({
           </ListGroup>
         </div>
 
-        <div className="mb-3">
-          <h4 className="h6">Latest Publish</h4>
-          <p>
-            {envData.published.timestamp
-              ? `Published on ${formatDate(envData.published.timestamp)} by ${
-                  envData.published.displayName
-                }`
-              : "No recent publishes"}
-          </p>
+        <div className="flex-grow-1 mb-3">
+          <p className="text-muted small fw-medium mb-1">Last published by</p>
+          {envData.published.timestamp ? (
+            <p className="small">
+              {envData.published.displayName}
+              {" on "}
+              {formatDate(envData.published.timestamp)}
+            </p>
+          ) : (
+            <p className="small text-muted">No recent publishes</p>
+          )}
         </div>
 
         <div>

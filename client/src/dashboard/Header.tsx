@@ -46,7 +46,9 @@ export function DashboardHeader() {
             </div>
           )}
 
-          <span>{(user && user.name) || "..."}</span>
+          <span className="d-none d-sm-inline">
+            {(user && user.name) || "..."}
+          </span>
           <i className="fas fa-chevron-down ms-2 text-secondary"></i>
         </div>
       </div>

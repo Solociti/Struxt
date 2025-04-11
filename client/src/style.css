@@ -4,3 +4,19 @@
 .shadow {
   box-shadow: 0 0 5px rgba(0, 0, 0, 0.5);
 }
+
+.d-flex.gap-1 {
+  gap: 0.25rem !important;
+}
+.d-flex.gap-2 {
+  gap: 0.5rem !important;
+}
+.d-flex.gap-3 {
+  gap: 1rem !important;
+}
+.d-flex.gap-4 {
+  gap: 1.5rem !important;
+}
+.d-flex.gap-5 {
+  gap: 3rem !important;
+}

@@ -13,7 +13,6 @@ export default defineConfig({
         home: "index.html",
         dashboard: "dashboard/index.html",
         editor: "editor/index.html",
-        tmp: "test.html",
       },
       output: {
         assetFileNames: "resource/[name]-[hash].[ext]",

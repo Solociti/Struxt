@@ -17,7 +17,7 @@ export function DashboardSidebar() {
   return (
     <>
       <div
-        className="d-none d-md-flex flex-column bg-primary bg-400 text-white position-fixed fixed-top h-100 p-2"
+        className="d-none d-md-flex flex-column bg-primary bg-500 text-white position-fixed fixed-top h-100 p-2"
         style={{ ...sidebarStyle }}
       >
         {/* Logo */}
@@ -31,7 +31,10 @@ export function DashboardSidebar() {
         <Nav variant="pills" className="flex-column">
           <Nav.Item className="">
             <Nav.Link
-              className="text-light"
+              className={
+                "text-light" +
+                (location.pathname === "/" ? " bg-primary bg-600" : "")
+              }
               href="#/"
               active={location.pathname === "/"}
             >
@@ -42,7 +45,10 @@ export function DashboardSidebar() {
 
           <Nav.Item className="">
             <Nav.Link
-              className="text-light"
+              className={
+                "text-light" +
+                (location.pathname === "/settings" ? " bg-primary bg-600" : "")
+              }
               href="#/settings"
               active={location.pathname === "/settings"}
             >

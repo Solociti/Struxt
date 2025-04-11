@@ -1,3 +1,4 @@
+import { roles } from "../user/Roles";
 import { EnvironmentTypes } from "./Environment";
 
 export interface DomainDetails {
@@ -16,10 +17,7 @@ export interface DomainDetails {
    */
   environment: EnvironmentTypes;
 
-  /**
-   * Tells if ssl is enabled for the domain
-   */
-  ssl: boolean;
+  isPrimary: boolean;
 }
 
 export class DomainModel {
@@ -35,6 +33,8 @@ export class DomainModel {
 
   /**
    * The project id this domain is for
+   *
+   * @readonly
    */
   siteId: number = 0;
 
@@ -45,17 +45,17 @@ export class DomainModel {
     /**
      * The timestamp of the update
      */
-    timestamp: number;
+    timestamp: Date;
   } = {
     userId: "",
     displayName: "",
-    timestamp: 0,
+    timestamp: new Date(),
   };
 
   created: {
-    timestamp: number;
+    timestamp: Date;
   } = {
-    timestamp: 0,
+    timestamp: new Date(),
   };
 
   /**
@@ -74,7 +74,44 @@ export class DomainModel {
   ssl: boolean = true;
 
   /**
+   * Tells if hsts is enabled for the domain
+   */
+  hsts: boolean = false;
+
+  /**
    * the email used to register the ssl cert with letsencrypt
    */
   sslEmail: string = "";
+
+  constructor(data?: Partial<DomainModel>) {
+    if (data) {
+      this.update(data);
+    }
+  }
+
+  /**
+   * Update this model from the given data
+   *
+   * @param data
+   */
+  update(data: Partial<DomainModel>) {
+    Object.assign(this, data);
+  }
+
+  static permissions() {
+    return [
+      {
+        props: ["enabled", "sslEmail"],
+        permissions: [roles.struxt.admin],
+      },
+      {
+        props: ["ssl", "hsts", "isPrimary"],
+        permissions: [
+          roles.projects.edit,
+          roles.projects.admin,
+          roles.struxt.admin,
+        ],
+      },
+    ];
+  }
 }
