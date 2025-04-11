@@ -88,7 +88,11 @@ export function EnvironmentSettings({
 
           {/* Replace the existing code with this */}
           <div className="mt-4">
-            <Button variant="primary" onClick={() => setShowAddDomain(true)}>
+            <Button
+              disabled
+              variant="primary"
+              onClick={() => setShowAddDomain(true)}
+            >
               Add Domain
             </Button>
             <AddDomainModal

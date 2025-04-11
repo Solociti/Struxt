@@ -66,6 +66,7 @@ export default function SettingsContent() {
                       // handle project name change
                       console.log({ name: e.target.value });
                     }}
+                    disabled
                   />
                 </Form.Group>
               </Col>
@@ -87,6 +88,7 @@ export default function SettingsContent() {
                   console.log({ description: e.target.value });
                 }}
                 placeholder="Project Description"
+                disabled
               />
             </Form.Group>
           </Card.Body>
