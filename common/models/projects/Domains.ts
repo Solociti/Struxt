@@ -68,21 +68,6 @@ export class DomainModel {
    */
   isPrimary: boolean = false;
 
-  /**
-   * Tells if ssl is enabled for the domain
-   */
-  ssl: boolean = true;
-
-  /**
-   * Tells if hsts is enabled for the domain
-   */
-  hsts: boolean = false;
-
-  /**
-   * the email used to register the ssl cert with letsencrypt
-   */
-  sslEmail: string = "";
-
   constructor(data?: Partial<DomainModel>) {
     if (data) {
       this.update(data);
@@ -105,7 +90,7 @@ export class DomainModel {
         permissions: [roles.struxt.admin],
       },
       {
-        props: ["ssl", "hsts", "isPrimary"],
+        props: ["hsts", "isPrimary"],
         permissions: [
           roles.projects.edit,
           roles.projects.admin,
