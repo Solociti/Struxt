@@ -1,0 +1,6 @@
+// setup a gap utility for flexbox
+@each $key, $value in $spacers {
+  .d-flex.gap-#{$key} {
+    gap: #{$value} !important;
+  }
+}

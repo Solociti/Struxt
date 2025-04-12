@@ -6,7 +6,7 @@ import { ProjectProvider } from "../projects/ProjectContext";
 import { DashboardHeader } from "./Header";
 import { DashboardSidebar } from "./Sidebar";
 
-import "bootstrap/dist/css/bootstrap.min.css";
+import "client/bootstrap/bootstrap.scss";
 
 const DashboardContent = lazy(
   () => import("client/dashboard/DashboardContent")

@@ -1,15 +1,17 @@
+import { useTheme } from "client/bootstrap/Theme";
+import Button from "react-bootstrap/Button";
+import Navbar from "react-bootstrap/Navbar";
 import { useCurrentUser } from "../auth/userCurrentUser";
 import { useCurrentProject } from "../projects/ProjectContext";
 import SelectProject from "../projects/SelectProject";
-import Navbar from "react-bootstrap/Navbar";
-import Button from "react-bootstrap/Button";
 
 export function DashboardHeader() {
   const { user } = useCurrentUser();
   const { project, setProject } = useCurrentProject();
+  const { theme } = useTheme();
 
   return (
-    <Navbar bg="white" className="p-2 border-bottom sticky-top">
+    <Navbar className="p-2 border-bottom sticky-top" bg={theme}>
       {/* Logo */}
       <div className="d-md-none fs-4">
         <img src="/logo.svg" alt="Logo" width="32" height="32" />
