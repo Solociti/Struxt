@@ -7,12 +7,14 @@ import Col from "react-bootstrap/Col";
 import ProgressBar from "react-bootstrap/ProgressBar";
 import Row from "react-bootstrap/Row";
 import Table from "react-bootstrap/Table";
+import { useNavigate } from "react-router";
 import { useCurrentUser } from "../auth/userCurrentUser";
 import { ProjectEnvInfo } from "./ProjectEnvInfo";
 
 export function ShowProject({ project }: { project: ProjectDetails }) {
   const { user } = useCurrentUser();
   const { setProject } = useCurrentProject();
+  const navigate = useNavigate();
 
   return (
     <Card className="my-4">
@@ -41,7 +43,7 @@ export function ShowProject({ project }: { project: ProjectDetails }) {
                 onClick={() => {
                   /* Handle settings click */
                   setProject(project);
-                  location.assign("#/settings");
+                  navigate("/settings");
                 }}
               >
                 Settings
