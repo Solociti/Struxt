@@ -12,6 +12,7 @@
     ]
   ],
   "plugins": [
+    ["./babel/clean-up-plugin.cjs"],
     [
       "module-resolver",
       {
