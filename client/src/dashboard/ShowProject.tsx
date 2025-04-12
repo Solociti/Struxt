@@ -1,134 +1,127 @@
-import { ProjectDetails } from "common/models/projects/ProjectDetails";
+import { useCurrentProject } from "client/projects/ProjectContext";
 import { formatStorageSize } from "common/format/storageSize";
+import { ProjectDetails } from "common/models/projects/ProjectDetails";
+import Button from "react-bootstrap/Button";
+import Card from "react-bootstrap/Card";
+import Col from "react-bootstrap/Col";
+import ProgressBar from "react-bootstrap/ProgressBar";
+import Row from "react-bootstrap/Row";
+import Table from "react-bootstrap/Table";
+import { useNavigate } from "react-router";
 import { useCurrentUser } from "../auth/userCurrentUser";
-import { AnchorButton, Button } from "../components/Button";
 import { ProjectEnvInfo } from "./ProjectEnvInfo";
 
 export function ShowProject({ project }: { project: ProjectDetails }) {
   const { user } = useCurrentUser();
+  const { setProject } = useCurrentProject();
+  const navigate = useNavigate();
 
   return (
-    <div className="p-6 my-4 bg-white shadow rounded-lg border border-gray-200">
-      {/* Project header */}
-      <div className="flex justify-between items-center mb-4">
-        <div>
-          <h2 className="text-xl font-bold">
-            {project.name || "Project Name"}
-          </h2>
-          <p className="text-gray-600">{project.description}</p>
-        </div>
+    <Card className="my-4">
+      <Card.Body>
+        {/* Project header */}
+        <Row className="mb-4 align-items-center">
+          <Col>
+            <h2 className="fs-4 fw-bold">{project.name || "Project Name"}</h2>
+            <p className="text-muted">{project.description}</p>
+          </Col>
 
-        {user && user.hasPermission("struxt.editor") && (
-          <div>
-            <AnchorButton
-              variant="primary"
-              outline
-              href={"/editor/?projectId=" + project.id}
-              target="_blank"
-            >
-              Edit
-            </AnchorButton>
+          {user && user.hasPermission("struxt.editor") && (
+            <Col xs="auto">
+              <Button
+                variant="outline-primary"
+                href={"/editor/?projectId=" + project.id}
+                target="_blank"
+                as="a"
+                className="me-2"
+              >
+                Edit
+              </Button>
 
-            <Button
-              variant="secondary"
-              outline
-              disabled
-              onClick={() => {
-                /* Handle settings click */
-                console.log("Settings clicked");
-              }}
-            >
-              Settings
-            </Button>
+              <Button
+                variant="outline-secondary"
+                onClick={() => {
+                  /* Handle settings click */
+                  setProject(project);
+                  navigate("/settings");
+                }}
+              >
+                Settings
+              </Button>
+            </Col>
+          )}
+        </Row>
+
+        {/* Environments section */}
+        <Row className="mb-4">
+          {/* Staging Environment */}
+          <Col md={6} className="mb-3 mb-md-0">
+            <ProjectEnvInfo
+              envData={project.staging}
+              envLabel="staging"
+              project={project}
+            />
+          </Col>
+
+          {/* Production Environment */}
+          <Col md={6}>
+            <ProjectEnvInfo
+              envData={project.production}
+              envLabel="production"
+              project={project}
+            />
+          </Col>
+        </Row>
+
+        {/* Total Site Storage Used */}
+        <div className="mb-4">
+          <h3 className="fs-5 fw-semibold mb-2">Storage Used</h3>
+          <div className="d-flex justify-content-between mb-2">
+            <small className="text-muted">
+              {formatStorageSize(project.storage.usedBytes)}
+            </small>
+            <small className="text-muted">
+              {formatStorageSize(project.storage.maxBytes)}
+            </small>
           </div>
-        )}
-      </div>
-
-      {/* Environments section */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
-        {/* Staging Environment */}
-        {project && (
-          <ProjectEnvInfo
-            envData={project.staging}
-            envLabel="staging"
-            project={project}
-          />
-        )}
-
-        {/* Production Environment */}
-        {project && (
-          <ProjectEnvInfo
-            envData={project.production}
-            envLabel="production"
-            project={project}
-          />
-        )}
-      </div>
-
-      {/* Total Site Storage Used */}
-      <div className="mb-6">
-        <h3 className="text-lg font-semibold mb-2">Storage Used</h3>
-        <div className="flex items-center justify-between mb-2">
-          <p className="text-sm text-gray-600">
-            {formatStorageSize(project.storage.usedBytes)}
-          </p>
-          <p className="text-sm text-gray-600">
-            {formatStorageSize(project.storage.maxBytes)}
-          </p>
-        </div>
-        <div className="h-2 bg-gray-200 rounded-full overflow-hidden">
-          <div
-            className={
-              "h-full " +
-              (project.storage.usedBytes / project.storage.maxBytes > 0.8
-                ? "bg-red-600"
-                : "bg-blue-600")
+          <ProgressBar
+            variant={
+              project.storage.usedBytes / project.storage.maxBytes > 0.8
+                ? "danger"
+                : "primary"
             }
-            style={{
-              width: `${Math.min(
-                100,
-                (project.storage.usedBytes / project.storage.maxBytes) * 100
-              )}%`,
-            }}
-          ></div>
+            now={Math.min(
+              100,
+              (project.storage.usedBytes / project.storage.maxBytes) * 100
+            )}
+          />
         </div>
-      </div>
 
-      {/* Forms section */}
-      <div>
-        <h3 className="text-lg font-semibold mb-2">Forms</h3>
-        {project.forms?.length > 0 ? (
-          <div className="border border-gray-200 rounded-lg overflow-hidden">
-            <table className="min-w-full divide-y divide-gray-200">
-              <thead className="bg-gray-100">
+        {/* Forms section */}
+        <div>
+          <h3 className="fs-5 fw-semibold mb-2">Forms</h3>
+          {project.forms?.length > 0 ? (
+            <Table striped bordered hover responsive>
+              <thead className="table-light">
                 <tr>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Form Name
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Submissions (30 days)
-                  </th>
+                  <th className="small fw-medium">Form Name</th>
+                  <th className="small fw-medium">Submissions (30 days)</th>
                 </tr>
               </thead>
-
-              <tbody className="bg-white divide-y divide-gray-200">
+              <tbody>
                 {project.forms.map((form, i) => (
                   <tr key={i}>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
-                      {form.formName}
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                      {form.submissionCount}
-                    </td>
+                    <td>{form.formName}</td>
+                    <td>{form.submissionCount}</td>
                   </tr>
                 ))}
               </tbody>
-            </table>
-          </div>
-        ) : (
-          <p className="text-sm text-gray-500">No form submissions</p>
-        )}
-      </div>
-    </div>
+            </Table>
+          ) : (
+            <p className="text-muted small">No form submissions</p>
+          )}
+        </div>
+      </Card.Body>
+    </Card>
   );
 }

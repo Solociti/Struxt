@@ -8,7 +8,7 @@
     "paths": {
       "common/*": ["common/*"],
       "server/*": ["server/*"],
-      "client/*": ["client/*"]
+      "client/*": ["client/src/*"]
     },
     "esModuleInterop": true,
     "resolveJsonModule": true,

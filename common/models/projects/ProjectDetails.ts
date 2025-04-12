@@ -11,25 +11,8 @@ export interface ProjectDetails {
    */
   domains: DomainDetails[];
 
-  staging: {
-    published: {
-      userId: string;
-      displayName: string;
-
-      timestamp: Date | null;
-    };
-    screenshot: string;
-  };
-
-  production: {
-    published: {
-      userId: string;
-      displayName: string;
-
-      timestamp: Date | null;
-    };
-    screenshot: string;
-  };
+  staging: ProjectEnvDetails;
+  production: ProjectEnvDetails;
 
   storage: {
     usedBytes: number;
@@ -40,4 +23,30 @@ export interface ProjectDetails {
    * the list of forms for the project
    */
   forms: FormDetails[];
+}
+
+export interface ProjectEnvDetails {
+  published: {
+    userId: string;
+    displayName: string;
+
+    timestamp: Date | null;
+  };
+
+  /**
+   * Url to the screenshot of the current published site
+   */
+  screenshot: string;
+
+  /**
+   * Tells if ssl is enabled for the domain
+   */
+  forceSsl: boolean;
+
+  /**
+   * Tells if hsts is enabled for the domain
+   *
+   * Only effective if forceSsl is true
+   */
+  hsts: boolean;
 }

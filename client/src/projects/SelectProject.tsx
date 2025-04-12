@@ -1,7 +1,7 @@
-import { useState } from "react";
 import { ProjectListItem } from "common/models/projects/ProjectItem";
+import { useState } from "react";
+import Dropdown from "react-bootstrap/Dropdown";
 import { useLoadAsync } from "../api/useLoadAsync";
-import Dropdown from "../components/Dropdown";
 import { AllProjectsData } from "./ProjectContext";
 import { getAvailableProjects } from "./projects";
 
@@ -45,35 +45,53 @@ export default function SelectProject({
   }, [isOpen]);
 
   return (
-    <Dropdown.Button
-      title={project.name}
-      isLoading={isLoading}
-      onToggle={setIsOpen}
-    >
-      {allowAll && (
-        <Dropdown.Item onSelect={() => updateProject(AllProjectsData)}>
-          {AllProjectsData.name}
-        </Dropdown.Item>
-      )}
+    <Dropdown onToggle={setIsOpen}>
+      <Dropdown.Toggle
+        variant="outline-secondary"
+        style={{
+          minWidth: "16rem",
+        }}
+      >
+        {project.name}
+      </Dropdown.Toggle>
 
-      {projects &&
-        projects.map((project) => (
-          <Dropdown.Item
-            key={project.id}
-            onSelect={() => updateProject(project)}
-          >
-            {project.name}
+      <Dropdown.Menu>
+        {projects && projects.length === 0 && (
+          <Dropdown.Item disabled>No projects found</Dropdown.Item>
+        )}
+
+        {error && (
+          <Dropdown.Item className="text-danger" disabled>
+            {error.message}
           </Dropdown.Item>
-        ))}
+        )}
 
-      {projects && projects.length === 0 && (
-        <Dropdown.Item readOnly>No projects found</Dropdown.Item>
-      )}
-      {error && (
-        <Dropdown.Item className="text-red-800" readOnly>
-          {error.message}
-        </Dropdown.Item>
-      )}
-    </Dropdown.Button>
+        {isLoading && (
+          <Dropdown.Item disabled>
+            <div className="spinner-border spinner-border-sm" role="status">
+              <span className="visually-hidden">Loading...</span>
+            </div>
+          </Dropdown.Item>
+        )}
+
+        {allowAll && (
+          <Dropdown.Item onClick={() => updateProject(AllProjectsData)}>
+            {AllProjectsData.name}
+          </Dropdown.Item>
+        )}
+
+        <Dropdown.Divider />
+
+        {projects &&
+          projects.map((project) => (
+            <Dropdown.Item
+              key={project.id}
+              onClick={() => updateProject(project)}
+            >
+              {project.name}
+            </Dropdown.Item>
+          ))}
+      </Dropdown.Menu>
+    </Dropdown>
   );
 }

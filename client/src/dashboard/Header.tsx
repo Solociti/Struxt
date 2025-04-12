@@ -1,47 +1,59 @@
+import { useTheme } from "client/bootstrap/Theme";
+import Button from "react-bootstrap/Button";
+import Navbar from "react-bootstrap/Navbar";
 import { useCurrentUser } from "../auth/userCurrentUser";
 import { useCurrentProject } from "../projects/ProjectContext";
 import SelectProject from "../projects/SelectProject";
 
 export function DashboardHeader() {
   const { user } = useCurrentUser();
-
   const { project, setProject } = useCurrentProject();
+  const { theme } = useTheme();
 
   return (
-    <div className="bg-white p-2 flex items-center justify-between border-b border-gray-200 sticky top-0">
+    <Navbar className="p-2 border-bottom sticky-top" bg={theme}>
       {/* Logo */}
-      <div className="text-2xl md:hidden">
-        <img src="/logo.svg" alt="Logo" className="w-8 h-8" />
+      <div className="d-md-none fs-4">
+        <img src="/logo.svg" alt="Logo" width="32" height="32" />
       </div>
 
-      <div className="flex items-center w-64 bg-gray-100 rounded-md">
+      <div className="flex-grow-1" style={{ width: "16rem" }}>
         <SelectProject allowAll project={project} updateProject={setProject} />
       </div>
-      <div className="flex items-center">
-        <button className="p-2 mr-2">
-          <i className="far fa-bell"></i>
-        </button>
 
-        {/* add the user section */}
-        <div className="flex items-center">
+      <div className="d-flex align-items-center">
+        <Button variant="light" className="me-2 p-2" aria-label="Notifications">
+          <i className="far fa-bell"></i>
+          {/* TODO: setup the notifications */}
+        </Button>
+
+        {/* User section */}
+        <div className="d-flex align-items-center">
           {user && user.name ? (
-            <div className="w-8 h-8 rounded-full mr-2 bg-blue-500 flex items-center justify-center text-white font-medium">
+            <div
+              className="rounded-circle me-2 bg-primary text-white d-flex align-items-center justify-content-center"
+              style={{ width: "32px", height: "32px" }}
+            >
               {user.name
                 .split(" ")
                 .map((n) => n.charAt(0).toUpperCase())
                 .join("")}
             </div>
           ) : (
-            <div className="w-8 h-8 rounded-full mr-2 bg-gray-300 flex items-center justify-center text-white font-medium">
+            <div
+              className="rounded-circle me-2 bg-secondary text-white d-flex align-items-center justify-content-center"
+              style={{ width: "32px", height: "32px" }}
+            >
               ?
             </div>
           )}
 
-          <span>{(user && user.name) || "..."}</span>
-
-          <i className="fas fa-chevron-down ml-2 text-gray-500"></i>
+          <span className="d-none d-sm-inline">
+            {(user && user.name) || "..."}
+          </span>
+          <i className="fas fa-chevron-down ms-2 text-secondary"></i>
         </div>
       </div>
-    </div>
+    </Navbar>
   );
 }

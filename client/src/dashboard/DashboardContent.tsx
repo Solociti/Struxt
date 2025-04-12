@@ -1,11 +1,11 @@
 import { ProjectDetails } from "common/models/projects/ProjectDetails";
-import { getApi } from "../api/api";
+import Spinner from "react-bootstrap/Spinner";
 import { useLoadAsync } from "../api/useLoadAsync";
 import { useCurrentProject } from "../projects/ProjectContext";
-import { getAvailableProjects } from "../projects/projects";
+import { getAvailableProjects, getProjectDetails } from "../projects/projects";
 import { ShowProject } from "./ShowProject";
 
-export function DashboardContent() {
+export default function DashboardContent() {
   const { project } = useCurrentProject();
 
   const {
@@ -28,17 +28,26 @@ export function DashboardContent() {
       projectIds = [project.id];
     }
 
+    /**
+     * List of project details to load
+     */
     const details: ProjectDetails[] = [];
 
     for (const projectId of projectIds) {
-      const data = await getApi(["/api/projects/details", projectId], {});
-      details.push(data.details as ProjectDetails);
+      const data = await getProjectDetails(projectId);
+      details.push(data);
     }
     return details;
   }, [project.id]);
 
   if (isLoading) {
-    return <div>Loading...</div>;
+    return (
+      <div className="d-flex flex-column justify-content-center align-items-center my-5">
+        <Spinner animation="border" variant="secondary" />
+
+        <span className="ms-2 text-muted">Loading Content...</span>
+      </div>
+    );
   }
 
   if (error) {

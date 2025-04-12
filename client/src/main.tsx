@@ -4,13 +4,16 @@ import ErrorBoundary from "./components/ErrorBoundary";
 import DashboardApp from "./dashboard/Dashboard";
 
 import "./style.css";
+import { ThemeProvider } from "./bootstrap/Theme";
 
 // mount the application
 const root = createRoot(document.getElementById("app") as any);
 root.render(
   <StrictMode>
     <ErrorBoundary>
-      <DashboardApp />
+      <ThemeProvider>
+        <DashboardApp />
+      </ThemeProvider>
     </ErrorBoundary>
   </StrictMode>
 );

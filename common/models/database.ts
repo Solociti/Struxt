@@ -115,17 +115,12 @@ export interface db_domains {
    * Nullable: `NO`   */
   is_primary: number;
   /**
-   * Type: `int(1)`
+   * Type: `tinyint(1)`
    *
-   * Default: `1`
-   *
-   * Nullable: `NO`   */
-  ssl: number;
-  /**
-   * Type: `varchar(255)`
+   * Default: `0`
    *
    * Nullable: `NO`   */
-  ssl_email: string;
+  dns_verified: boolean;
   /**
    * Type: `timestamp`
    *
@@ -206,17 +201,12 @@ export interface db_domains_history {
    * Nullable: `NO`   */
   is_primary: number;
   /**
-   * Type: `int(1)`
+   * Type: `tinyint(1)`
    *
-   * Default: `1`
-   *
-   * Nullable: `NO`   */
-  ssl: number;
-  /**
-   * Type: `varchar(255)`
+   * Default: `0`
    *
    * Nullable: `NO`   */
-  ssl_email: string;
+  dns_verified: boolean;
   /**
    * Type: `timestamp`
    *
@@ -261,6 +251,132 @@ export interface db_id_counters {
    *
    * Nullable: `NO`   */
   value: number;
+}
+
+export interface db_project_settings {
+  /**
+   * Type: `int(10) unsigned`
+   *
+   * Default: `null`
+   *
+   * Nullable: `NO`
+   *
+   * Key: `PRI`
+   *
+   * Extra: `auto_increment`   */
+  id: number;
+  /**
+   * Type: `int(10) unsigned`
+   *
+   * Default: `null`
+   *
+   * Nullable: `NO`
+   *
+   * Key: `MUL`   */
+  site_id: number;
+  /**
+   * Type: `varchar(255)`
+   *
+   * Nullable: `NO`   */
+  site_env: string;
+  /**
+   * Type: `tinyint(1)`
+   *
+   * Default: `0`
+   *
+   * Nullable: `NO`   */
+  force_ssl: boolean;
+  /**
+   * Type: `tinyint(1)`
+   *
+   * Default: `0`
+   *
+   * Nullable: `NO`   */
+  hsts: boolean;
+  /**
+   * Type: `varchar(255)`
+   *
+   * Default: `null`
+   *
+   * Nullable: `YES`   */
+  updated_by: string | null;
+  /**
+   * Type: `timestamp`
+   *
+   * Default: `current_timestamp()`
+   *
+   * Nullable: `NO`   */
+  created_at: Date;
+  /**
+   * Type: `timestamp`
+   *
+   * Default: `current_timestamp()`
+   *
+   * Nullable: `NO`   */
+  updated_at: Date;
+}
+
+export interface db_project_settings_history {
+  /**
+   * Type: `int(10) unsigned`
+   *
+   * Default: `null`
+   *
+   * Nullable: `NO`
+   *
+   * Key: `PRI`
+   *
+   * Extra: `auto_increment`   */
+  _id: number;
+  /**
+   * Type: `int(10) unsigned`
+   *
+   * Default: `null`
+   *
+   * Nullable: `NO`
+   *
+   * Key: `MUL`   */
+  site_id: number;
+  /**
+   * Type: `varchar(255)`
+   *
+   * Nullable: `NO`   */
+  site_env: string;
+  /**
+   * Type: `tinyint(1)`
+   *
+   * Default: `0`
+   *
+   * Nullable: `NO`   */
+  force_ssl: boolean;
+  /**
+   * Type: `tinyint(1)`
+   *
+   * Default: `0`
+   *
+   * Nullable: `NO`   */
+  hsts: boolean;
+  /**
+   * Type: `varchar(255)`
+   *
+   * Default: `null`
+   *
+   * Nullable: `YES`   */
+  updated_by: string | null;
+  /**
+   * Type: `timestamp`
+   *
+   * Default: `current_timestamp()`
+   *
+   * Nullable: `NO`   */
+  created_at: Date;
+  /**
+   * Type: `timestamp`
+   *
+   * Default: `current_timestamp()`
+   *
+   * Nullable: `NO`   */
+  updated_at: Date;
 }
 
 export interface db_pub_form_attachments {
@@ -362,6 +478,13 @@ export interface db_pub_form_settings {
    * Nullable: `NO`   */
   form_name: string;
   /**
+   * Type: `varbinary(1)`
+   *
+   * Default: `1`
+   *
+   * Nullable: `NO`   */
+  legacy_enabled: string;
+  /**
    * Type: `tinyint(1)`
    *
    * Default: `1`
@@ -369,12 +492,19 @@ export interface db_pub_form_settings {
    * Nullable: `NO`   */
   enabled: boolean;
   /**
+   * Type: `varbinary(1)`
+   *
+   * Default: `1`
+   *
+   * Nullable: `NO`   */
+  legacy_send_email: string;
+  /**
    * Type: `tinyint(1)`
    *
    * Default: `0`
    *
-   * Nullable: `NO`   */
-  send_email: boolean;
+   * Nullable: `YES`   */
+  send_email: boolean | null;
   /**
    * Type: `varchar(255)`
    *
@@ -598,7 +728,7 @@ export interface db_public_site_stats {
    * Nullable: `NO`   */
   ip: string;
   /**
-   * Type: `varchar(255)`
+   * Type: `varchar(500)`
    *
    * Nullable: `NO`   */
   user_agent: string;

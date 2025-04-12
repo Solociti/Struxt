@@ -1,6 +1,8 @@
 import { formatDate } from "common/format/date";
 import { EnvironmentTypes } from "common/models/projects/Environment";
 import { ProjectDetails } from "common/models/projects/ProjectDetails";
+import Card from "react-bootstrap/Card";
+import ListGroup from "react-bootstrap/ListGroup";
 
 /**
  * Show the project env value information
@@ -18,53 +20,58 @@ export function ProjectEnvInfo({
   envLabel: EnvironmentTypes;
 }) {
   return (
-    <div className="border rounded-lg p-4 border-gray-200 bg-gray-50">
-      <h3 className="text-lg font-semibold mb-2 capitalize">
-        {envLabel} Environment
-      </h3>
-      <div className="mb-3">
-        <h4 className="text-sm font-medium text-gray-700">Domains</h4>
-        <ul className="text-sm">
-          {project.domains
-            .filter((d) => d.environment === envLabel)
-            .map((domain) => (
-              <li key={domain.id} className="flex items-center">
-                <a
-                  href={`https://${domain.domain}`}
-                  className="text-blue-600 hover:underline"
-                >
-                  {domain.domain}
-                </a>
-              </li>
-            ))}
-        </ul>
-      </div>
-      <div className="mb-3">
-        <h4 className="text-sm font-medium text-gray-700">Latest Publish</h4>
-        <p className="text-sm">
-          {envData.published.timestamp
-            ? `Published on ${formatDate(envData.published.timestamp)} by ${
-                envData.published.displayName
-              }`
-            : "No recent publishes"}
-        </p>
-      </div>
-      <div>
-        <h4 className="text-sm font-medium text-gray-700 mb-1">Preview</h4>
-        <div className="border border-gray-300 rounded overflow-hidden h-40 bg-gray-200">
+    <Card>
+      <Card.Body>
+        <Card.Title as="h3" className="text-capitalize mb-3">
+          {envLabel} Environment
+        </Card.Title>
+
+        <div className="mb-3">
+          <h4 className="h6">Domains</h4>
+          <ListGroup variant="flush">
+            {project.domains
+              .filter((d) => d.environment === envLabel)
+              .map((domain) => (
+                <ListGroup.Item key={domain.id} className="px-0 py-1 border-0">
+                  <a href={`https://${domain.domain}`} className="link-primary">
+                    {domain.domain}
+                  </a>
+                </ListGroup.Item>
+              ))}
+          </ListGroup>
+        </div>
+
+        <div className="flex-grow-1 mb-3">
+          <p className="text-muted small fw-medium mb-1">Last published by</p>
+          {envData.published.timestamp ? (
+            <p className="small">
+              {envData.published.displayName}
+              {" on "}
+              {formatDate(envData.published.timestamp)}
+            </p>
+          ) : (
+            <p className="small text-muted">No recent publishes</p>
+          )}
+        </div>
+
+        <div>
+          <h4 className="h6 mb-2">Preview</h4>
           {envData.screenshot ? (
-            <img
+            <Card.Img
               src={envData.screenshot}
               alt="Staging site preview"
-              className="w-full h-full object-cover"
+              style={{ height: "10rem", objectFit: "cover" }}
             />
           ) : (
-            <div className="flex items-center justify-center h-full text-gray-400">
+            <div
+              className="d-flex align-items-center justify-content-center bg-light text-secondary border rounded"
+              style={{ height: "10rem" }}
+            >
               No preview available
             </div>
           )}
         </div>
-      </div>
-    </div>
+      </Card.Body>
+    </Card>
   );
 }

@@ -27,6 +27,21 @@ export async function getProjectDetails(projectId: string) {
     throw customError(404, "Project not found.");
   }
 
+  const stagingSettings = await knex
+    .table("project_settings")
+    .where({
+      site_id: projectId,
+      site_env: "staging",
+    })
+    .first();
+  const productionSettings = await knex
+    .table("project_settings")
+    .where({
+      site_id: projectId,
+      site_env: "production",
+    })
+    .first();
+
   // load the domain info
   const domainRows: db_domains[] = await knex
     .table("domains")
@@ -91,7 +106,7 @@ export async function getProjectDetails(projectId: string) {
         id: row.id,
         domain: row.domain,
         environment: row.site_env as EnvironmentTypes,
-        ssl: Boolean(row.ssl),
+        isPrimary: Boolean(row.is_primary),
       };
     }),
 
@@ -102,6 +117,9 @@ export async function getProjectDetails(projectId: string) {
         timestamp: stagingPublished?.published_at || null,
       },
       screenshot: "",
+
+      forceSsl: stagingSettings ? Boolean(stagingSettings.force_ssl) : true,
+      hsts: stagingSettings ? Boolean(stagingSettings.hsts) : true,
     },
 
     production: {
@@ -111,6 +129,11 @@ export async function getProjectDetails(projectId: string) {
         timestamp: productionPublished?.published_at || null,
       },
       screenshot: "",
+
+      forceSsl: productionSettings
+        ? Boolean(productionSettings.force_ssl)
+        : true,
+      hsts: productionSettings ? Boolean(productionSettings.hsts) : true,
     },
 
     storage: {

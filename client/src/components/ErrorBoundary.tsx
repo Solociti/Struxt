@@ -40,15 +40,16 @@ export default class ErrorBoundary extends Component<
             borderRadius: "8px",
             backgroundColor: "#61413d",
           }}
+          className="bg-danger border-danger text-white w-100"
         >
-          <h2>Something went wrong.</h2>
+          <h2>Something bad happened.</h2>
           <p
             style={{
               paddingTop: "0.5rem",
               paddingBottom: "0.5rem",
             }}
           >
-            {error.message}
+            {error.name}: {error.message}
           </p>
 
           <details style={{ whiteSpace: "pre-wrap", fontFamily: "monospace" }}>
