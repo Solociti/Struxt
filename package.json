@@ -9,7 +9,8 @@
     "build": "tsc && cd client && vite build",
     "preview": "cd client && vite preview",
     "docker": "./docker.sh up",
-    "schema": "node tools/createSchema.js"
+    "schema": "node tools/createSchema.js",
+    "migrate": "docker exec -it struxt-editor-api-1 node server/migrationEntry.js"
   },
   "devDependencies": {
     "@babel/cli": "^7.27.0",
@@ -58,6 +59,7 @@
     "handlebars": "^4.7.8",
     "keycloak-connect": "^26.1.1",
     "knex": "^3.1.0",
+    "mongodb": "^6.15.0",
     "multer": "^1.4.5-lts.1",
     "mysql2": "^3.13.0",
     "nodemailer": "^6.10.0",

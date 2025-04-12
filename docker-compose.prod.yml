@@ -14,6 +14,7 @@ services:
       - ${SITE_STORAGE_DIR}:/sites
       - .env:/app/.env:ro
     depends_on:
+      - mongo
       - mariadb
       - dragonfly
       - nginx
@@ -35,9 +36,11 @@ services:
       - ${SITE_STORAGE_DIR}:/sites
       - .env:/app/.env:ro
     depends_on:
+      - mongo
       - mariadb
       - dragonfly
       - nginx
+      - keycloak
     networks:
       - struxt-net
 

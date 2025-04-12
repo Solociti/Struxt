@@ -36,6 +36,7 @@ services:
       - ./dist-server/:/app/dist-server
       - ./tsconfig.json:/app/tsconfig.json
       - ./babel.config.json:/app/babel.config.json
+      - ./babel:/app/babel
     networks:
       - struxt-net
   babel-build-2:
@@ -56,6 +57,7 @@ services:
       - ./dist-server/:/app/dist-server
       - ./tsconfig.json:/app/tsconfig.json
       - ./babel.config.json:/app/babel.config.json
+      - ./babel:/app/babel
     networks:
       - struxt-net
 

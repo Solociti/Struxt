@@ -1,4 +1,17 @@
 services:
+  mongo:
+    image: mongo:8.0
+    restart: unless-stopped
+    environment:
+      - MONGO_INITDB_ROOT_USERNAME=${MONGODB_USERNAME}
+      - MONGO_INITDB_ROOT_PASSWORD=${MONGODB_PASSWORD}
+    ports:
+      - "127.0.0.1:27017:27017"
+    volumes:
+      - mongo_data:/data/db
+    networks:
+      - struxt-net
+
   mariadb:
     image: mariadb:latest
     restart: unless-stopped
@@ -39,6 +52,7 @@ services:
 
 volumes:
   mariadb_data:
+  mongo_data:
   nginx_data:
   nginx_letsencrypt:
   dragonflydata:

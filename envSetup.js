@@ -104,6 +104,18 @@ async function main() {
     ].join("\n");
   }
 
+  if (!contents.includes("MONGODB_URI")) {
+    contents += [
+      "",
+      "# MongoDB Connection information",
+      "MONGODB_URI=mongodb://localhost:27017/",
+      "MONGODB_PREFIX=struxt",
+      "MONGODB_USERNAME=struxt",
+      "MONGODB_PASSWORD=" +
+        randomBytes(20).toString("base64").replace(/[^\w]/g, ""),
+    ].join("\n");
+  }
+
   if (contents !== original) {
     // allow the value to be edited
     const lines = contents.split("\n");
