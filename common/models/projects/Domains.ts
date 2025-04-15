@@ -1,6 +1,9 @@
 import { roles } from "../user/Roles";
 import { EnvironmentTypes } from "./Environment";
 
+/**
+ * @deprecated
+ */
 export interface DomainDetails {
   id: number;
 
@@ -20,6 +23,9 @@ export interface DomainDetails {
   isPrimary: boolean;
 }
 
+/**
+ * @deprecated
+ */
 export class DomainModel {
   id: number = 0;
 

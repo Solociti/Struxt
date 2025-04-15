@@ -113,7 +113,7 @@ export async function getProjectDetails(projectId: string) {
     staging: {
       published: {
         userId: stagingPublished?.published_by || "",
-        displayName: "", // TODO: get the display name
+        displayName: "",
         timestamp: stagingPublished?.published_at || null,
       },
       screenshot: "",

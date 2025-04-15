@@ -1,14 +1,22 @@
-import { knex } from "./database";
+import { getCollection } from "server/database/mongodb";
 
-export type IdCounterName = "submission";
+export type IdCounterName = "submission" | "project" | "publish";
 
 async function counter(name: IdCounterName) {
-  const [result] = await knex.raw(
-    "INSERT INTO id_counters (name) VALUES (?) ON DUPLICATE KEY UPDATE value = id_counters.value + 1 RETURNING value",
-    [name]
+  const collection = await getCollection("id_counters");
+
+  // update the counter
+  const result = await collection.findOneAndUpdate(
+    { name },
+    { $inc: { value: 1 } },
+    { upsert: true, returnDocument: "after" }
   );
 
-  return result[0].value;
+  if (!result) {
+    throw new Error("Failed to update counter");
+  }
+
+  return result.value as number;
 }
 
 /**

@@ -23,7 +23,7 @@ export async function userFromReq(req: express.Request) {
 
   // load the roles for the user
   const [roles, projectRoles] = await Promise.all([
-    userId ? await getUserRoles(userId) : [],
+    userId ? await getKeyCloakUserRoles(userId) : [],
     userId ? await getProjectRoles(userId) : [],
   ]);
 
@@ -48,7 +48,7 @@ export async function userFromReq(req: express.Request) {
  * @param userId
  * @returns
  */
-async function getUserRoles(userId: string) {
+export async function getKeyCloakUserRoles(userId: string) {
   const cachedRoles = await getKey(`keycloak:roles:${userId}`);
 
   if (cachedRoles) {
@@ -64,9 +64,8 @@ async function getUserRoles(userId: string) {
     await setEx(`keycloak:roles:${userId}`, 600, JSON.stringify(roleNames));
 
     return roleNames as string[];
-  } catch (err) {
-    console.error(err);
-
+  } catch (err: any) {
+    console.error(err.name, err.message);
     return [];
   }
 }

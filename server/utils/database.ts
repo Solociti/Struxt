@@ -11,6 +11,7 @@ export const knex = knexDb(config);
 /**
  * Get the table for knex
  *
+ * @deprecated
  * @param name
  * @returns
  */
@@ -20,6 +21,8 @@ export function getTable(name: string) {
 
 /**
  * Migrate the database to the latest version
+ *
+ * @deprecated
  */
 export async function dbInit() {
   if (isInitialized) {

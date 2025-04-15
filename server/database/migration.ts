@@ -16,11 +16,15 @@ function fileBaseName(file: string) {
   return basename(basename(file, ".ts"), ".js");
 }
 
-async function mainUp() {
-  console.log("Running migration up...");
+/**
+ * Execute the migration up
+ *
+ */
+async function executeUp() {
+  console.log("Starting migration...");
 
   // get the migration collection
-  const mCollection = await getCollection("migrations", true);
+  const mCollection = await getCollection("migrations");
 
   // get the last migration
   const completedMigrations = await toArray(
@@ -51,10 +55,11 @@ async function mainUp() {
 
   // run the migration scripts
   for (const file of pendingMigrations) {
-    const migration = await import(join(__dirname, "./migration", file));
+    const subDir = "./migration";
+    const migration = await import(join(__dirname, subDir, file));
 
     const baseName = fileBaseName(file);
-    console.log(`Running migration: ${baseName}`);
+    console.log(`Running: ${baseName}`);
 
     let startTime = Date.now();
 
@@ -77,8 +82,8 @@ async function mainUp() {
     // save the migration in the database
     await mCollection.insertOne({
       name: baseName,
-      duration,
-      date: Date.now(),
+      durationMs: duration,
+      date: Math.floor(Date.now() / 1000),
       batch,
     });
   }
@@ -90,11 +95,10 @@ async function mainUp() {
  * @returns
  */
 async function getMigrationFiles() {
-  const migrationDir = join(__dirname, "./migration");
-  console.log("Migration directory: ", migrationDir);
+  const subDir = "./migration";
+  const migrationDir = join(__dirname, subDir);
 
   const files = await readdir(migrationDir);
-
   const migrationFiles = files.filter(
     (file) => file.endsWith(".ts") || file.endsWith(".js")
   );
@@ -108,7 +112,7 @@ async function getMigrationFiles() {
  */
 export async function runMigrations() {
   try {
-    await mainUp();
+    await executeUp();
   } catch (error) {
     console.error("Error running migrations:", error);
     throw error;
