@@ -1,6 +1,7 @@
 import { Model, UserModelAction } from "common/models/Model";
-import { ProjectEnvSettings, setupProjectEnvSettings } from "./Environment";
 import { DeepPartial, mergeDeep } from "../utils";
+import { EditorData } from "./editorDataTypes";
+import { ProjectEnvSettings, setupProjectEnvSettings } from "./Environment";
 
 export class ProjectModel extends Model {
   /**
@@ -28,7 +29,17 @@ export class ProjectModel extends Model {
   /**
    * The GrapesJS editor data
    */
-  public editorData: any = {};
+  public editorData: EditorData = {
+    assets: [],
+    styles: [],
+    pages: [],
+    symbols: [],
+    dataSources: [],
+    custom: {
+      projectType: "site",
+      id: "",
+    },
+  };
 
   /**
    * Staging specific settings
@@ -71,7 +82,13 @@ export class ProjectModel extends Model {
       this.production = setupProjectEnvSettings(data.production);
     }
 
-    mergeDeep(this, data, ["staging", "production"]);
+    if (data.editorData) {
+      // don't run the mergeDeep on editorData.
+      // this could cause multiple versions of the data being merged
+      this.editorData = data.editorData as EditorData;
+    }
+
+    mergeDeep(this, data, ["staging", "production", "editorData"]);
   }
 
   clone(): ProjectModel {

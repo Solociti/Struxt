@@ -1,31 +1,33 @@
-import { knex } from "../../utils/database";
-import { FormSettings, fromFormSettingsRow } from "../convertRows";
+import { ModelAsDocument } from "common/models/Model";
+import { FormSettingsModel } from "common/models/projects/forms/FormSettingsModel";
+import { getCollection } from "server/database/mongodb";
 
 /**
  * Load the settings for the given form
  *
- * @param siteId
- * @param siteEnv
+ * @param projectId
+ * @param projectEnv
  * @param formName
  * @returns
  */
 export async function getFormSettings(
-  siteId: string,
-  siteEnv: "production" | "staging",
+  projectId: string,
+  projectEnv: "production" | "staging",
   formName: string
-): Promise<FormSettings | null> {
-  const [row] = await knex
-    .table("pub_form_settings")
-    .where({
-      site_id: siteId,
-      site_env: siteEnv,
-      form_name: formName,
-    })
-    .limit(1);
+): Promise<FormSettingsModel | null> {
+  const collection = await getCollection("form_settings");
 
-  if (!row) {
+  const doc = await collection.findOne<ModelAsDocument<FormSettingsModel>>({
+    projectId,
+    projectEnv,
+    formName,
+  });
+  if (!doc) {
     return null;
   }
+  if (doc._id) {
+    delete doc._id;
+  }
 
-  return fromFormSettingsRow(row);
+  return new FormSettingsModel(doc);
 }

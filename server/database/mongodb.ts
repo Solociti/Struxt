@@ -1,3 +1,4 @@
+import { DataPropsOnly } from "common/models/Model";
 import {
   Collection,
   CreateIndexesOptions,
@@ -45,13 +46,13 @@ const dbName = process.env.MONGODB_PREFIX || "struxt";
  * The primary collection names.
  */
 export type CollectionNames =
-  | "id_counters"
-  | "form_submissions"
   | "form_settings"
+  | "form_submissions"
+  | "id_counters"
   | "migrations"
-  | "projects"
-  | "projects_published"
   | "project_members"
+  | "projects_published"
+  | "projects"
   | "users";
 
 /**
@@ -64,14 +65,14 @@ export async function getDb(): Promise<Db> {
 /**
  * Get the collection from the database
  */
-export async function getCollection(
+export async function getCollection<T>(
   name: CollectionNames
-): Promise<Collection> {
+): Promise<Collection<DataPropsOnly<T>>> {
   // get the database
   const db = await getDb();
 
   // get the collection from the database
-  const collection = db.collection(name);
+  const collection = db.collection<DataPropsOnly<T>>(name);
   return collection;
 }
 

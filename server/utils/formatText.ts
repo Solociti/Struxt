@@ -11,8 +11,8 @@ export function capitalizeWords(text: string): string {
 /**
  * Converts col names or labels to title case
  *
- * @example colToTitle("first_name") => "First Name"
- * @example colToTitle("last-name") => "Last Name"
+ * @example formatLabel("first_name") => "First Name"
+ * @example formatLabel("last-name") => "Last Name"
  *
  * @param label
  * @returns

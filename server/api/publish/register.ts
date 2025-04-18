@@ -1,18 +1,18 @@
 import { PublishApi } from "common/api/publish/publish";
 import { customError } from "common/custom-error/custom-error";
+import { FormSettingsField } from "common/models/projects/forms/FormSettingsModel";
 import { PublishModel } from "common/models/projects/PublishModel";
 import { roles } from "common/models/user/Roles";
 import { existsSync } from "node:fs";
 import { copyFile, writeFile } from "node:fs/promises";
 import path, { dirname, join } from "node:path";
 import { createSimpleId } from "server/utils/createId";
-import { getFormValidationFromProject } from "../../forms/getFormValidationFromProject";
-import { saveValidationData } from "../../forms/saveValidationData";
+import { getFormFieldsFromEditorData } from "../../forms/getFormFieldsFromEditorData";
+import { getFormSettings } from "../../forms/settings/getFormSettings";
 import {
   defaultFormSettings,
-  saveNewFormSettings,
-} from "../../forms/sendEmail/saveFormSettings";
-import { getFormSettings } from "../../forms/settings/getFormSettings";
+  saveFormSettings,
+} from "../../forms/settings/saveFormSettings";
 import { cleanDir } from "../../utils/cleanDir";
 import { copyDir } from "../../utils/copyDir";
 import { mkDirRecursive } from "../../utils/mkDir";
@@ -141,33 +141,30 @@ registerApi<PublishApi>("/api/publish/:projectId").post(
     }
 
     // get the form validation data
-    const validation = await getFormValidationFromProject(
-      projectId,
-      body.type,
-      editorData
-    );
+    const formFields = getFormFieldsFromEditorData(editorData);
 
-    const formNames = [...new Set(validation.map((v) => v.formName))];
+    const formNames = [...new Set(formFields.map((v) => v.formName))];
 
     for (const formName of formNames) {
-      const formSettings = await getFormSettings(
-        projectId,
-        body.type,
-        formName
-      );
+      let formSettings = await getFormSettings(projectId, body.type, formName);
 
       if (!formSettings) {
-        const formSettings = await defaultFormSettings(
-          parseInt(projectId),
-          body.type,
-          formName
-        );
-        await saveNewFormSettings(formSettings);
+        formSettings = defaultFormSettings(projectId, body.type, formName);
       }
-    }
 
-    // save the form validation data
-    await saveValidationData(validation);
+      // update the form settings
+      formSettings.updateFields(
+        formFields
+          .filter((v) => v.formName === formName)
+          .map((v) => ({
+            name: v.fieldName,
+            type: v.fieldType as FormSettingsField["type"],
+            required: v.fieldRequired,
+          }))
+      );
+
+      await saveFormSettings(formSettings);
+    }
 
     // save the publish details to database
     const model = new PublishModel({

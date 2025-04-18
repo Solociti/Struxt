@@ -12,6 +12,8 @@ export type OptionalKeys<T, K extends keyof T> = Omit<T, K> &
  *
  * Arrays need to be handled separately
  *
+ * Props that start with `_` are skipped
+ *
  * @param original
  * @param data
  * @returns
@@ -25,7 +27,7 @@ export function mergeDeep<T>(
 
   for (const key in data) {
     // skip the keys that are in the skip list
-    if (skip.includes(key)) {
+    if (skip.includes(key) || key.startsWith("_")) {
       continue;
     }
 

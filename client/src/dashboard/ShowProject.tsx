@@ -42,7 +42,11 @@ export function ShowProject({ project }: { project: ProjectDetails }) {
                 variant="outline-secondary"
                 onClick={() => {
                   /* Handle settings click */
-                  setProject(project);
+                  setProject({
+                    projectId: project.id,
+                    name: project.name,
+                    description: project.description,
+                  });
                   navigate("/settings");
                 }}
               >

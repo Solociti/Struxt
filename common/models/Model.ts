@@ -37,7 +37,7 @@ type NonFunctionPropertyNames<T> = {
 /**
  * Utility type to create a type with only the non-function properties of T.
  */
-type DataPropsOnly<T> = Pick<T, NonFunctionPropertyNames<T>>;
+export type DataPropsOnly<T> = Pick<T, NonFunctionPropertyNames<T>>;
 
 /**
  * Represents the model type T as it would be stored in a document database,

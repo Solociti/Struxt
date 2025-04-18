@@ -1,5 +1,5 @@
-import { knex } from "server/utils/database";
-import { fromFormAttachmentRow, fromFormSubmissionRow } from "./convertRows";
+import { FormSubmissionModel } from "common/models/projects/forms/FormSubmissionModel";
+import { getCollection } from "server/database/mongodb";
 
 /**
  * Load the submission data from server
@@ -7,21 +7,17 @@ import { fromFormAttachmentRow, fromFormSubmissionRow } from "./convertRows";
  * @param submissionId
  * @returns
  */
-export async function getFormSubmission(submissionId: number) {
-  const [row] = await knex("pub_form_submissions").where({
-    id: submissionId,
-  });
+export async function getFormSubmission(submissionId: string) {
+  const collection = await getCollection<FormSubmissionModel>(
+    "form_submissions"
+  );
 
-  if (!row) {
-    throw new Error("Form submission not found");
+  const doc = await collection.findOne({
+    submissionId,
+  });
+  if (!doc) {
+    return null;
   }
-  const submission = fromFormSubmissionRow(row);
 
-  // load the attachments
-  const attachmentRows = await knex("pub_form_attachments").where({
-    submission_id: submissionId,
-  });
-  submission.attachments = attachmentRows.map(fromFormAttachmentRow);
-
-  return submission;
+  return new FormSubmissionModel(doc);
 }

@@ -9,7 +9,6 @@ import {
   db_sites,
   db_user_roles,
 } from "common/models/database";
-import { UserModelAction } from "common/models/Model";
 import { EnvironmentTypes } from "common/models/projects/Environment";
 import { FormSettingsModel } from "common/models/projects/forms/FormSettingsModel";
 import { FormSubmissionModel } from "common/models/projects/forms/FormSubmissionModel";
@@ -22,6 +21,8 @@ import { knex } from "server/utils/database";
 import { createIndex, getCollection } from "../mongodb";
 
 export async function up() {
+  // TODO: copy the project directory to the new location
+
   // setup the indexes
   await createIndex(
     "projects",
@@ -417,10 +418,18 @@ export async function up() {
         projectEnv: row.site_env as EnvironmentTypes,
         formName: row.form_name,
 
+        enabled: Boolean(row.enabled),
+
+        email: {
+          send: Boolean(row.send_email),
+          to: row.email_to,
+          subject: row.email_subject,
+        },
+
         fields: validationRows.map((row) => {
           return {
             name: row.field_name,
-            type: row.type,
+            type: row.type as any,
             required: Boolean(row.required),
           };
         }),
