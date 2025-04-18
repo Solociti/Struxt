@@ -122,6 +122,11 @@ export function hasPermission(
   }
 
   if (Array.isArray(permission)) {
+    if (permission.length === 0) {
+      // just checks if the user is authenticated and has any role
+      return true;
+    }
+
     return permission.some((p) => hasPermission(userRoles, p));
   } else if (typeof permission === "string") {
     return userRoles.includes(permission);

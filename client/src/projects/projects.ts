@@ -1,6 +1,9 @@
-import { ProjectListApi } from "common/models/projects/api";
+import {
+  ProjectDetailsApi,
+  ProjectEditorApi,
+  ProjectListApi,
+} from "common/api/projects/project";
 import { getApi, postApi } from "../api/api";
-import { ProjectDetails } from "common/models/projects/ProjectDetails";
 
 /**
  * Get the project data from server
@@ -10,7 +13,10 @@ import { ProjectDetails } from "common/models/projects/ProjectDetails";
  */
 export async function getProject(projectId: string) {
   // load the project data from the server
-  const response = await getApi(`/api/projects/${projectId}`);
+  const response: ProjectEditorApi["GetResponse"] = await getApi(
+    `/api/projects/${projectId}/editor`
+  );
+
   return response;
 }
 
@@ -18,15 +24,17 @@ export async function getProject(projectId: string) {
  * Save the project data to the server
  *
  * @param projectId
- * @param project
+ * @param editorData
  * @returns
  */
-export async function saveProject(projectId: string, project: any) {
+export async function saveProject(projectId: string, editorData: any) {
+  const body: ProjectEditorApi["PostBody"] = {
+    projectId,
+    editorData,
+  };
+
   // save the project data to the server
-  return await postApi(`/api/projects/${projectId}`, {
-    id: projectId,
-    project,
-  });
+  return await postApi(`/api/projects/${projectId}/editor`, body);
 }
 
 /**
@@ -35,7 +43,7 @@ export async function saveProject(projectId: string, project: any) {
  * @returns
  */
 export async function getAvailableProjects() {
-  const response: ProjectListApi = await getApi(`/api/projects`);
+  const response: ProjectListApi["GetResponse"] = await getApi(`/api/projects`);
   return response;
 }
 
@@ -47,9 +55,10 @@ export async function getAvailableProjects() {
  */
 export async function getProjectDetails(projectId: string) {
   // load the project details from the server
-  const response: { details: ProjectDetails } = await getApi([
-    "/api/projects/details",
+  const response: ProjectDetailsApi["GetResponse"] = await getApi([
+    "/api/projects",
     projectId,
+    "details",
   ]);
   return response.details;
 }

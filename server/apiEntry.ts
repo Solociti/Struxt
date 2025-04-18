@@ -5,10 +5,7 @@ import {
   router as assetsRouter,
   staticFiles as assetStaticFiles,
 } from "server/api/assets/register";
-import { router as userEndpoints } from "server/api/auth/register";
 import { userFromReq } from "server/api/auth/userFromReq";
-import { router as projectsRouter } from "server/api/projects/register";
-import { router as publishRouter } from "server/api/publish/register";
 import { protectEndpoint } from "server/auth/protectEndpoint";
 import {
   setupAuthEndpoints,
@@ -23,6 +20,9 @@ import { registerErrorPage } from "server/setup/errorPages";
 import { expressSetup } from "server/setup/expressSetup";
 import "server/setup/startup";
 import { dbInit } from "server/utils/database";
+import { router as apiRouter } from "./api/registerApi";
+
+import "server/api/register";
 
 // run init scripts and then start the server
 Promise.all([dbInit()]).then(() => {
@@ -58,15 +58,13 @@ async function main() {
     });
   });
 
-  app.use("/api/auth/user", userEndpoints);
+  // register the api endpoints
+  app.use(apiRouter);
 
   app.use("/api/assets", assetsRouter);
   app.use("/assets", assetStaticFiles);
 
-  app.use("/api/projects", projectsRouter);
-  app.use("/api/publish", publishRouter);
-
-  app.use(formsRouter);
+  app.use(formsRouter); // TODO: move to the web server
 
   // setup the admin pages. This should be moved to a separate server at some point
   app.use("/admin/queues", serverAdapter.getRouter());

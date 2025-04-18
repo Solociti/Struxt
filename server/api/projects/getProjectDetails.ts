@@ -10,6 +10,7 @@ import { ProjectDetails } from "common/models/projects/ProjectDetails";
 import { calcDirSize } from "../../utils/calcDirSize";
 import { knex } from "../../utils/database";
 import { getAssetDir } from "../../utils/uploadDir";
+import { getCollection } from "server/database/mongodb";
 
 /**
  * Load the project details from the database
@@ -17,10 +18,27 @@ import { getAssetDir } from "../../utils/uploadDir";
  * @param projectId
  */
 export async function getProjectDetails(projectId: string) {
+  const collection = await getCollection("projects");
+
+  const doc = await collection.findOne({
+    projectId,
+  });
+
+  if (!doc) {
+    throw customError(404, "Project not found.");
+  }
+
+  // TODO: setup new apis for this information.
+  // split into,
+  // - project details
+  // - form details
+  // - storage usage
+  const oldProjectId = doc.oldId;
+
   // load the base row
   const row: db_sites = await knex
     .table("sites")
-    .where({ id: projectId })
+    .where({ id: oldProjectId })
     .first();
 
   if (!row) {
@@ -30,14 +48,14 @@ export async function getProjectDetails(projectId: string) {
   const stagingSettings = await knex
     .table("project_settings")
     .where({
-      site_id: projectId,
+      site_id: oldProjectId,
       site_env: "staging",
     })
     .first();
   const productionSettings = await knex
     .table("project_settings")
     .where({
-      site_id: projectId,
+      site_id: oldProjectId,
       site_env: "production",
     })
     .first();
@@ -45,14 +63,14 @@ export async function getProjectDetails(projectId: string) {
   // load the domain info
   const domainRows: db_domains[] = await knex
     .table("domains")
-    .where({ site_id: projectId })
+    .where({ site_id: oldProjectId })
     .select("*");
 
   // load the publish details
   const stagingPublished: db_site_publish_info = await knex
     .table("site_publish_info")
     .where({
-      site_id: projectId,
+      site_id: oldProjectId,
       site_env: "staging",
     })
     .orderBy("published_at", "desc")
@@ -60,7 +78,7 @@ export async function getProjectDetails(projectId: string) {
   const productionPublished: db_site_publish_info = await knex
     .table("site_publish_info")
     .where({
-      site_id: projectId,
+      site_id: oldProjectId,
       site_env: "production",
     })
     .orderBy("published_at", "desc")
@@ -70,7 +88,7 @@ export async function getProjectDetails(projectId: string) {
   const formRows: db_pub_form_settings[] = await knex
     .table("pub_form_settings")
     .where({
-      site_id: projectId,
+      site_id: oldProjectId,
     })
     .select("*");
 
@@ -80,7 +98,7 @@ export async function getProjectDetails(projectId: string) {
   })[] = await knex
     .table("pub_form_submissions")
     .where({
-      site_id: projectId,
+      site_id: oldProjectId,
       site_env: "production",
     })
     .andWhere(
@@ -93,7 +111,7 @@ export async function getProjectDetails(projectId: string) {
     .groupBy("form_name");
 
   // calculate the storage used
-  const dir = getAssetDir(projectId);
+  const dir = getAssetDir(oldProjectId);
   const storageUsed = await calcDirSize(dir);
 
   const details: ProjectDetails = {

@@ -340,7 +340,7 @@ function CustomEditor({
           try {
             const response = await getProject(projectId);
 
-            return { project: response.project };
+            return { project: response.editorData };
           } catch (err) {
             setError(err as Error);
 

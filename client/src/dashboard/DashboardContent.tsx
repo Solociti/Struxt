@@ -20,12 +20,12 @@ export default function DashboardContent() {
      * List of project ids to load
      */
     let projectIds: string[] = [];
-    if (project.id === "*") {
+    if (project.projectId === "*") {
       // get the list of available projects
       const { list } = await getAvailableProjects();
-      projectIds = list.map((p) => p.id);
+      projectIds = list.map((p) => p.projectId);
     } else {
-      projectIds = [project.id];
+      projectIds = [project.projectId];
     }
 
     /**
@@ -38,7 +38,7 @@ export default function DashboardContent() {
       details.push(data);
     }
     return details;
-  }, [project.id]);
+  }, [project.projectId]);
 
   if (isLoading) {
     return (

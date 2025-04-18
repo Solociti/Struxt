@@ -1,0 +1,4 @@
+import "server/api/auth/register";
+import "server/api/domains/register";
+import "server/api/projects/register";
+import "server/api/publish/register";

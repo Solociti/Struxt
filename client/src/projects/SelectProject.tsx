@@ -85,7 +85,7 @@ export default function SelectProject({
         {projects &&
           projects.map((project) => (
             <Dropdown.Item
-              key={project.id}
+              key={project.projectId}
               onClick={() => updateProject(project)}
             >
               {project.name}
