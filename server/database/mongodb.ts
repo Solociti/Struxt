@@ -14,7 +14,7 @@ import { hostname } from "node:os";
  *
  * @returns
  */
-function connectionUrl() {
+export function mongoConnectionUrl() {
   const urlValue = process.env.MONGODB_URI;
   if (!urlValue) {
     throw new Error("MONGODB_URI is not defined");
@@ -37,10 +37,10 @@ function connectionUrl() {
 }
 
 // setup the mongodb client
-const client = new MongoClient(connectionUrl(), {
+const client = new MongoClient(mongoConnectionUrl(), {
   appName: hostname(),
 });
-const dbName = process.env.MONGODB_PREFIX || "struxt";
+export const dbName = process.env.MONGODB_PREFIX || "struxt";
 
 /**
  * The primary collection names.
