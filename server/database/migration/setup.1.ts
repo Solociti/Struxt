@@ -9,15 +9,19 @@ import {
   db_sites,
   db_user_roles,
 } from "common/models/database";
+import { EditorData } from "common/models/projects/editorDataTypes";
 import { EnvironmentTypes } from "common/models/projects/Environment";
 import { FormSettingsModel } from "common/models/projects/forms/FormSettingsModel";
 import { FormSubmissionModel } from "common/models/projects/forms/FormSubmissionModel";
 import { ProjectModel } from "common/models/projects/ProjectModel";
 import { PublishModel } from "common/models/projects/PublishModel";
 import { UserModel } from "common/models/user/UserModel";
+import { basename } from "node:path";
 import { getKeyCloakUserRoles } from "server/api/auth/userFromReq";
+import { copyDir } from "server/utils/copyDir";
 import { createSimpleId } from "server/utils/createId";
 import { knex } from "server/utils/database";
+import { getAssetDir } from "server/utils/uploadDir";
 import { createIndex, getCollection } from "../mongodb";
 
 export async function up() {
@@ -221,13 +225,35 @@ export async function up() {
 
       // generate a new id
       const projectId = await createSimpleId("project");
+      let editorData: EditorData = JSON.parse(row.project);
+
+      if (editorData.assets) {
+        const oldAssetDir = getAssetDir(row.id.toString());
+        const projectAssetDir = getAssetDir(projectId);
+
+        // copy the assets to the new directory
+        await copyDir(oldAssetDir, projectAssetDir, {
+          replace: true,
+          preserveTimestamps: true,
+        });
+
+        for (const asset of editorData.assets) {
+          if (asset.src) {
+            const search = asset.src;
+            const base = basename(search);
+            const replace = `/assets/${projectId}/${base}`;
+
+            editorData = recursiveReplaceText(editorData, search, replace);
+          }
+        }
+      }
 
       const project = new ProjectModel({
         projectId,
         oldId: row.id.toString(),
         name: row.name,
         description: row.description,
-        editorData: JSON.parse(row.project),
+        editorData,
 
         created: {
           date: Math.floor(row.created_at.getTime() / 1000),
@@ -305,7 +331,7 @@ export async function up() {
   })();
 
   async function getProjectId(oldId: number | string) {
-    const collection = await getCollection("projects");
+    const collection = await getCollection<ProjectModel>("projects");
 
     const doc = await collection.findOne({
       oldId: oldId.toString(),
@@ -523,3 +549,23 @@ export async function up() {
 }
 
 export async function down() {}
+
+function recursiveReplaceText<T extends object>(
+  data: T,
+  search: string,
+  replace: string
+): T {
+  for (const key in data) {
+    if (typeof data[key] === "string") {
+      if (data[key] === search) {
+        data[key] = replace as any;
+      }
+    }
+
+    if (typeof data[key] === "object") {
+      data[key] = recursiveReplaceText(data[key] as any, search, replace);
+    }
+  }
+
+  return data;
+}
