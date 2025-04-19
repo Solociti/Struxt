@@ -59,6 +59,6 @@ export default function DashboardContent() {
   }
 
   return projectList.map((project) => (
-    <ShowProject key={project.id} project={project} />
+    <ShowProject key={project.projectId} project={project} />
   ));
 }

@@ -255,6 +255,10 @@ export async function up() {
         description: row.description,
         editorData,
 
+        storage: {
+          maxBytes: Math.pow(1024, 3),
+        },
+
         created: {
           date: Math.floor(row.created_at.getTime() / 1000),
           userId: "",

@@ -3,16 +3,36 @@ import { DeepPartial, mergeDeep } from "../utils";
 import { EditorData } from "./editorDataTypes";
 import { ProjectEnvSettings, setupProjectEnvSettings } from "./Environment";
 
+export interface ProjectEditorData {
+  /**
+   * The project db id
+   */
+  projectId: string;
+
+  /**
+   * The project name
+   */
+  name: string;
+
+  /**
+   * The GrapesJS editor data
+   */
+  editorData: EditorData;
+}
+
 export class ProjectModel extends Model {
   /**
    * The project db id
    */
   public projectId: string = "";
 
+  /**
+   * The old id imported from mariadb
+   */
   public oldId?: string;
 
   /**
-   * Set to true to indicate that this project is a site editor
+   * Set to true to indicate that this project the default site for the editor
    */
   public isEditorSite?: boolean;
 
@@ -25,6 +45,15 @@ export class ProjectModel extends Model {
    * A description for the project
    */
   public description: string = "";
+
+  /**
+   * The storage settings for the project
+   */
+  public storage: {
+    maxBytes: number;
+  } = {
+    maxBytes: 0,
+  };
 
   /**
    * The GrapesJS editor data

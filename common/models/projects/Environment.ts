@@ -19,32 +19,34 @@ export interface ProjectEnvSettings {
    */
   hsts: boolean;
 
-  domains: {
-    /**
-     * The domain name
-     */
-    domain: string;
+  domains: ProjectDomain[];
+}
 
-    /**
-     * if the domain is enabled or not.
-     *
-     * Default will be false.
-     */
-    enabled: UserModelAction;
+export interface ProjectDomain {
+  /**
+   * The domain name
+   */
+  domain: string;
 
-    /**
-     * Tells if the domain settings have been verified,
-     * by the automated DNS verification process.
-     */
-    dnsVerified: ModelAction;
+  /**
+   * if the domain is enabled or not.
+   *
+   * Default will be false.
+   */
+  enabled: UserModelAction;
 
-    /**
-     * Tells if it's the primary domain for the project.
-     *
-     * None primary domains will be redirected to the primary domain.
-     */
-    isPrimary: boolean;
-  }[];
+  /**
+   * Tells if the domain settings have been verified,
+   * by the automated DNS verification process.
+   */
+  dnsVerified: ModelAction;
+
+  /**
+   * Tells if it's the primary domain for the project.
+   *
+   * None primary domains will be redirected to the primary domain.
+   */
+  isPrimary: boolean;
 }
 
 export function setupProjectEnvSettings(

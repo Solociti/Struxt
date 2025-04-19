@@ -9,9 +9,9 @@ import { getCollection } from "server/database/mongodb";
  * @param projectId
  */
 export async function getProjectEditorData(projectId: string) {
-  const collection = await getCollection("projects");
+  const collection = await getCollection<ProjectModel>("projects");
 
-  const doc = await collection.findOne<ModelAsDocument<ProjectModel>>(
+  const doc = await collection.findOne(
     {
       projectId,
     },
@@ -29,6 +29,26 @@ export async function getProjectEditorData(projectId: string) {
     name: doc.name,
     editorData: doc.editorData,
   };
+}
+
+/**
+ * Load the entire project details from the database
+ *
+ * @param projectId
+ * @returns
+ */
+export async function getProjectData(projectId: string) {
+  const collection = await getCollection<ProjectModel>("projects");
+
+  const doc = await collection.findOne({
+    projectId,
+  });
+
+  if (!doc) {
+    throw customError(404, "Project not found", "ProjectNotFound");
+  }
+
+  return new ProjectModel(doc);
 }
 
 /**
