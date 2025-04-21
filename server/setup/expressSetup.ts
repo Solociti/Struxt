@@ -1,12 +1,12 @@
 import { Express, Request, Response } from "express";
 import promBundle from "express-prom-bundle";
 import geoip from "geoip-lite";
+import ip from "ip";
 import promCl from "prom-client";
 import { UAParser } from "ua-parser-js";
 import { isAIBot, isBot } from "ua-parser-js/helpers";
 import { getIp } from "../utils/requests";
 import { rateLimit } from "./RateLimit";
-import ip from "ip";
 
 const leakRate = process.env.RL_LEAK_RATE
   ? parseInt(process.env.RL_LEAK_RATE)

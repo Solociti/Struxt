@@ -39,6 +39,21 @@ export function ShowProject({ project }: { project: ProjectDetails }) {
               </Button>
 
               <Button
+                variant="outline-info"
+                onClick={() => {
+                  /* Handle settings click */
+                  setProject({
+                    projectId: project.projectId,
+                    name: project.name,
+                    description: project.description,
+                  });
+                  navigate("/metrics");
+                }}
+              >
+                Metrics
+              </Button>
+
+              <Button
                 variant="outline-secondary"
                 onClick={() => {
                   /* Handle settings click */
