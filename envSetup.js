@@ -116,6 +116,12 @@ async function main() {
     ].join("\n");
   }
 
+  if (!contents.includes("MAXMIND_LICENSE_KEY")) {
+    contents += ["", "# Maxmind license key", "MAXMIND_LICENSE_KEY="].join(
+      "\n"
+    );
+  }
+
   if (contents !== original) {
     // allow the value to be edited
     const lines = contents.split("\n");

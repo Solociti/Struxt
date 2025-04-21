@@ -8,6 +8,9 @@ services:
     environment:
       - IS_DOCKER=true
       - UPLOAD_DIR=/uploads
+      - CONTAINER_NAME=web-host
+      - GEOTMPDIR=/uploads/geoip/tmp
+      - GEODATADIR=/uploads/geoip/data
     command: "node server/publicHost.js"
     volumes:
       - ${UPLOAD_DIR}:/uploads
@@ -30,6 +33,9 @@ services:
     environment:
       - IS_DOCKER=true
       - UPLOAD_DIR=/uploads
+      - CONTAINER_NAME=editor-api
+      - GEOTMPDIR=/uploads/geoip/tmp
+      - GEODATADIR=/uploads/geoip/data
     command: "node server/apiEntry.js"
     volumes:
       - ${UPLOAD_DIR}:/uploads

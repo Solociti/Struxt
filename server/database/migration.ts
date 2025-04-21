@@ -6,6 +6,13 @@ import { getCollection, toArray } from "./mongodb";
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 
+interface Migration {
+  name: string;
+  durationMs: number;
+  date: number;
+  batch: number;
+}
+
 /**
  * Get the base file name without the extension
  *
@@ -24,7 +31,7 @@ async function executeUp() {
   console.log("Starting migration...");
 
   // get the migration collection
-  const mCollection = await getCollection("migrations");
+  const mCollection = await getCollection<Migration>("migrations");
 
   // get the last migration
   const completedMigrations = await toArray(

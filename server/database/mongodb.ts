@@ -38,7 +38,7 @@ export function mongoConnectionUrl() {
 
 // setup the mongodb client
 const client = new MongoClient(mongoConnectionUrl(), {
-  appName: hostname(),
+  appName: `${process.env.CONTAINER_NAME}-${hostname()}`,
 });
 export const dbName = process.env.MONGODB_PREFIX || "struxt";
 

@@ -67,3 +67,91 @@ export async function setEx(key: string, ttl: number, value: string) {
     return null;
   }
 }
+
+/**
+ * Post a message to a channel
+ *
+ * @param channel
+ * @param message
+ * @returns
+ */
+export async function publishMessage(
+  channel: string,
+  message: string | object
+) {
+  try {
+    if (!connected) {
+      await keyClient.connect();
+      connected = true;
+    }
+    // check if the message is an object and stringify it
+    if (typeof message === "object") {
+      message = JSON.stringify(message);
+    }
+
+    // publish the message to the channel
+    return await keyClient.publish(channel, message);
+  } catch (error) {
+    console.error("Error publishing message to channel:", error);
+  }
+}
+
+export function subscribeToChannel<T = any>(
+  channel: string,
+  parse: true,
+  callback: (message: T) => void
+): () => void;
+export function subscribeToChannel(
+  channel: string,
+  parse: false,
+  callback: (message: string) => void
+): () => void;
+
+/**
+ * Subscribe to a channel
+ *
+ * @param channel
+ * @param callback
+ * @returns
+ */
+export function subscribeToChannel(
+  channel: string,
+  parse: boolean,
+  callback: (message: string) => void
+): () => void {
+  let unregistered = false;
+  const subscriber = keyClient.duplicate();
+
+  const setup = async () => {
+    // subscribe to the channel
+    await subscriber.connect();
+
+    await subscriber.subscribe(channel, (message) => {
+      try {
+        if (parse) {
+          message = JSON.parse(message);
+        }
+
+        callback(message);
+      } catch (error) {
+        console.error("Error parsing message:", error);
+      }
+    });
+  };
+
+  setup().catch((error) => {
+    console.error("Error subscribing to channel:", error);
+  });
+
+  return () => {
+    if (unregistered) {
+      return;
+    }
+
+    unregistered = true;
+
+    // unsubscribe from the channel
+    subscriber.unsubscribe(channel);
+    subscriber.quit();
+  };
+}

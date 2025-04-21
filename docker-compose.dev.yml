@@ -70,6 +70,9 @@ services:
     environment:
       - IS_DOCKER=true
       - UPLOAD_DIR=/uploads
+      - CONTAINER_NAME=web-host
+      - GEOTMPDIR=/uploads/geoip/tmp
+      - GEODATADIR=/uploads/geoip/data
     command: bash -c "sleep 10 && nodemon --delay 2 server/publicHost.js"
     volumes:
       - ./node_modules/:/app/node_modules
@@ -101,6 +104,9 @@ services:
     environment:
       - IS_DOCKER=true
       - UPLOAD_DIR=/uploads
+      - CONTAINER_NAME=editor-api
+      - GEOTMPDIR=/uploads/geoip/tmp
+      - GEODATADIR=/uploads/geoip/data
     command: bash -c "sleep 10 && nodemon --delay 2 server/apiEntry.js"
     volumes:
       - ./node_modules/:/app/node_modules

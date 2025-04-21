@@ -23,6 +23,7 @@ import { dbInit } from "server/utils/database";
 import { router as apiRouter } from "./api/registerApi";
 
 import "server/api/register";
+import "server/utils/geoLocation";
 
 // run init scripts and then start the server
 Promise.all([dbInit()]).then(() => {

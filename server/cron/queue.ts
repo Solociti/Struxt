@@ -22,3 +22,23 @@ queue.upsertJobScheduler(
     data: { cron: true },
   }
 );
+
+// add the cron job to download the geoip database
+queue.upsertJobScheduler(
+  "update-geoip",
+  {
+    pattern: "5 4 * * 2",
+  },
+  {
+    data: { cron: true },
+    opts: {
+      attempts: 2,
+      backoff: {
+        type: "exponential",
+        delay: 10 * 60 * 1000,
+      },
+      removeOnComplete: 10,
+      removeOnFail: 10,
+    },
+  }
+);

@@ -24,6 +24,35 @@ services:
     networks:
       - struxt-net
 
+  victoriametrics:
+    image: victoriametrics/victoria-metrics:stable
+    restart: unless-stopped
+    ports:
+      - "127.0.0.1:8428:8428"
+    volumes:
+      - ./config/victoria-metrics/victoria-metrics.yml:/etc/victoria-metrics/victoria-metrics.yml:ro
+      - victoria_metrics_data:/victoria-metrics-data
+    command:
+      - -selfScrapeInterval=60s
+      - -storageDataPath=/victoria-metrics-data
+      - -promscrape.config=/etc/victoria-metrics/victoria-metrics.yml
+      - -memory.allowedPercent=20
+    networks:
+      - struxt-net
+
+  grafana:
+    image: grafana/grafana:main
+    restart: unless-stopped
+    environment:
+      - GF_PLUGINS_PREINSTALL=victoriametrics-metrics-datasource
+    ports:
+      - "127.0.0.1:3030:3000"
+    volumes:
+      - "grafana_data:/var/lib/grafana"
+      - "./config/grafana:/etc/grafana/provisioning:ro"
+    networks:
+      - struxt-net
+
   dragonfly:
     image: "docker.dragonflydb.io/dragonflydb/dragonfly"
     ulimits:
@@ -51,11 +80,13 @@ services:
       - struxt-net
 
 volumes:
+  dragonflydata:
+  grafana_data:
   mariadb_data:
   mongo_data:
   nginx_data:
   nginx_letsencrypt:
-  dragonflydata:
+  victoria_metrics_data:
 
 networks:
   struxt-net:
