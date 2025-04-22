@@ -105,25 +105,29 @@ export async function expressSetup(app: Express) {
  */
 export function setupSiteLogs(
   app: Express,
-  parsePath: (path: string) => { projectId?: string; path: string }
+  parsePath: (path: string) => {
+    projectId?: string;
+    projectEnv?: string;
+    path: string;
+  }
 ) {
   // setup metrics for the web hosts
   const requestCounter = new promCl.Counter({
     name: "struxt_site_requests",
     help: "Number of requests to the site",
-    labelNames: ["project_id", "path", "method", "status"],
+    labelNames: ["project_id", "project_env", "path", "method", "status"],
   });
 
   const deviceCounter = new promCl.Gauge({
     name: "struxt_site_requests_devices",
     help: "Number of requests based on device information",
-    labelNames: ["project_id", "os", "browser", "client_type"],
+    labelNames: ["project_id", "project_env", "os", "browser", "client_type"],
   });
 
   const geolocationCounter = new promCl.Gauge({
     name: "struxt_site_requests_geolocation",
     help: "Number of requests based on geolocation",
-    labelNames: ["project_id", "country", "region", "city"],
+    labelNames: ["project_id", "project_env", "country", "region", "city"],
   });
 
   app.use((req: Request, res: Response, next: () => void) => {
@@ -154,6 +158,7 @@ export function setupSiteLogs(
 
       requestCounter.inc({
         project_id: parsedPath.projectId || "",
+        project_env: parsedPath.projectEnv || "",
         path: parsedPath.path,
         method,
         status: status.toString(),
@@ -161,6 +166,7 @@ export function setupSiteLogs(
 
       deviceCounter.inc({
         project_id: parsedPath.projectId || "",
+        project_env: parsedPath.projectEnv || "",
         os: ua.os.name || "unknown",
         browser: ua.browser.name || "unknown",
         client_type: clientType,
@@ -172,6 +178,7 @@ export function setupSiteLogs(
 
         geolocationCounter.inc({
           project_id: parsedPath.projectId || "",
+          project_env: parsedPath.projectEnv || "",
           country: geoData?.country || fallback,
           region: geoData?.region || fallback,
           city: geoData?.city || fallback,

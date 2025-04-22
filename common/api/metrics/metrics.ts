@@ -14,7 +14,6 @@ export interface MetricsApi extends Api {
       data: {
         datasets: {
           label: string;
-          borderColor: string;
           tension: number;
           data: {
             x: string;

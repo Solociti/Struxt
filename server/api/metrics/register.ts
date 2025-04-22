@@ -4,6 +4,16 @@ import { formatDate } from "common/format/date";
 import { roles } from "common/models/user/Roles";
 import { registerApi } from "../registerApi";
 
+const colours = [
+  "#36a2eb",
+  "#ff6384",
+  "#4bc0c0",
+  "#ff9f40",
+  "#9966ff",
+  "#ffcd56",
+  "#c9cbcf",
+];
+
 registerApi<MetricsApi>("/api/metrics/:projectId").get(
   [roles.struxt.metrics, roles.struxt.admin],
   async ({ user, params }) => {
@@ -23,15 +33,17 @@ registerApi<MetricsApi>("/api/metrics/:projectId").get(
     }
 
     // get the metrics from victoria metrics
-    const query = `sum(increase(struxt_site_requests{project_id="${projectId}"}[15m])) by (path)`;
-    const metrics = await getMetrics(query, "-12h", "15m");
+    const query = `sum(increase(struxt_site_requests{project_id="${projectId}", project_env="production", status="200", path!~"^assets.*"}[1d])) by (path)`;
+    const metrics = await getMetrics(query, "-30d", "1d");
 
     // convert the metrics for chart.js
 
-    const datasets = metrics.map((metric) => {
+    const datasets = metrics.map((metric, index) => {
+      const colour = colours[index % colours.length];
+
       return {
         label: metric.metric.path || "Page Views",
-        borderColor: "rgb(75, 192, 192)",
+        borderColor: colour,
         tension: 0.1,
         data: metric.values.map(([key, value]) => {
           return { x: formatDate(key, true), y: parseFloat(value) };

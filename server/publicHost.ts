@@ -24,6 +24,7 @@ async function main() {
 
       return {
         projectId: parts[2],
+        projectEnv: parts[3],
         path: parts.slice(4).join("/"),
       };
     }

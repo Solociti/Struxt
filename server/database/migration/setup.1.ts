@@ -25,8 +25,6 @@ import { getAssetDir } from "server/utils/uploadDir";
 import { createIndex, getCollection } from "../mongodb";
 
 export async function up() {
-  // TODO: copy the project directory to the new location
-
   // setup the indexes
   await createIndex(
     "projects",
@@ -550,6 +548,16 @@ export async function up() {
       );
     }
   })();
+
+  console.log("Migration complete");
+  console.log("----------------------------");
+  console.log("Remember to run the Victoria Metrics migration script");
+  console.log("after the maxmind database is loaded.");
+  console.log("");
+  console.log(
+    "docker exec -it struxt-editor-api-1 node server/tmpVictoriaMigration.js"
+  );
+  console.log("----------------------------");
 }
 
 export async function down() {}

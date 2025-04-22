@@ -37,6 +37,7 @@ services:
       - -storageDataPath=/victoria-metrics-data
       - -promscrape.config=/etc/victoria-metrics/victoria-metrics.yml
       - -memory.allowedPercent=20
+      - -retentionPeriod=1y
     networks:
       - struxt-net
 
