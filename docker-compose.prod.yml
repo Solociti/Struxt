@@ -61,3 +61,5 @@ services:
       - struxt-net
     depends_on:
       - mariadb
+    profiles:
+      - ${KEYCLOAK_DISABLED:-}
