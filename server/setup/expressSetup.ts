@@ -117,13 +117,13 @@ export function setupSiteLogs(
     labelNames: ["project_id", "project_env", "path", "method", "status"],
   });
 
-  const deviceCounter = new promCl.Gauge({
+  const deviceCounter = new promCl.Counter({
     name: "struxt_site_requests_devices",
     help: "Number of requests based on device information",
     labelNames: ["project_id", "project_env", "os", "browser", "client_type"],
   });
 
-  const geolocationCounter = new promCl.Gauge({
+  const geolocationCounter = new promCl.Counter({
     name: "struxt_site_requests_geolocation",
     help: "Number of requests based on geolocation",
     labelNames: ["project_id", "project_env", "country", "region", "city"],
