@@ -46,7 +46,6 @@ services:
       - mariadb
       - dragonfly
       - nginx
-      - keycloak
     networks:
       - struxt-net
 
