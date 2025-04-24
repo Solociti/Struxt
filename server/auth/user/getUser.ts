@@ -33,7 +33,7 @@ export async function getUser(userId: string) {
  * @returns
  */
 export async function getUserRoles(userId: string) {
-  const collection = await getCollection("users");
+  const collection = await getCollection<UserModel>("users");
 
   // load the roles for the user
   const doc = await collection.findOne(

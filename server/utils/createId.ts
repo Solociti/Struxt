@@ -3,7 +3,9 @@ import { getCollection } from "server/database/mongodb";
 export type IdCounterName = "submission" | "project" | "publish";
 
 async function counter(name: IdCounterName) {
-  const collection = await getCollection("id_counters");
+  const collection = await getCollection<{ value: number; name: string }>(
+    "id_counters"
+  );
 
   // update the counter
   const result = await collection.findOneAndUpdate(
