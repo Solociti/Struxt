@@ -1,8 +1,7 @@
 import { Express, Request, Response } from "express";
 import promBundle from "express-prom-bundle";
-import geoip from "geoip-lite";
-import ip from "ip";
 import promCl from "prom-client";
+import { geoipLookup } from "server/utils/geoLocation";
 import { UAParser } from "ua-parser-js";
 import { isAIBot, isBot } from "ua-parser-js/helpers";
 import { getIp } from "../utils/requests";
@@ -173,15 +172,12 @@ export function setupSiteLogs(
       });
 
       if (ipAddr) {
-        const geoData = geoip.lookup(ipAddr);
-        const fallback = ip.isPrivate(ipAddr) ? "local-ip" : "unknown";
+        const geoData = geoipLookup(ipAddr);
 
         geolocationCounter.inc({
+          ...geoData,
           project_id: parsedPath.projectId || "",
           project_env: parsedPath.projectEnv || "",
-          country: geoData?.country || fallback,
-          region: geoData?.region || fallback,
-          city: geoData?.city || fallback,
         });
       }
     };
