@@ -18,7 +18,7 @@
   "editable": true,
   "fiscalYearStartMonth": 0,
   "graphTooltip": 0,
-  "id": 1,
+  "id": 2,
   "links": [],
   "panels": [
     {
@@ -114,7 +114,7 @@
           "sort": "none"
         }
       },
-      "pluginVersion": "12.0.0-239024",
+      "pluginVersion": "12.0.0-239832",
       "targets": [
         {
           "editorMode": "code",
@@ -207,7 +207,7 @@
           "sort": "none"
         }
       },
-      "pluginVersion": "12.0.0-239024",
+      "pluginVersion": "12.0.0-239832",
       "targets": [
         {
           "editorMode": "code",
@@ -257,7 +257,7 @@
         },
         "pieType": "pie",
         "reduceOptions": {
-          "calcs": ["lastNotNull"],
+          "calcs": ["sum"],
           "fields": "",
           "values": false
         },
@@ -267,7 +267,7 @@
           "sort": "none"
         }
       },
-      "pluginVersion": "12.0.0-239024",
+      "pluginVersion": "12.0.0-239832",
       "targets": [
         {
           "editorMode": "builder",
@@ -317,7 +317,7 @@
         },
         "pieType": "pie",
         "reduceOptions": {
-          "calcs": ["lastNotNull"],
+          "calcs": ["sum"],
           "fields": "",
           "values": false
         },
@@ -327,7 +327,7 @@
           "sort": "none"
         }
       },
-      "pluginVersion": "12.0.0-239024",
+      "pluginVersion": "12.0.0-239832",
       "targets": [
         {
           "editorMode": "builder",
@@ -377,7 +377,7 @@
         },
         "pieType": "pie",
         "reduceOptions": {
-          "calcs": ["lastNotNull"],
+          "calcs": ["sum"],
           "fields": "",
           "values": false
         },
@@ -387,7 +387,7 @@
           "sort": "none"
         }
       },
-      "pluginVersion": "12.0.0-239024",
+      "pluginVersion": "12.0.0-239832",
       "targets": [
         {
           "editorMode": "builder",
@@ -496,7 +496,7 @@
           "sort": "none"
         }
       },
-      "pluginVersion": "12.0.0-239024",
+      "pluginVersion": "12.0.0-239832",
       "targets": [
         {
           "datasource": {
@@ -592,7 +592,7 @@
           "sort": "none"
         }
       },
-      "pluginVersion": "12.0.0-239024",
+      "pluginVersion": "12.0.0-239832",
       "targets": [
         {
           "editorMode": "code",
@@ -708,7 +708,7 @@
           "sort": "none"
         }
       },
-      "pluginVersion": "12.0.0-239024",
+      "pluginVersion": "12.0.0-239832",
       "targets": [
         {
           "editorMode": "code",
@@ -782,7 +782,7 @@
           "sort": "none"
         }
       },
-      "pluginVersion": "12.0.0-239024",
+      "pluginVersion": "12.0.0-239832",
       "targets": [
         {
           "editorMode": "code",
@@ -888,7 +888,7 @@
           "sort": "none"
         }
       },
-      "pluginVersion": "12.0.0-239024",
+      "pluginVersion": "12.0.0-239832",
       "targets": [
         {
           "editorMode": "code",
@@ -1005,7 +1005,7 @@
           "sort": "none"
         }
       },
-      "pluginVersion": "12.0.0-239024",
+      "pluginVersion": "12.0.0-239832",
       "targets": [
         {
           "editorMode": "code",
@@ -1099,7 +1099,7 @@
           "sort": "none"
         }
       },
-      "pluginVersion": "12.0.0-239024",
+      "pluginVersion": "12.0.0-239832",
       "targets": [
         {
           "editorMode": "code",
@@ -1217,7 +1217,7 @@
           "sort": "none"
         }
       },
-      "pluginVersion": "12.0.0-239024",
+      "pluginVersion": "12.0.0-239832",
       "targets": [
         {
           "editorMode": "code",
@@ -1269,5 +1269,5 @@
   "timezone": "browser",
   "title": "Basic Overview",
   "uid": "4ba130dd-37ea-4cdf-82f5-e30c3d8d8e2c",
-  "version": 5
+  "version": 6
 }
