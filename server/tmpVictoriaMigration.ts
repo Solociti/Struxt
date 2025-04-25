@@ -134,18 +134,32 @@ function generateMetrics(groupedRecords: Record<string, statRow[]>) {
     });
 
     // Generate request counter metrics
+    promMetrics +=
+      "# HELP struxt_site_requests Number of requests to the site\n";
+    promMetrics += "# TYPE struxt_limited_requests counter\n";
+
     for (const [key, count] of Object.entries(requestMetrics)) {
       const [project_id, projectEnv, path, method, status] = key.split(":");
       promMetrics += `struxt_site_requests{project_id="${project_id}",project_env="${projectEnv}",path="${path}",method="${method}",status="${status}"} ${count} ${timestamp}\n`;
     }
 
     // Generate device metrics
+    promMetrics += "\n";
+    promMetrics +=
+      "# HELP struxt_site_requests_devices Number of requests based on device information\n";
+    promMetrics += "# TYPE struxt_site_requests counter\n";
+
     for (const [key, count] of Object.entries(deviceMetrics)) {
       const [project_id, projectEnv, os, browser, client_type] = key.split(":");
       promMetrics += `struxt_site_requests_devices{project_id="${project_id}",project_env="${projectEnv}",os="${os}",browser="${browser}",client_type="${client_type}"} ${count} ${timestamp}\n`;
     }
 
     // Generate geolocation metrics
+    promMetrics += "\n";
+    promMetrics +=
+      "# HELP struxt_site_requests_geolocation Number of requests based on geolocation\n";
+    promMetrics += "# TYPE struxt_site_requests counter\n";
+
     for (const [key, count] of Object.entries(geoMetrics)) {
       const [project_id, projectEnv, country, region, city] = key.split(":");
       promMetrics += `struxt_site_requests_geolocation{project_id="${project_id}",project_env="${projectEnv}",country="${country}",region="${region}",city="${city}"} ${count} ${timestamp}\n`;
