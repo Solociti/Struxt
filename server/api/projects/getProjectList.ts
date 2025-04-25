@@ -11,7 +11,6 @@ import { getCollection, toArray } from "server/database/mongodb";
  * @returns
  */
 async function getUserProjectIds(userId: string) {
-  // TODO: validate that this function actually returns the correct project ids
   const collection = await getCollection("project_members");
 
   const cursor = collection.find<ModelAsDocument<ProjectRoleDocument>>(
@@ -34,7 +33,6 @@ async function getUserProjectIds(userId: string) {
  * @returns
  */
 export async function getProjectsForUser(userId: string) {
-  // TODO: validate that this function actually returns the correct projects
   // get the list of project ids for the user
   const projectIds = await getUserProjectIds(userId);
 
