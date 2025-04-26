@@ -29,11 +29,11 @@ export function EnvironmentSettings({
         <div className="d-flex align-items-start mb-4">
           <div className="flex-grow-1">
             <p className="text-muted small fw-medium mb-1">Last published by</p>
-            {envData.published.timestamp ? (
+            {project.publish[environment].active ? (
               <p className="small">
-                {envData.published.displayName}
+                {project.publish[environment].displayName}
                 {" on "}
-                {formatDate(envData.published.timestamp, true)}
+                {formatDate(project.publish[environment].date, true)}
               </p>
             ) : (
               <p className="small text-muted">No recent publishes</p>
@@ -79,11 +79,7 @@ export function EnvironmentSettings({
           <h4 className="mb-3 fw-medium fs-5">Domains</h4>
 
           <div className="mb-4">
-            <DomainList
-              domains={project.domains.filter(
-                (d) => d.environment === environment
-              )}
-            />
+            <DomainList domains={project[environment].domains} />
           </div>
 
           {/* Replace the existing code with this */}
@@ -98,7 +94,7 @@ export function EnvironmentSettings({
             <AddDomainModal
               show={showAddDomain}
               onHide={() => setShowAddDomain(false)}
-              projectId={project.id}
+              projectId={project.projectId}
               environment={environment}
             />
           </div>
@@ -111,9 +107,9 @@ export function EnvironmentSettings({
           className="bg-light border rounded d-flex align-items-center justify-content-center overflow-hidden shadow-sm"
           style={{ height: "16rem" }}
         >
-          {envData.screenshot ? (
+          {project.publish[environment].screenshotUrl ? (
             <img
-              src={envData.screenshot}
+              src={project.publish[environment].screenshotUrl}
               alt="Site preview"
               className="img-fluid"
             />

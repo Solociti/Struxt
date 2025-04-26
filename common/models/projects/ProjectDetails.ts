@@ -1,18 +1,19 @@
-import { DomainDetails } from "./Domains";
+import { UserModelAction } from "../Model";
+import { ProjectEnvSettings } from "./Environment";
 import { FormDetails } from "./Forms";
 
 export interface ProjectDetails {
-  id: string;
+  projectId: string;
   name: string;
   description: string;
 
-  /**
-   * The list of domains for the project
-   */
-  domains: DomainDetails[];
+  staging: ProjectEnvSettings;
+  production: ProjectEnvSettings;
 
-  staging: ProjectEnvDetails;
-  production: ProjectEnvDetails;
+  publish: {
+    staging: UserModelAction & { screenshotUrl: string };
+    production: UserModelAction & { screenshotUrl: string };
+  };
 
   storage: {
     usedBytes: number;
@@ -23,30 +24,4 @@ export interface ProjectDetails {
    * the list of forms for the project
    */
   forms: FormDetails[];
-}
-
-export interface ProjectEnvDetails {
-  published: {
-    userId: string;
-    displayName: string;
-
-    timestamp: Date | null;
-  };
-
-  /**
-   * Url to the screenshot of the current published site
-   */
-  screenshot: string;
-
-  /**
-   * Tells if ssl is enabled for the domain
-   */
-  forceSsl: boolean;
-
-  /**
-   * Tells if hsts is enabled for the domain
-   *
-   * Only effective if forceSsl is true
-   */
-  hsts: boolean;
 }

@@ -2,7 +2,7 @@ export interface ProjectListItem {
   /**
    * The project db id
    */
-  id: string;
+  projectId: string;
 
   /**
    * The project name

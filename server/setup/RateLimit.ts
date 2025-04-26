@@ -1,4 +1,5 @@
 import { Request, Response } from "express";
+import promCl from "prom-client";
 import { setupNewClient } from "../database/dragonFly";
 import { getIp } from "../utils/requests";
 
@@ -9,6 +10,18 @@ export async function rateLimit(options: {
   maxCapacity: number;
   unitCost: (req: Request, ip: string) => number;
 }) {
+  // setup a metrics counter for slowed and limited requests
+  const slowedRequests = new promCl.Counter({
+    name: "struxt_slowed_requests",
+    help: "Number of requests that were slowed down with rate limiting",
+    labelNames: ["ip"],
+  });
+  const limitedRequests = new promCl.Counter({
+    name: "struxt_limited_requests",
+    help: "Number of requests that were limited with rate limiting",
+    labelNames: ["ip"],
+  });
+
   const memoryStore = new Map<string, number>();
 
   const intervalSec = Math.max(10, options.windowSeconds / options.leakRate);
@@ -58,6 +71,8 @@ export async function rateLimit(options: {
       res.setHeader("X-RateLimit-Remaining", "0");
     }
 
+    limitedRequests.inc({ ip: getIp(res.req) }, 1);
+
     res.status(429).send("Too many requests");
   };
 
@@ -75,6 +90,8 @@ export async function rateLimit(options: {
     const percent = remaining / options.maxCapacity;
     const delay = (0.3 - percent) * 5000;
     (req as any).rlSlowDown = delay;
+
+    slowedRequests.inc({ ip: getIp(req) }, 1);
 
     setTimeout(next, delay);
   };

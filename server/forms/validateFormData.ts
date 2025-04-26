@@ -1,24 +1,25 @@
-import { loadValidationData } from "./loadValidationData";
+import { FormSettingsModel } from "common/models/projects/forms/FormSettingsModel";
 import { sanitizeValue } from "./sanitize";
-
-export interface FormValidation {
-  id?: string;
-
-  projectId: string;
-  siteEnv: "staging" | "production";
-  formName: string;
-
-  fieldName: string;
-  type: "text" | "number" | "email" | "tel" | "boolean";
-  required: boolean;
-
-  createdAt: Date;
-  updatedAt: Date;
-}
 
 export interface FormValidationError {
   name: string;
   message: string;
+}
+
+/**
+ * Get the form name from the form data
+ *
+ * @param formData
+ * @returns
+ */
+export function getFormName(formData: {
+  [key: string]: string | number | boolean;
+}): string {
+  const formName = formData.form_name as string;
+  if (!formName || typeof formName !== "string") {
+    throw new Error("form_name is required");
+  }
+  return formName;
 }
 
 /**
@@ -29,35 +30,22 @@ export interface FormValidationError {
  * @param projectId
  * @param formData
  */
-export async function validateFormData(
-  projectId: string,
-  siteEnv: "staging" | "production",
+export function validateFormData(
+  formSettings: FormSettingsModel,
   formData: { [key: string]: string | number | boolean }
-): Promise<{
-  formName: string;
+): {
   formData: { [key: string]: string | number | boolean };
   errors: null | FormValidationError[];
-}> {
-  // get the form name
-  const formName = formData.form_name as string;
-  if (!formName || typeof formName !== "string") {
-    throw new Error("form_name is required");
-  }
-
-  const scrubbedData: { [key: string]: string | number | boolean } = {};
+} {
+  const data: { [key: string]: string | number | boolean } = {};
   const errors: FormValidationError[] = [];
 
-  const validation = await loadValidationData(projectId, siteEnv, formName);
-  if (!validation.length) {
-    throw new Error("No validation data found for form");
-  }
-
-  for (const fieldValidation of validation) {
-    if (fieldValidation.fieldName === "form_name") {
+  for (const field of formSettings.fields) {
+    if (field.name === "form_name") {
       continue;
     }
-    const key = fieldValidation.fieldName;
-    if (typeof formData[key] === "undefined" && fieldValidation.required) {
+    const key = field.name;
+    if (typeof formData[key] === "undefined" && field.required) {
       errors.push({
         name: key,
         message: "Please enter a value.",
@@ -68,11 +56,11 @@ export async function validateFormData(
     // strip out any html tags
     const value = sanitizeValue(formData[key]);
 
-    switch (fieldValidation.type) {
+    switch (field.type) {
       case "text":
         if (typeof value === "string") {
-          scrubbedData[key] = value;
-        } else if (fieldValidation.required) {
+          data[key] = value;
+        } else if (field.required) {
           errors.push({
             name: key,
             message: "Please enter a value.",
@@ -82,10 +70,10 @@ export async function validateFormData(
 
       case "number":
         if (typeof value === "string") {
-          scrubbedData[key] = Number(value);
+          data[key] = Number(value);
         } else if (typeof value === "number") {
-          scrubbedData[key] = value;
-        } else if (fieldValidation.required) {
+          data[key] = value;
+        } else if (field.required) {
           errors.push({
             name: key,
             message: "Please enter a number.",
@@ -99,7 +87,7 @@ export async function validateFormData(
           value.includes("@") &&
           value.includes(".")
         ) {
-          scrubbedData[key] = value;
+          data[key] = value;
         } else {
           errors.push({
             name: key,
@@ -111,8 +99,8 @@ export async function validateFormData(
       case "tel":
         // TODO: validate phone number
         if (typeof value === "string") {
-          scrubbedData[key] = value;
-        } else {
+          data[key] = value;
+        } else if (field.required) {
           errors.push({
             name: key,
             message: "Please enter a valid phone number.",
@@ -122,11 +110,11 @@ export async function validateFormData(
 
       case "boolean":
         if (value === "true") {
-          scrubbedData[key] = true;
+          data[key] = true;
         } else if (value === "false") {
-          scrubbedData[key] = false;
+          data[key] = false;
         } else {
-          scrubbedData[key] = Boolean(value);
+          data[key] = Boolean(value);
         }
         break;
 
@@ -138,8 +126,7 @@ export async function validateFormData(
   }
 
   return {
-    formName,
-    formData: scrubbedData,
+    formData: data,
     errors: errors.length ? errors : null,
   };
 }

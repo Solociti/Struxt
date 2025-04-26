@@ -1,6 +1,8 @@
+import { formatDate } from "common/format/date";
+import Handlebars from "handlebars";
 import { basename, join } from "node:path";
-import { sendEmail } from "../../email/sendEmail";
 import { loadTemplate } from "../../email/loadTemplate";
+import { sendEmail } from "../../email/sendEmail";
 import { formatLabel } from "../../utils/formatText";
 import { getProjectFormUploadDir } from "../../utils/uploadDir";
 import { getFormSubmission } from "../getFormSubmission";
@@ -34,25 +36,29 @@ async function loadHtml(context: FormTemplateData) {
  *
  * @param submissionId
  */
-export async function sendFormEmail(submissionId: number) {
+export async function sendFormEmail(submissionId: string) {
   // load the information from database
-  const formData = await getFormSubmission(submissionId);
+  const submission = await getFormSubmission(submissionId);
+  if (!submission) {
+    throw new Error("Submission not found");
+  }
+
   const settings = await getFormSettings(
-    formData.siteId,
-    formData.siteEnv,
-    formData.formName
+    submission.projectId,
+    submission.projectEnv,
+    submission.formName
   );
 
-  if (!settings || !settings.enabled || !settings.sendEmail) {
+  if (!settings || !settings.enabled || !settings.email.send) {
     return;
   }
 
   // setup the form fields
   const formFields: FormTemplateData["formFields"] = [];
 
-  const keys = Object.keys(formData.contents);
+  const keys = Object.keys(submission.formData);
   for (const key of keys) {
-    const value = formData.contents[key];
+    const value = submission.formData[key];
 
     formFields.push({
       label: formatLabel(key),
@@ -62,20 +68,27 @@ export async function sendFormEmail(submissionId: number) {
 
   // load the html
   let html = await loadHtml({
-    formName: formatLabel(formData.formName),
-    dateReceived: formData.createdAt.toDateString(),
+    formName: formatLabel(submission.formName),
+    dateReceived: formatDate(submission.createdDate, true),
     formFields,
   });
 
-  const uploadDir = getProjectFormUploadDir(formData.siteId.toString());
+  const uploadDir = getProjectFormUploadDir(submission.projectId);
 
-  // return { html, formData, settings, uploadDir, formFields };
   // send the email
+  const subject = Handlebars.compile(
+    settings.email.subject || "Form Submission"
+  );
+  const subjectText = subject({
+    formName: formatLabel(submission.formName),
+    ...submission.formData,
+  });
+
   await sendEmail({
-    to: settings.emailTo,
-    subject: settings.emailSubject,
+    to: settings.email.to,
+    subject: subjectText,
     html,
-    attachments: formData.attachments.map((attachment) => ({
+    attachments: submission.attachments.map((attachment) => ({
       filename: basename(attachment.fileName),
       path: join(uploadDir, attachment.fileName),
     })),

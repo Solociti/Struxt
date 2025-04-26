@@ -1,9 +1,10 @@
 import { CurrentUserModel } from "common/models/user/CurrentUserModel";
+import express from "express";
+import { getUserRoles } from "server/auth/user/getUser";
 import { realms } from "../../auth/keycloak";
 import { updateLocalUser } from "../../auth/updateLocalUser";
 import { getKey, setEx } from "../../database/dragonFly";
 import { getProjectRoles } from "./projectRoles";
-import express from "express";
 
 // Extend Express Request interface
 declare global {
@@ -14,6 +15,14 @@ declare global {
   }
 }
 
+/**
+ * Get the user from the request, or load it from the database.
+ *
+ * This function will save the user to the request object if it's not already.
+ *
+ * @param req
+ * @returns
+ */
 export async function userFromReq(req: express.Request) {
   if (req.loadedUser) {
     return req.loadedUser;
@@ -45,10 +54,12 @@ export async function userFromReq(req: express.Request) {
 /**
  * Get the roles for the user
  *
+ * @deprecated
+ *
  * @param userId
  * @returns
  */
-async function getUserRoles(userId: string) {
+export async function getKeyCloakUserRoles(userId: string) {
   const cachedRoles = await getKey(`keycloak:roles:${userId}`);
 
   if (cachedRoles) {
@@ -64,9 +75,8 @@ async function getUserRoles(userId: string) {
     await setEx(`keycloak:roles:${userId}`, 600, JSON.stringify(roleNames));
 
     return roleNames as string[];
-  } catch (err) {
-    console.error(err);
-
+  } catch (err: any) {
+    console.error(err.name, err.message);
     return [];
   }
 }

@@ -1,6 +1,6 @@
-import { NextFunction, Request, Response } from "express";
 import { ErrorNames } from "common/custom-error/custom-error";
 import { PermType } from "common/models/user/Roles";
+import { NextFunction, Request, Response } from "express";
 import { userFromReq } from "../api/auth/userFromReq";
 
 export interface ProtectEndpointOptions {
@@ -14,12 +14,15 @@ export function protectEndpoint(
   }
 ) {
   return async (req: Request, res: Response, next: NextFunction) => {
+    let userAuthenticated = false;
+
     if (req.isAuthenticated && req.isAuthenticated()) {
       // check if the user has the correct role
       const user = await userFromReq(req);
+      userAuthenticated = user.isAuthenticated();
 
       if (
-        user.isAuthenticated() &&
+        userAuthenticated &&
         (roles.length === 0 || user.hasPermission(roles))
       ) {
         next();
@@ -34,6 +37,15 @@ export function protectEndpoint(
       redirectUrl.searchParams.set("auth_redirect", url.pathname);
 
       res.redirect(redirectUrl.href);
+      return;
+    } else if (userAuthenticated) {
+      res.status(403).json({
+        error: {
+          name: ErrorNames.Forbidden,
+          status: 403,
+          message: "You do not have permission to access this resource.",
+        },
+      });
       return;
     } else {
       res.status(401).json({

@@ -1,15 +1,20 @@
+import { FormSubmissionModel } from "common/models/projects/forms/FormSubmissionModel";
 import express from "express";
 import multer from "multer";
 import { existsSync, renameSync } from "node:fs";
 import { basename, extname, join } from "node:path";
+import { getIp } from "server/utils/requests";
 import { createSimpleId } from "../utils/createId";
 import { mkDirRecursive } from "../utils/mkDir";
 import { getProjectFormUploadDir, getUploadDir } from "../utils/uploadDir";
-import { FormAttachment, FormSubmission } from "./convertRows";
 import { saveFormSubmission } from "./saveFormSubmission";
 import { scheduleFormSubmissionEmail } from "./sendEmail/queue";
 import { getFormSettings } from "./settings/getFormSettings";
-import { FormValidationError, validateFormData } from "./validateFormData";
+import {
+  FormValidationError,
+  getFormName,
+  validateFormData,
+} from "./validateFormData";
 
 // Get the upload directory
 const saveDir = getUploadDir("temp", "forms");
@@ -41,13 +46,9 @@ router.post(
       return;
     }
 
-    // parse the form data
-    const { formName, formData, errors } = await validateFormData(
-      projectId,
-      projectEnv,
-      req.body
-    );
+    const formName = getFormName(req.body);
 
+    // load the form settings
     const settings = await getFormSettings(projectId, projectEnv, formName);
     if (!settings || !settings.enabled) {
       const error: FormValidationError = {
@@ -59,22 +60,27 @@ router.post(
       return;
     }
 
+    // parse the form data
+    const { formData, errors } = validateFormData(settings, req.body);
+
     if (errors) {
       res.status(400).json({ errors, success: false });
       return;
     }
 
-    /**
-     * The list of uploaded files
-     */
-    const attachments: Omit<
-      FormAttachment,
-      "submissionId" | "createdAt" | "updatedAt"
-    >[] = [];
-
     // get the save directory for attachments
-    const subDir = await createSimpleId("submission");
-    const uploadDir = join(getProjectFormUploadDir(projectId), subDir);
+    const submissionId = await createSimpleId("submission");
+    const uploadDir = join(getProjectFormUploadDir(projectId), submissionId);
+
+    const submission = new FormSubmissionModel({
+      submissionId,
+      projectId,
+      projectEnv,
+      formName,
+      ipAddress: getIp(req),
+      userAgent: req.headers["user-agent"] || "",
+      formData,
+    });
 
     if (files.length > 0) {
       await mkDirRecursive(uploadDir);
@@ -96,32 +102,16 @@ router.post(
 
       renameSync(file.path, join(uploadDir, newFileName));
 
-      attachments.push({
+      submission.attachments.push({
         originalName: file.originalname,
-        fileName: join(subDir, newFileName),
+        fileName: join(submissionId, newFileName),
         avStatus: "pending",
         avResult: "",
       });
     }
 
-    /**
-     * Setup the form submission data
-     */
-    const submission: FormSubmission = {
-      createdAt: new Date(),
-      updatedAt: new Date(),
-      siteId: projectId,
-      siteEnv: projectEnv,
-      formName: formName,
-      ipAddress: req.ip || "",
-      userAgent: req.headers["user-agent"] || "",
-      contents: formData,
-      sentEmailId: "",
-      attachments: attachments as FormAttachment[],
-    };
-
     // save the form submission to the database
-    const { submissionId } = await saveFormSubmission(projectId, submission);
+    await saveFormSubmission(submission);
     console.log(
       "Submission ID:",
       submissionId,

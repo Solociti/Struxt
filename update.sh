@@ -7,3 +7,5 @@ node envSetup.js
 
 ./docker.sh build
 ./docker.sh up -d
+
+npm run migrate

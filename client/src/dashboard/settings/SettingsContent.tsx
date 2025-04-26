@@ -21,15 +21,15 @@ export default function SettingsContent() {
     isLoading: loadingProjectDetails,
     // error: projectDetailsError,
   } = useLoadAsync(async () => {
-    if (project.id === "*") {
+    if (project.projectId === "*") {
       return null;
     }
 
     // Load project details
-    return await getProjectDetails(project.id);
-  }, [project.id]);
+    return await getProjectDetails(project.projectId);
+  }, [project.projectId]);
 
-  if (project.id === "*") {
+  if (project.projectId === "*") {
     return (
       <Container className="py-4">
         <h1 className="fw-bold mb-3">Settings</h1>
@@ -73,7 +73,11 @@ export default function SettingsContent() {
               <Col md={6}>
                 <Form.Group controlId="projectId">
                   <Form.Label>Project Id</Form.Label>
-                  <Form.Control type="text" value={project.id} disabled />
+                  <Form.Control
+                    type="text"
+                    value={project.projectId}
+                    disabled
+                  />
                 </Form.Group>
               </Col>
             </Row>

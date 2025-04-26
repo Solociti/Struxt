@@ -19,9 +19,9 @@ interface Style {
 }
 
 export interface Component {
-  type: string;
+  type?: string;
   attributes?: {
-    id: string;
+    id?: string;
     for?: string;
     type?: string;
     name?: string;
@@ -48,6 +48,14 @@ export interface Component {
   style?: string;
   droppable?: boolean;
   customCodePlugin__code?: string;
+
+  head?: {
+    type: string;
+  };
+
+  docEl?: {
+    tagName: "html";
+  };
 }
 
 interface Frame {
@@ -85,7 +93,7 @@ interface ProjectSettings {
   customCodeBody: string;
 }
 
-export interface Project {
+export interface EditorData {
   assets: Asset[];
   styles: Style[];
   pages: Page[];
@@ -94,6 +102,6 @@ export interface Project {
   custom: {
     projectType: string;
     id: string;
-    globalPageSettings: ProjectSettings;
+    globalPageSettings?: ProjectSettings;
   };
 }
