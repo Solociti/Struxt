@@ -242,6 +242,11 @@ export async function up() {
             const replace = `/assets/${projectId}/${base}`;
 
             editorData = recursiveReplaceText(editorData, search, replace);
+            editorData = recursiveReplaceText(
+              editorData,
+              `url("${search}")`,
+              `url("${replace}")`
+            );
           }
         }
       }
