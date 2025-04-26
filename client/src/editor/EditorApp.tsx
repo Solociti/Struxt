@@ -15,6 +15,10 @@ import { publishSite } from "../publish/publishSite";
 // @ts-ignore
 import "@grapesjs/studio-sdk/style";
 
+const licenseKey = location.hostname.includes("staging.struxt")
+  ? "1ec0231ce53b49dfa4d36dd2520cd5f288a40e1e231e4acca3d6c0bb59ba5f39"
+  : "39b0a964ef184394a659bb8015cc8822efcbe5c371a44a9f86883d45806f1065";
+
 export function EditorApp() {
   const [projectId, setProjectId] = useState<string | null>(null);
   const [loggedIn, setLoggedIn] = useState(false);
@@ -199,8 +203,7 @@ function CustomEditor({
   useEffect(() => {
     createStudioEditor({
       root: "#editor-app",
-      licenseKey:
-        "39b0a964ef184394a659bb8015cc8822efcbe5c371a44a9f86883d45806f1065",
+      licenseKey,
       project: {
         type: "web",
         id: projectId,
