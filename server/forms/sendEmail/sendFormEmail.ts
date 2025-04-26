@@ -1,4 +1,5 @@
 import { formatDate } from "common/format/date";
+import Handlebars from "handlebars";
 import { basename, join } from "node:path";
 import { loadTemplate } from "../../email/loadTemplate";
 import { sendEmail } from "../../email/sendEmail";
