@@ -14,6 +14,7 @@ const DashboardContent = lazy(
 const SettingsContent = lazy(
   () => import("client/dashboard/settings/SettingsContent")
 );
+const MetricsPage = lazy(() => import("client/dashboard/metrics/MetricsPage"));
 
 export default function DashboardApp() {
   useEffect(() => {
@@ -47,6 +48,7 @@ export default function DashboardApp() {
               <Routes>
                 <Route path="/" element={<DashboardContent />} />
                 <Route path="/settings" element={<SettingsContent />} />
+                <Route path="/metrics" element={<MetricsPage />} />
               </Routes>
             </Suspense>
           </div>

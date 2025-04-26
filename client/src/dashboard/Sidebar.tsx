@@ -47,6 +47,20 @@ export function DashboardSidebar() {
             <Nav.Link
               className={
                 "text-light" +
+                (location.pathname === "/metrics" ? " bg-primary bg-600" : "")
+              }
+              href="#/metrics"
+              active={location.pathname === "/metrics"}
+            >
+              <i className="fas fa-cog me-2"></i>
+              Metrics
+            </Nav.Link>
+          </Nav.Item>
+
+          <Nav.Item className="">
+            <Nav.Link
+              className={
+                "text-light" +
                 (location.pathname === "/settings" ? " bg-primary bg-600" : "")
               }
               href="#/settings"

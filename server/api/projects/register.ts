@@ -1,85 +1,61 @@
-import express from "express";
+import {
+  ProjectDetailsApi,
+  ProjectEditorApi,
+  ProjectListApi,
+} from "common/api/projects/project";
 import { customError } from "common/custom-error/custom-error";
-import { ProjectListApi } from "common/models/projects/api";
 import { roles } from "common/models/user/Roles";
-import { protectEndpoint } from "../../auth/protectEndpoint";
-import { getTable } from "../../utils/database";
-import { userFromReq } from "../auth/userFromReq";
+import { registerApi } from "server/api/registerApi";
+import { getProjectEditorData } from "./getProject";
 import { getProjectDetails } from "./getProjectDetails";
 import { getProjectsAdmin, getProjectsForUser } from "./getProjectList";
+import { saveProjectEditorData } from "./saveProject";
 
-export const router = express.Router();
-
-router.get("/", async (req, res) => {
-  const user = await userFromReq(req);
-
-  if (!user.isAuthenticated()) {
-    throw customError(
-      401,
-      "You must be logged in to access this resource.",
-      "Unauthorized"
-    );
-  }
-
+registerApi<ProjectListApi>("/api/projects").get([], async ({ user }) => {
   // load the projects for an admin
   if (user.hasPermission(roles.struxt.admin)) {
     const rows = await getProjectsAdmin();
 
-    const response: ProjectListApi = {
+    const response = {
       list: rows,
     };
 
-    res.json(response);
-    return;
+    return response;
   }
 
-  const rows: { id: string; name: string; description: string }[] =
-    await getProjectsForUser(user.id);
+  const rows = await getProjectsForUser(user.id);
 
-  const response: ProjectListApi = {
+  const response = {
     list: rows,
   };
 
-  res.json(response);
+  return response;
 });
 
-router.get("/:projectId", async (req, res) => {
-  const projectId = req.params.projectId;
+registerApi<ProjectEditorApi>("/api/projects/:projectId/editor")
+  .get([], async ({ user, params }) => {
+    const projectId = params.projectId;
 
-  const user = await userFromReq(req);
-  if (
-    !user.hasPermission(roles.struxt.admin) &&
-    !user.hasProjectPermission(projectId, [roles.projects.edit])
-  ) {
-    throw customError(
-      403,
-      "You do not have permission to view this project.",
-      "Forbidden"
-    );
-  }
+    // check if the user has access to the project
+    if (
+      !user.hasPermission(roles.struxt.admin) &&
+      !user.hasProjectPermission(projectId, [roles.projects.edit])
+    ) {
+      throw customError(
+        403,
+        "You do not have permission to view this project.",
+        "Forbidden"
+      );
+    }
 
-  const [row] = await getTable("sites").where({
-    id: projectId,
-  });
+    // load the project editor details
+    const response = await getProjectEditorData(projectId);
+    return response;
+  })
+  .post(["struxt.editor"], async ({ user, params, body }) => {
+    const projectId = params.projectId;
 
-  if (!row) {
-    throw customError(
-      404,
-      "Could not load the requested project.",
-      "ProjectNotFound"
-    );
-  }
-
-  res.json({ project: JSON.parse(row.project) });
-});
-
-router.post(
-  "/:projectId",
-  protectEndpoint(["struxt.editor"]),
-  async (req, res) => {
-    const projectId = req.params.projectId;
-
-    const user = await userFromReq(req);
+    // check if the user has access to the project
     if (
       !user.hasPermission(roles.struxt.admin) &&
       !user.hasProjectPermission(projectId, [roles.projects.edit])
@@ -91,47 +67,29 @@ router.post(
       );
     }
 
-    await getTable("sites")
-      .update({
-        project: JSON.stringify(req.body.project),
-        updated_at: new Date(),
-        updated_by: user.id,
-      })
-      .where({
-        id: projectId,
-      });
+    // save the project editor data
+    const response = await saveProjectEditorData(projectId, body.editorData);
+    return response;
+  });
 
-    const [row] = await getTable("sites").where({
-      id: projectId,
-    });
+registerApi<ProjectDetailsApi>("/api/projects/:projectId/details").get(
+  [],
+  async ({ user, params }) => {
+    const projectId = params.projectId;
 
-    await getTable("sites_history").insert({
-      ...row,
-    });
+    if (
+      !user.hasPermission(roles.struxt.admin) &&
+      !user.hasProjectPermission(projectId, [roles.projects.edit])
+    ) {
+      throw customError(
+        403,
+        "You do not have permission to view this project.",
+        "Forbidden"
+      );
+    }
 
-    // Create a new project
-    res.json({
-      success: true,
-    });
+    const details = await getProjectDetails(projectId);
+
+    return { details };
   }
 );
-
-router.get("/details/:projectId", async (req, res) => {
-  const projectId = req.params.projectId;
-
-  const user = await userFromReq(req);
-  if (
-    !user.hasPermission(roles.struxt.admin) &&
-    !user.hasProjectPermission(projectId, [roles.projects.edit])
-  ) {
-    throw customError(
-      403,
-      "You do not have permission to view this project.",
-      "Forbidden"
-    );
-  }
-
-  const details = await getProjectDetails(projectId);
-
-  res.json({ details });
-});

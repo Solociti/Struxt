@@ -30,7 +30,7 @@ export function ShowProject({ project }: { project: ProjectDetails }) {
             <Col xs="auto">
               <Button
                 variant="outline-primary"
-                href={"/editor/?projectId=" + project.id}
+                href={"/editor/?projectId=" + project.projectId}
                 target="_blank"
                 as="a"
                 className="me-2"
@@ -39,10 +39,29 @@ export function ShowProject({ project }: { project: ProjectDetails }) {
               </Button>
 
               <Button
+                variant="outline-info"
+                onClick={() => {
+                  /* Handle settings click */
+                  setProject({
+                    projectId: project.projectId,
+                    name: project.name,
+                    description: project.description,
+                  });
+                  navigate("/metrics");
+                }}
+              >
+                Metrics
+              </Button>
+
+              <Button
                 variant="outline-secondary"
                 onClick={() => {
                   /* Handle settings click */
-                  setProject(project);
+                  setProject({
+                    projectId: project.projectId,
+                    name: project.name,
+                    description: project.description,
+                  });
                   navigate("/settings");
                 }}
               >

@@ -1,5 +1,8 @@
 import { formatDate } from "common/format/date";
-import { EnvironmentTypes } from "common/models/projects/Environment";
+import {
+  EnvironmentTypes,
+  ProjectEnvSettings,
+} from "common/models/projects/Environment";
 import { ProjectDetails } from "common/models/projects/ProjectDetails";
 import Card from "react-bootstrap/Card";
 import ListGroup from "react-bootstrap/ListGroup";
@@ -15,7 +18,7 @@ export function ProjectEnvInfo({
   envLabel,
   project,
 }: {
-  envData: any;
+  envData: ProjectEnvSettings;
   project: ProjectDetails;
   envLabel: EnvironmentTypes;
 }) {
@@ -29,25 +32,23 @@ export function ProjectEnvInfo({
         <div className="mb-3">
           <h4 className="h6">Domains</h4>
           <ListGroup variant="flush">
-            {project.domains
-              .filter((d) => d.environment === envLabel)
-              .map((domain) => (
-                <ListGroup.Item key={domain.id} className="px-0 py-1 border-0">
-                  <a href={`https://${domain.domain}`} className="link-primary">
-                    {domain.domain}
-                  </a>
-                </ListGroup.Item>
-              ))}
+            {envData.domains.map((domain, index) => (
+              <ListGroup.Item key={index} className="px-0 py-1 border-0">
+                <a href={`https://${domain.domain}`} className="link-primary">
+                  {domain.domain}
+                </a>
+              </ListGroup.Item>
+            ))}
           </ListGroup>
         </div>
 
         <div className="flex-grow-1 mb-3">
           <p className="text-muted small fw-medium mb-1">Last published by</p>
-          {envData.published.timestamp ? (
+          {project.publish[envLabel].active ? (
             <p className="small">
-              {envData.published.displayName}
+              {project.publish[envLabel].displayName}
               {" on "}
-              {formatDate(envData.published.timestamp)}
+              {formatDate(project.publish[envLabel].date)}
             </p>
           ) : (
             <p className="small text-muted">No recent publishes</p>
@@ -56,9 +57,9 @@ export function ProjectEnvInfo({
 
         <div>
           <h4 className="h6 mb-2">Preview</h4>
-          {envData.screenshot ? (
+          {project.publish[envLabel].screenshotUrl ? (
             <Card.Img
-              src={envData.screenshot}
+              src={project.publish[envLabel].screenshotUrl}
               alt="Staging site preview"
               style={{ height: "10rem", objectFit: "cover" }}
             />

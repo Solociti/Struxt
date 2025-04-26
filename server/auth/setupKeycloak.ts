@@ -1,23 +1,26 @@
 import { customError, ErrorNames } from "common/custom-error/custom-error";
-import { ConnectSessionKnexStore } from "connect-session-knex";
+import MongoDBSetup from "connect-mongodb-session";
 import express from "express";
 import session from "express-session";
 import * as openid from "openid-client";
 import passport from "passport";
+import { dbName, mongoConnectionUrl } from "server/database/mongodb";
 import {
   Strategy,
   type StrategyOptions,
   type VerifyFunction,
 } from "../../node_modules/openid-client/build/passport";
-import { knex } from "../utils/database";
 
 export const keycloakRealmName = process.env.KEYCLOAK_REALM;
 export const keycloakHostname = process.env.KEYCLOAK_HOSTNAME;
 
+const MongoDBStore = MongoDBSetup(session);
+
 // setup the express session storage
-const store = new ConnectSessionKnexStore({
-  knex: knex,
-  cleanupInterval: 1000 * 60 * 30,
+const store = new MongoDBStore({
+  uri: mongoConnectionUrl(),
+  databaseName: dbName,
+  collection: "sessions",
 });
 
 declare global {

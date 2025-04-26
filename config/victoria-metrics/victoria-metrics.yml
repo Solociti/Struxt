@@ -1,0 +1,19 @@
+global:
+  scrape_interval: 60s
+
+scrape_configs:
+  - job_name: "web-host"
+    dns_sd_configs:
+      - names:
+          - "web-host"
+        type: "A"
+        port: 3000
+    metrics_path: /metrics
+
+  - job_name: "editor-api"
+    dns_sd_configs:
+      - names:
+          - "editor-api"
+        type: "A"
+        port: 3000
+    metrics_path: /metrics

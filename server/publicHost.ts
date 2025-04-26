@@ -5,6 +5,8 @@ import { registerErrorPage } from "./setup/errorPages";
 import { expressSetup, setupSiteLogs } from "./setup/expressSetup";
 import { getSiteDir } from "./utils/uploadDir";
 
+import "server/utils/geoLocation";
+
 // run init scripts and then start the server
 main();
 
@@ -22,6 +24,7 @@ async function main() {
 
       return {
         projectId: parts[2],
+        projectEnv: parts[3],
         path: parts.slice(4).join("/"),
       };
     }

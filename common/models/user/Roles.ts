@@ -1,11 +1,13 @@
 export type RoleTypes =
   | "struxt.editor"
+  | "struxt.metrics"
   | "struxt.admin"
   | "struxt.publish.staging"
   | "struxt.publish.production";
 
 export const RolesList: RoleTypes[] = [
   "struxt.editor",
+  "struxt.metrics",
   "struxt.admin",
   "struxt.publish.staging",
   "struxt.publish.production",
@@ -14,12 +16,14 @@ export const RolesList: RoleTypes[] = [
 export type ProjectRoleTypes =
   | "projects.admin"
   | "projects.edit"
+  | "projects.metrics"
   | "projects.publish.staging"
   | "projects.publish.production";
 
 export const ProjectRoleList: ProjectRoleTypes[] = [
   "projects.admin",
   "projects.edit",
+  "projects.metrics",
   "projects.publish.production",
   "projects.publish.staging",
 ];
@@ -33,6 +37,11 @@ export namespace roles {
      * Allows access to edit content in the Struxt editor
      */
     export const editor: RoleTypes = "struxt.editor";
+
+    /**
+     * Allows access to the metrics page.
+     */
+    export const metrics: RoleTypes = "struxt.metrics";
 
     /**
      * Provides access to manage all projects.
@@ -63,6 +72,8 @@ export namespace roles {
      */
     edit: ProjectRoleTypes;
 
+    metrics: ProjectRoleTypes;
+
     /**
      * Allows managing the project.
      */
@@ -81,6 +92,7 @@ export namespace roles {
   } = {
     admin: "projects.admin",
     edit: "projects.edit",
+    metrics: "projects.metrics",
     publish: {
       staging: "projects.publish.staging",
       production: "projects.publish.production",
@@ -122,6 +134,11 @@ export function hasPermission(
   }
 
   if (Array.isArray(permission)) {
+    if (permission.length === 0) {
+      // just checks if the user is authenticated and has any role
+      return true;
+    }
+
     return permission.some((p) => hasPermission(userRoles, p));
   } else if (typeof permission === "string") {
     return userRoles.includes(permission);

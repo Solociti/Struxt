@@ -13,7 +13,7 @@ export function useProject(projectId: string | null) {
 
     // Load the project from the server
     const res = await getProject(projectId);
-    return res.project;
+    return res.editorData;
   }, [projectId]);
 
   return {

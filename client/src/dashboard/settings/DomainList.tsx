@@ -1,4 +1,4 @@
-import { DomainDetails } from "common/models/projects/Domains";
+import { ProjectDomain } from "common/models/projects/Environment";
 import Button from "react-bootstrap/Button";
 import ListGroup from "react-bootstrap/ListGroup";
 
@@ -8,22 +8,19 @@ import ListGroup from "react-bootstrap/ListGroup";
  * @param param0
  * @returns
  */
-export function DomainList({ domains }: { domains: DomainDetails[] }) {
+export function DomainList({ domains }: { domains: ProjectDomain[] }) {
   return (
     <ListGroup>
-      {domains.map((domain) => (
-        <DomainListItem key={domain.id} domain={domain} />
+      {domains.map((domain, index) => (
+        <DomainListItem key={index} domain={domain} />
       ))}
     </ListGroup>
   );
 }
 
-function DomainListItem({ domain }: { domain: DomainDetails }) {
+function DomainListItem({ domain }: { domain: ProjectDomain }) {
   return (
-    <ListGroup.Item
-      key={domain.id}
-      className="p-1 d-flex align-items-center flex-wrap"
-    >
+    <ListGroup.Item className="p-1 d-flex align-items-center flex-wrap">
       <div className="d-flex align-items-center">
         {/* TODO: add a icon for active sites */}
         <i className="fas fa-globe me-2"></i>

@@ -1,5 +1,6 @@
 import { CurrentUserModel } from "common/models/user/CurrentUserModel";
-import { knex } from "../utils/database";
+import { getUser } from "./user/getUser";
+import { saveUser } from "./user/saveUser";
 
 /**
  * Update the user info in mariadb
@@ -7,19 +8,27 @@ import { knex } from "../utils/database";
  * @param user
  */
 export async function updateLocalUser(user: CurrentUserModel) {
-  // update the user details in database
-  const exists = await knex.table("users").where("uuid", user.id).first();
+  const localUser = await getUser(user.id);
 
-  if (exists) {
-    await knex.table("users").where("uuid", user.id).update({
-      email: user.email,
-      display_name: user.name,
-    });
-  } else {
-    await knex.table("users").insert({
-      uuid: user.id,
-      email: user.email,
-      display_name: user.name,
-    });
+  if (!localUser) {
+    return;
+  }
+
+  let updated = false;
+
+  if (localUser.email !== user.email) {
+    // update the email
+    localUser.email = user.email;
+    updated = true;
+  }
+
+  if (localUser.name !== user.name) {
+    // update the name
+    localUser.name = user.name;
+    updated = true;
+  }
+
+  if (updated) {
+    await saveUser(localUser);
   }
 }

@@ -1,11 +1,13 @@
+import { DeepPartial, mergeDeep } from "../utils";
 import {
   hasPermission,
   hasProjectPermission,
   PermType,
   ProjectPermType,
 } from "./Roles";
+import { UserModel } from "./UserModel";
 
-export class CurrentUserModel {
+export class CurrentUserModel extends UserModel {
   public id: string = "";
   public email: string = "";
 
@@ -25,8 +27,10 @@ export class CurrentUserModel {
   }[] = [];
 
   constructor(data?: Partial<CurrentUserModel>) {
+    super(data);
+
     if (data) {
-      this.assign(data);
+      this.update(data);
     }
   }
 
@@ -35,8 +39,18 @@ export class CurrentUserModel {
    *
    * @param data
    */
-  assign(data: Partial<CurrentUserModel>) {
-    Object.assign(this, data);
+  update(data: DeepPartial<CurrentUserModel>) {
+    mergeDeep(this, data);
+  }
+
+  /**
+   * Clones the user data
+   *
+   * @returns
+   */
+  clone(): UserModel {
+    const data = JSON.parse(JSON.stringify(this));
+    return new UserModel(data);
   }
 
   /**

@@ -1,4 +1,30 @@
-import { knex } from "../../utils/database";
+import { ModelAsDocument } from "common/models/Model";
+import { ProjectListItem } from "common/models/projects/ProjectItem";
+import { ProjectModel } from "common/models/projects/ProjectModel";
+import { ProjectRoleDocument } from "common/models/projects/ProjectRoles";
+import { getCollection, toArray } from "server/database/mongodb";
+
+/**
+ * Get the list of project ids that a user has access to
+ *
+ * @param userId
+ * @returns
+ */
+async function getUserProjectIds(userId: string) {
+  const collection = await getCollection("project_members");
+
+  const cursor = collection.find<ModelAsDocument<ProjectRoleDocument>>(
+    { userId },
+    {
+      projection: { projectId: 1 },
+    }
+  );
+  const list = await toArray(cursor);
+  const projectIds = list.map((item) => item.projectId);
+
+  const uniqueProjectIds = [...new Set(projectIds)];
+  return uniqueProjectIds;
+}
 
 /**
  * Get the list of projects for a user
@@ -7,16 +33,21 @@ import { knex } from "../../utils/database";
  * @returns
  */
 export async function getProjectsForUser(userId: string) {
-  const rows = await knex
-    .table("sites")
-    .innerJoin("user_roles", {
-      "sites.id": "user_roles.site_id",
-    })
-    .select("sites.id", "sites.name", "sites.description")
-    .where("user_roles.user_id", userId)
-    .orderBy("sites.name", "asc");
+  // get the list of project ids for the user
+  const projectIds = await getUserProjectIds(userId);
 
-  return rows;
+  const collection = await getCollection("projects");
+  const cursor = collection.find<ModelAsDocument<ProjectModel>>(
+    { projectId: { $in: projectIds } },
+    {
+      projection: { projectId: 1, name: 1, description: 1 },
+      sort: {
+        name: 1,
+      },
+    }
+  );
+  const list: ProjectListItem[] = await toArray(cursor);
+  return list;
 }
 
 /**
@@ -25,10 +56,18 @@ export async function getProjectsForUser(userId: string) {
  * @returns
  */
 export async function getProjectsAdmin() {
-  const rows = await knex
-    .table("sites")
-    .select("sites.id", "sites.name", "sites.description")
-    .orderBy("sites.name", "asc");
+  const collection = await getCollection("projects");
 
-  return rows;
+  const cursor = collection.find<ModelAsDocument<ProjectModel>>(
+    {},
+    {
+      projection: { projectId: 1, name: 1, description: 1 },
+      sort: {
+        name: 1,
+      },
+    }
+  );
+
+  const list: ProjectListItem[] = await toArray(cursor);
+  return list;
 }

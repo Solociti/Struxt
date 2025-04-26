@@ -1,3 +1,4 @@
+import { updateGeoIP } from "server/utils/geoLocation";
 import { downloadPasswordLists } from "../auth/downloadPasswordLists";
 import { setupWorker } from "../database/setupQueue";
 import { cronName, cronPrefix } from "./queue";
@@ -12,6 +13,10 @@ setupWorker(
         await downloadPasswordLists(job);
         break;
       }
+
+      case "update-geoip":
+        return await updateGeoIP(job);
+
       default: {
         console.error("Unknown job type", job.name);
       }

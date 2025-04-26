@@ -8,12 +8,16 @@ services:
     environment:
       - IS_DOCKER=true
       - UPLOAD_DIR=/uploads
+      - CONTAINER_NAME=web-host
+      - GEOTMPDIR=/uploads/geoip/tmp
+      - GEODATADIR=/uploads/geoip/data
     command: "node server/publicHost.js"
     volumes:
       - ${UPLOAD_DIR}:/uploads
       - ${SITE_STORAGE_DIR}:/sites
       - .env:/app/.env:ro
     depends_on:
+      - mongo
       - mariadb
       - dragonfly
       - nginx
@@ -29,12 +33,16 @@ services:
     environment:
       - IS_DOCKER=true
       - UPLOAD_DIR=/uploads
+      - CONTAINER_NAME=editor-api
+      - GEOTMPDIR=/uploads/geoip/tmp
+      - GEODATADIR=/uploads/geoip/data
     command: "node server/apiEntry.js"
     volumes:
       - ${UPLOAD_DIR}:/uploads
       - ${SITE_STORAGE_DIR}:/sites
       - .env:/app/.env:ro
     depends_on:
+      - mongo
       - mariadb
       - dragonfly
       - nginx
