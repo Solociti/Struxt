@@ -24,3 +24,52 @@ export async function savePublish(data: PublishModel) {
     }
   );
 }
+
+/**
+ * Set the active publish for the given project and environment.
+ *
+ * @param publishId
+ */
+export async function setActivePublish(publishId: string) {
+  const collection = await getCollection<PublishModel>("projects_published");
+  await collection.updateOne(
+    {
+      uuid: publishId,
+    },
+    {
+      $set: {
+        isActive: true,
+      },
+    }
+  );
+
+  const publish = await collection.findOne(
+    {
+      uuid: publishId,
+    },
+    {
+      projection: {
+        projectId: 1,
+        siteEnv: 1,
+      },
+    }
+  );
+  if (!publish) {
+    return;
+  }
+
+  const { projectId, siteEnv } = publish;
+  await collection.updateMany(
+    {
+      projectId: projectId,
+      siteEnv: siteEnv,
+      uuid: { $ne: publishId },
+      isActive: true,
+    },
+    {
+      $set: {
+        isActive: false,
+      },
+    }
+  );
+}

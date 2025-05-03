@@ -38,17 +38,27 @@ export function getProjectFormUploadDir(projectId: string | number) {
 }
 
 /**
- * Get the site publish directory
+ * Get the base publish directory
  *
- * @param type
- * @param projectId
  * @returns
  */
-export function getSiteDir(type: "staging" | "production", projectId: string) {
+export function getBasePublishDir() {
   let baseDir = env.SITE_STORAGE_DIR || "/sites";
   if (env.IS_DOCKER === "true") {
     baseDir = "/sites";
   }
+  return baseDir;
+}
 
-  return path.join(baseDir, projectId, type);
+/**
+ * Get the publish directory for the given project and publish id
+ *
+ * @param projectId
+ * @param publishId
+ * @returns
+ */
+export function getPublishDir(projectId: string, publishId: string) {
+  const baseDir = getBasePublishDir();
+
+  return path.join(baseDir, projectId, publishId);
 }

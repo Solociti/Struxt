@@ -1,7 +1,12 @@
 import { Model, UserModelAction } from "common/models/Model";
 import { DeepPartial, mergeDeep } from "../utils";
 import { EditorData } from "./editorDataTypes";
-import { ProjectEnvSettings, setupProjectEnvSettings } from "./Environment";
+import {
+  EnvironmentTypes,
+  ProjectDomain,
+  ProjectEnvSettings,
+  setupProjectEnvSettings,
+} from "./Environment";
 
 export interface ProjectEditorData {
   /**
@@ -123,5 +128,36 @@ export class ProjectModel extends Model {
   clone(): ProjectModel {
     const data = JSON.parse(JSON.stringify(this));
     return new ProjectModel(data);
+  }
+
+  /**
+   * Get the primary domain for the given environment
+   *
+   * @param env
+   * @returns
+   */
+  getPrimaryDomain(env: EnvironmentTypes): ProjectDomain | null {
+    const envSettings = this[env];
+
+    const primaryDomain = envSettings.domains.find((d) => d.isPrimary);
+    if (primaryDomain) {
+      return primaryDomain;
+    }
+
+    // if no primary domain is set, set the first one that starts with www
+    const wwwDomain = envSettings.domains.find((d) =>
+      d.domain.startsWith("www")
+    );
+    if (wwwDomain) {
+      return wwwDomain;
+    }
+
+    // if no primary domain is set, set the first domain
+    const firstDomain = envSettings.domains[0];
+    if (firstDomain) {
+      return firstDomain;
+    }
+
+    return null;
   }
 }

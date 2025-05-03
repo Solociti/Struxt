@@ -9,7 +9,7 @@ export const ErrorNames = {
   Unauthorized: "Unauthorized",
 };
 
-type HTTPStatus = 400 | 401 | 403 | 404 | 500;
+export type HTTPStatus = 400 | 401 | 403 | 404 | 500;
 type ErrorNames = keyof typeof ErrorNames;
 
 declare global {

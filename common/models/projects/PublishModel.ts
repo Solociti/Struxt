@@ -19,6 +19,11 @@ export class PublishModel extends Model {
   public siteEnv: EnvironmentTypes = "staging";
 
   /**
+   * Tells if this is the active publish for this project + env combination
+   */
+  public isActive: boolean = false;
+
+  /**
    * The screenshot for this publish
    */
   public screenshotUrl: string = "";

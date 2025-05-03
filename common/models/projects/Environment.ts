@@ -13,6 +13,31 @@ export interface ProjectEnvSettings {
   forceSsl: boolean;
 
   /**
+   * Ids for all of the records in the NGINX Proxy Manager
+   */
+  proxy: {
+    /**
+     * Set if an error occurred while creating the proxy host
+     */
+    error?: string;
+
+    /**
+     * NGINX Proxy Manager host id for this environment
+     */
+    hostId: number;
+
+    /**
+     * The redirect id for this environment
+     */
+    redirectId: number;
+
+    /**
+     * The certificate id for this environment
+     */
+    certificateId: number;
+  };
+
+  /**
    * Enables HSTS for the domain.
    *
    * Has no effect if forceSsl is false
@@ -55,6 +80,11 @@ export function setupProjectEnvSettings(
   const setting: ProjectEnvSettings = {
     forceSsl: true,
     hsts: true,
+    proxy: {
+      hostId: 0,
+      redirectId: 0,
+      certificateId: 0,
+    },
     domains: [],
   };
 

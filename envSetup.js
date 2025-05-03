@@ -122,6 +122,25 @@ async function main() {
     );
   }
 
+  if (!contents.includes("NGINX_PROXY_MANAGER_USER")) {
+    contents += [
+      "",
+      "# Nginx Proxy Manager user",
+      "NGINX_PROXY_MANAGER_USER=bot@struxt.solociti.com",
+      `NGINX_PROXY_MANAGER_PASS="${randomBytes(24).toString("base64")}"`,
+    ].join("\n");
+  }
+
+  if (!contents.includes("LETSENCRYPT_EMAIL")) {
+    contents += [
+      "",
+      "# Lets Encrypt email (set license to accept)",
+      "# This is required for the Nginx Proxy Manager to work",
+      "LETSENCRYPT_LICENSE=deny",
+      "LETSENCRYPT_EMAIL=",
+    ].join("\n");
+  }
+
   if (contents !== original) {
     // allow the value to be edited
     const lines = contents.split("\n");
