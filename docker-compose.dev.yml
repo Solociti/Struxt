@@ -11,7 +11,6 @@ services:
       - ./package-lock.json:/app/package-lock.json
       - .env:/app/.env:ro
       - ./common/:/app/common
-      - ./migrations/:/app/migrations
       - ./server/:/app/server
       - ./tsconfig.json:/app/tsconfig.json
     networks:
@@ -29,7 +28,6 @@ services:
       - ./package-lock.json:/app/package-lock.json
       - .env:/app/.env:ro
       - ./common/:/app/common
-      - ./migrations/:/app/migrations
       - ./server/:/app/server
       - ./dist-server/:/app/dist-server
       - ./tsconfig.json:/app/tsconfig.json
@@ -49,7 +47,6 @@ services:
       - ./package-lock.json:/app/package-lock.json
       - .env:/app/.env:ro
       - ./common/:/app/common
-      - ./migrations/:/app/migrations
       - ./server/:/app/server
       - ./dist-server/:/app/dist-server
       - ./tsconfig.json:/app/tsconfig.json
