@@ -9,7 +9,6 @@
     "build": "tsc && cd client && vite build",
     "preview": "cd client && vite preview",
     "docker": "./docker.sh up",
-    "schema": "node tools/createSchema.js",
     "migrate": "docker exec -it struxt-editor-api-1 node server/migrationEntry.js"
   },
   "devDependencies": {
