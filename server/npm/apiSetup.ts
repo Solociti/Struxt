@@ -95,7 +95,7 @@ export async function callNpmApi(
   const data: any = await response.json();
 
   if ("error" in data) {
-    console.log("NPM API Error", data.error);
+    console.log("NPM API Error", endpoint, data.error);
     throw customError(data.error.code, data.error.message);
   }
   if (!response.ok) {

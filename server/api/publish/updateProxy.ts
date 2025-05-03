@@ -156,17 +156,20 @@ async function configureRedirectionHosts(
 
     // remove the unwanted fields from the data
     // these need to be removed to send the update request
-    if (redirectHost.id) {
+    if (typeof redirectHost.id !== "undefined") {
       delete redirectHost.id;
     }
-    if (redirectHost.created_on) {
+    if (typeof redirectHost.created_on !== "undefined") {
       delete redirectHost.created_on;
     }
-    if (redirectHost.modified_on) {
+    if (typeof redirectHost.modified_on !== "undefined") {
       delete redirectHost.modified_on;
     }
-    if (redirectHost.owner_user_id) {
+    if (typeof redirectHost.owner_user_id !== "undefined") {
       delete redirectHost.owner_user_id;
+    }
+    if (typeof redirectHost.enabled !== "undefined") {
+      delete redirectHost.enabled;
     }
 
     updateRedirectionHostConf(
