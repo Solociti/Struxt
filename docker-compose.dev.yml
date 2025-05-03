@@ -75,7 +75,6 @@ services:
       - .env:/app/.env:ro
       - ./dist-server/common:/app/common
       - ./dist-server/server:/app/server
-      - ./migrations:/app/migrations
       - ./templates:/app/templates
       - ./client/dist:/app/client/dist
       - ${UPLOAD_DIR}:/uploads
@@ -107,7 +106,6 @@ services:
       - .env:/app/.env:ro
       - ./dist-server/common:/app/common
       - ./dist-server/server:/app/server
-      - ./migrations:/app/migrations
       - ./templates:/app/templates
       - ./client/dist/:/app/client/dist
       - ${UPLOAD_DIR}:/uploads
