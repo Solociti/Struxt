@@ -18,7 +18,6 @@ services:
       - .env:/app/.env:ro
     depends_on:
       - mongo
-      - mariadb
       - dragonfly
       - nginx
     networks:
@@ -43,7 +42,6 @@ services:
       - .env:/app/.env:ro
     depends_on:
       - mongo
-      - mariadb
       - dragonfly
       - nginx
     networks:
@@ -69,5 +67,19 @@ services:
       - struxt-net
     depends_on:
       - mariadb
+    profiles:
+      - ${KEYCLOAK_DISABLED:-}
+
+  mariadb:
+    image: mariadb:latest
+    restart: unless-stopped
+    environment:
+      MARIADB_ROOT_PASSWORD: ${MARIADB_ROOT_PASSWORD}
+    ports:
+      - "127.0.0.1:3306:3306"
+    volumes:
+      - mariadb_data:/var/lib/mysql
+    networks:
+      - struxt-net
     profiles:
       - ${KEYCLOAK_DISABLED:-}

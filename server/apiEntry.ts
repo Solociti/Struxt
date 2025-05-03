@@ -19,16 +19,13 @@ import { router as formsRouter } from "server/forms/register";
 import { registerErrorPage } from "server/setup/errorPages";
 import { expressSetup } from "server/setup/expressSetup";
 import "server/setup/startup";
-import { dbInit } from "server/utils/database";
 import { router as apiRouter } from "./api/registerApi";
 
 import "server/api/register";
 import "server/utils/geoLocation";
 
 // run init scripts and then start the server
-Promise.all([dbInit()]).then(() => {
-  main();
-});
+main();
 
 async function main() {
   console.log("Starting server...");

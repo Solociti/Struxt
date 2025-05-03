@@ -11,8 +11,6 @@ services:
       - ./package-lock.json:/app/package-lock.json
       - .env:/app/.env:ro
       - ./common/:/app/common
-      - ./migrations/:/app/migrations
-      - ./knexfile.js:/app/knexfile.js
       - ./server/:/app/server
       - ./tsconfig.json:/app/tsconfig.json
     networks:
@@ -30,8 +28,6 @@ services:
       - ./package-lock.json:/app/package-lock.json
       - .env:/app/.env:ro
       - ./common/:/app/common
-      - ./migrations/:/app/migrations
-      - ./knexfile.js:/app/knexfile.js
       - ./server/:/app/server
       - ./dist-server/:/app/dist-server
       - ./tsconfig.json:/app/tsconfig.json
@@ -51,8 +47,6 @@ services:
       - ./package-lock.json:/app/package-lock.json
       - .env:/app/.env:ro
       - ./common/:/app/common
-      - ./migrations/:/app/migrations
-      - ./knexfile.js:/app/knexfile.js
       - ./server/:/app/server
       - ./dist-server/:/app/dist-server
       - ./tsconfig.json:/app/tsconfig.json
@@ -81,14 +75,11 @@ services:
       - .env:/app/.env:ro
       - ./dist-server/common:/app/common
       - ./dist-server/server:/app/server
-      - ./migrations:/app/migrations
-      - ./knexfile.js:/app/knexfile.js
       - ./templates:/app/templates
       - ./client/dist:/app/client/dist
       - ${UPLOAD_DIR}:/uploads
       - ${SITE_STORAGE_DIR}:/sites
     depends_on:
-      - mariadb
       - dragonfly
       - nginx
       - ts-build
@@ -115,14 +106,11 @@ services:
       - .env:/app/.env:ro
       - ./dist-server/common:/app/common
       - ./dist-server/server:/app/server
-      - ./migrations:/app/migrations
-      - ./knexfile.js:/app/knexfile.js
       - ./templates:/app/templates
       - ./client/dist/:/app/client/dist
       - ${UPLOAD_DIR}:/uploads
       - ${SITE_STORAGE_DIR}:/sites
     depends_on:
-      - mariadb
       - dragonfly
       - nginx
       - ts-build

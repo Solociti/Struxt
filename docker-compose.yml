@@ -12,18 +12,6 @@ services:
     networks:
       - struxt-net
 
-  mariadb:
-    image: mariadb:latest
-    restart: unless-stopped
-    environment:
-      MARIADB_ROOT_PASSWORD: ${MARIADB_ROOT_PASSWORD}
-    ports:
-      - "127.0.0.1:3306:3306"
-    volumes:
-      - mariadb_data:/var/lib/mysql
-    networks:
-      - struxt-net
-
   victoriametrics:
     image: victoriametrics/victoria-metrics:stable
     restart: unless-stopped

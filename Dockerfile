@@ -24,7 +24,6 @@ FROM node:20.18 AS prod
 COPY --from=build /app/node_modules /app/node_modules
 COPY --from=build /app/docker-package.json /app/package.json
 COPY --from=build /app/migrations /app/migrations
-COPY --from=build /app/knexfile.js /app/knexfile.js
 COPY --from=build /app/client/dist /app/client/dist
 COPY --from=build /app/dist-server /app
 

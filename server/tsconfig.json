@@ -1,6 +1,6 @@
 {
   "extends": "../tsconfig.json",
-  "include": [".", "../migrations", "common/custom-error.d.ts", "common"],
+  "include": [".", "common/custom-error.d.ts", "common"],
   "compilerOptions": {
     "noEmit": true,
 
