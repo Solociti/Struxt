@@ -12,6 +12,7 @@ describe("PublishModel", () => {
       uuid: "",
       projectId: "",
       siteEnv: "staging",
+      isActive: false,
       screenshotUrl: "",
       created: { date: 0, userId: "", displayName: "" },
     });
@@ -29,6 +30,7 @@ describe("PublishModel", () => {
       uuid: "",
       projectId: "test-project",
       siteEnv: "staging",
+      isActive: false,
       screenshotUrl: "",
       created: { date: 1234, userId: "", displayName: "" },
     });

@@ -1,26 +1,53 @@
 import { customError } from "common/custom-error/custom-error";
-import { ProjectDomain } from "common/models/projects/Environment";
+import {
+  EnvironmentTypes,
+  ProjectDomain,
+  ProjectEnvSettings,
+} from "common/models/projects/Environment";
 import { ProjectModel } from "common/models/projects/ProjectModel";
 import { PublishModel } from "common/models/projects/PublishModel";
+import { createCertificate, getCertificate } from "server/npm/certificates";
+import { createDefaultProxyHostConf } from "server/npm/data/createProxyHostConf";
 import {
   createProxyHost,
   getProxyHost,
   updateProxyHost,
 } from "server/npm/proxyHosts";
-import { ProxyHostUpdate } from "server/npm/types";
+import {
+  createRedirectionHost,
+  deleteRedirectionHost,
+  getRedirectionHost,
+  updateRedirectionHost,
+} from "server/npm/redirectionHosts";
+import {
+  ProxyHostResponse,
+  ProxyHostUpdate,
+  RedirectHostResponse,
+  RedirectHostUpdate,
+} from "server/npm/types";
+import { updateProxyHostConf } from "../../npm/data/updateProxyHostConf";
+import {
+  createRedirectionHostConf,
+  updateRedirectionHostConf,
+} from "server/npm/data/redirectionHostConf";
 
 /**
- * Update the proxy host for the given project and publish
+ * Update all of the proxy settings for the given project.
  *
  * @param project
  * @param publish
  */
-export async function updateProjectProxyHost(
+export async function updateProjectProxy(
   project: ProjectModel,
   publish: PublishModel
 ) {
+  console.log("Updating project proxy settings");
+
   const env = publish.siteEnv;
   const envSettings = project[env];
+
+  // TODO: verify that the domains are setup correctly
+  // TODO: check the dns for the domains
 
   const primaryDomain = project.getPrimaryDomain(env);
   if (!primaryDomain) {
@@ -31,113 +58,207 @@ export async function updateProjectProxyHost(
     (d) => d.domain !== primaryDomain.domain && !d.isPrimary
   );
 
-  // check if the proxy host is set
-  if (envSettings.proxy.hostId) {
-    // update the existing proxy host
-    const proxyHost = await getProxyHost(envSettings.proxy.hostId);
-    updateProxySettings(proxyHost, project, publish, [primaryDomain]);
+  // check if a certificate is needed
+  let createNewCert = false;
+  if (envSettings.proxy.certificateId) {
+    // check if the certificate contains the correct domains
+    // if not, create a new certificate
+    const certificate = await getCertificate(envSettings.proxy.certificateId);
 
-    await updateProxyHost(envSettings.proxy.hostId, proxyHost);
-  } else {
-    // create a new proxy host
-    const proxyHost = createNewProxySettings();
-    updateProxySettings(proxyHost, project, publish, [primaryDomain]);
+    // create string sets of the domains to match them
+    const certDomainStr = certificate.domain_names.slice().sort().join(",");
+    const domainStr = envSettings.domains
+      .map((d) => d.domain)
+      .sort()
+      .join(",");
 
-    const newProxyHost = await createProxyHost(proxyHost);
-    envSettings.proxy.hostId = newProxyHost.id;
+    const isMatch = certDomainStr === domainStr;
+    if (!isMatch && envSettings.forceSsl) {
+      createNewCert = true;
+    }
+  } else if (envSettings.forceSsl) {
+    // create a new certificate
+    createNewCert = true;
   }
+
+  let letsEncryptEnabled = true;
+  if (
+    (createNewCert && process.env.LETSENCRYPT_LICENSE !== "accept") ||
+    !process.env.LETSENCRYPT_EMAIL
+  ) {
+    console.log(
+      "Skipping host certificate update because the letsencrypt license is not accepted."
+    );
+    letsEncryptEnabled = false;
+  }
+
+  if (createNewCert && letsEncryptEnabled) {
+    const oldCertId = envSettings.proxy.certificateId;
+
+    // create a new certificate
+    const newCertificate = await createCertificate({
+      domain_names: envSettings.domains.map((d) => d.domain),
+      nice_name: `${project.name} - ${env}`,
+      provider: "letsencrypt",
+      meta: {
+        letsencrypt_agree: true,
+        letsencrypt_email: process.env.LETSENCRYPT_EMAIL || "",
+        dns_challenge: false,
+        propagation_seconds: 0,
+      },
+    });
+    envSettings.proxy.certificateId = newCertificate.id;
+
+    if (oldCertId) {
+      // TODO: schedule a delete for the old certificate
+      // don't want to immediately delete the old certificate
+      // in case the domains get added back and we can reuse it
+    }
+  }
+
+  // check if the proxy host is set
+  await configureProxyHost(project, env, publish, [primaryDomain]);
 
   // check if a redirect is needed
   if (redirectDomains.length > 0) {
-    if (envSettings.proxy.redirectId) {
-      // update the existing redirect
-    } else {
-      // create a new redirect
-    }
-  }
-
-  // check if a certificate is needed
-  if (envSettings.proxy.certificateId) {
-    // update the existing certificate
-  } else {
-    // create a new certificate
+    envSettings.proxy.redirectId = await configureRedirectionHosts(
+      envSettings,
+      redirectDomains,
+      primaryDomain
+    );
   }
 }
 
-function updateProxySettings(
-  proxy: ProxyHostUpdate,
+/**
+ * Configure the redirection hosts for the given project.
+ *
+ * @param envSettings
+ * @param redirectDomains
+ * @param primaryDomain
+ */
+async function configureRedirectionHosts(
+  envSettings: ProjectEnvSettings,
+  redirectDomains: ProjectDomain[],
+  primaryDomain: ProjectDomain
+): Promise<number> {
+  const redirectId = envSettings.proxy.redirectId;
+
+  if (redirectId) {
+    if (redirectDomains.length === 0) {
+      // delete the existing redirect
+      await deleteRedirectionHost(redirectId);
+      return 0;
+    }
+
+    // update the existing redirect
+    const redirectHost: RedirectHostUpdate & Partial<RedirectHostResponse> =
+      await getRedirectionHost(redirectId);
+
+    // remove the unwanted fields from the data
+    // these need to be removed to send the update request
+    if (redirectHost.id) {
+      delete redirectHost.id;
+    }
+    if (redirectHost.created_on) {
+      delete redirectHost.created_on;
+    }
+    if (redirectHost.modified_on) {
+      delete redirectHost.modified_on;
+    }
+    if (redirectHost.owner_user_id) {
+      delete redirectHost.owner_user_id;
+    }
+
+    updateRedirectionHostConf(
+      redirectHost,
+      redirectDomains.map((d) => d.domain),
+      envSettings,
+      primaryDomain.domain
+    );
+
+    await updateRedirectionHost(redirectId, redirectHost);
+
+    return redirectId;
+  }
+
+  if (redirectDomains.length > 0) {
+    const redirectHost = createRedirectionHostConf();
+    updateRedirectionHostConf(
+      redirectHost,
+      redirectDomains.map((d) => d.domain),
+      envSettings,
+      primaryDomain.domain
+    );
+
+    // create a new redirect
+    const newRedirectionHost = await createRedirectionHost(redirectHost);
+    return newRedirectionHost.id;
+  }
+
+  return redirectId;
+}
+
+/**
+ * Configure the proxy host for the given project.
+ *
+ * @param projectEnv
+ * @param envSettings
+ * @param publish
+ * @param domains
+ */
+async function configureProxyHost(
   project: ProjectModel,
+  projectEnv: EnvironmentTypes,
   publish: PublishModel,
   domains: ProjectDomain[]
-): ProxyHostUpdate {
-  const env = project.staging ? "staging" : "production";
-  const envSettings = project[env];
+) {
+  const envSettings = project[projectEnv];
+  const hostId = envSettings.proxy.hostId;
+  const domainNames = domains.map((d) => d.domain);
 
-  // set the ssl settings
-  proxy.ssl_forced = envSettings.forceSsl;
-  proxy.hsts_enabled = envSettings.hsts;
+  if (hostId) {
+    // update the existing proxy host
+    const proxyHost: ProxyHostUpdate & Partial<ProxyHostResponse> =
+      await getProxyHost(hostId);
 
-  // set the domains
-  proxy.domain_names = domains.map((d) => d.domain);
-
-  // set the host details
-  proxy.forward_scheme = "http";
-  proxy.forward_host = "web-host";
-  proxy.forward_port = 3000;
-
-  // set the certificate id
-  proxy.certificate_id = envSettings.proxy.certificateId;
-
-  for (const location of proxy.locations) {
-    if (location.path === "/") {
-      location.forward_host = `web-host/sites/${project.projectId}/${publish.uuid}`;
-      location.forward_port = 3000;
+    // remove the unwanted fields from the data
+    // these need to be removed to send the update request
+    if (proxyHost.id) {
+      delete proxyHost.id;
+    }
+    if (proxyHost.created_on) {
+      delete proxyHost.created_on;
+    }
+    if (proxyHost.modified_on) {
+      delete proxyHost.modified_on;
+    }
+    if (proxyHost.owner_user_id) {
+      delete proxyHost.owner_user_id;
     }
 
-    if (location.path === "/submit") {
-      location.forward_host = `editor-api/forms/submit/${project.projectId}/${env}`;
-      location.forward_port = 3000;
-    }
+    updateProxyHostConf(proxyHost, {
+      projectId: project.projectId,
+      projectEnv,
+      envSettings,
+      publishId: publish.uuid,
+      domains: domainNames,
+    });
+
+    await updateProxyHost(hostId, proxyHost);
+    return hostId;
   }
 
-  return proxy;
-}
+  // create a new proxy host
+  const proxyHost = createDefaultProxyHostConf();
+  updateProxyHostConf(proxyHost, {
+    projectId: project.projectId,
+    projectEnv,
+    envSettings,
+    publishId: publish.uuid,
+    domains: domainNames,
+  });
 
-function createNewProxySettings(): ProxyHostUpdate {
-  return {
-    domain_names: [],
-    forward_scheme: "http",
-    forward_host: "web-host",
-    forward_port: 3000,
-    certificate_id: 0,
-    ssl_forced: true,
-    hsts_enabled: true,
-    hsts_subdomains: false,
-    http2_support: true,
-    block_exploits: true,
-    caching_enabled: false,
-    allow_websocket_upgrade: false,
-    access_list_id: 0,
-    advanced_config: "proxy_request_buffering off;\nclient_max_body_size 0;",
-    enabled: true,
-    meta: {},
-    locations: [
-      {
-        path: "/",
-        advanced_config:
-          '# Redirect index.html to root path while preserving query parameters\nif ($request_uri ~* "^(.*)/index\\.html(.*)$") {\nreturn 301 $1/$2;\n}',
-        forward_scheme: "http",
-        forward_host: "web-host/",
-        forward_port: 3000,
-      },
-      {
-        path: "/submit",
-        advanced_config:
-          "proxy_request_buffering off;\nclient_max_body_size 50M;",
-        forward_scheme: "http",
-        forward_host: "editor-api/",
-        forward_port: 3000,
-      },
-    ],
-  };
+  const newProxyHost = await createProxyHost(proxyHost);
+
+  return newProxyHost.id;
 }

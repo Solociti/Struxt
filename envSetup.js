@@ -131,6 +131,16 @@ async function main() {
     ].join("\n");
   }
 
+  if (!contents.includes("LETSENCRYPT_EMAIL")) {
+    contents += [
+      "",
+      "# Lets Encrypt email (set license to accept)",
+      "# This is required for the Nginx Proxy Manager to work",
+      "LETSENCRYPT_LICENSE=deny",
+      "LETSENCRYPT_EMAIL=",
+    ].join("\n");
+  }
+
   if (contents !== original) {
     // allow the value to be edited
     const lines = contents.split("\n");

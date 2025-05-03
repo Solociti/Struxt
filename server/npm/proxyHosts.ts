@@ -12,7 +12,7 @@ import {
  */
 export async function getProxyHosts() {
   const data: NpmProxyHostsResponse = await callNpmApi(
-    "/api/nginx/hosts",
+    "/api/nginx/proxy-hosts",
     "GET"
   );
   return data;
@@ -26,7 +26,7 @@ export async function getProxyHosts() {
  */
 export async function getProxyHost(id: number) {
   const data: ProxyHostResponse = await callNpmApi(
-    `/api/nginx/hosts/${id}`,
+    `/api/nginx/proxy-hosts/${id}`,
     "GET"
   );
   return data;
@@ -40,7 +40,7 @@ export async function getProxyHost(id: number) {
  */
 export async function createProxyHost(host: ProxyHostUpdate) {
   const data: ProxyHostResponse = await callNpmApi(
-    "/api/nginx/hosts",
+    "/api/nginx/proxy-hosts",
     "POST",
     host
   );
@@ -55,7 +55,7 @@ export async function createProxyHost(host: ProxyHostUpdate) {
  */
 export async function updateProxyHost(id: number, host: ProxyHostUpdate) {
   const data: ProxyHostResponse = await callNpmApi(
-    `/api/nginx/hosts/${id}`,
+    `/api/nginx/proxy-hosts/${id}`,
     "PUT",
     host
   );
@@ -69,6 +69,9 @@ export async function updateProxyHost(id: number, host: ProxyHostUpdate) {
  * @returns
  */
 export async function deleteProxyHost(id: number) {
-  const data: boolean = await callNpmApi(`/api/nginx/hosts/${id}`, "DELETE");
+  const data: boolean = await callNpmApi(
+    `/api/nginx/proxy-hosts/${id}`,
+    "DELETE"
+  );
   return data;
 }

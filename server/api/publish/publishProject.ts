@@ -17,8 +17,9 @@ import { createSimpleId } from "server/utils/createId";
 import { mkDirRecursive } from "server/utils/mkDir";
 import { getAssetDir, getPublishDir } from "server/utils/uploadDir";
 import { getProjectData } from "../projects/getProject";
-import { savePublish } from "./savePublish";
-import { updateProjectProxyHost } from "./updateProxy";
+import { saveProject } from "../projects/saveProject";
+import { savePublish, setActivePublish } from "./savePublish";
+import { updateProjectProxy } from "./updateProxy";
 
 /**
  * Publish the given project to the given environment.
@@ -137,7 +138,12 @@ export async function publishProject(
   await savePublish(publishModel);
 
   // update the npm proxy host settings
-  await updateProjectProxyHost(project, publishModel);
+  await updateProjectProxy(project, publishModel);
+
+  await saveProject(project);
+
+  // set the active publish
+  await setActivePublish(publishId);
 
   return { publishId };
 }

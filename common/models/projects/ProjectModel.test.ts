@@ -21,8 +21,26 @@ describe("ProjectModel", () => {
         dataSources: [],
         custom: { projectType: "site", id: "" },
       },
-      staging: { forceSsl: true, hsts: true, domains: [] },
-      production: { forceSsl: true, hsts: true, domains: [] },
+      staging: {
+        forceSsl: true,
+        hsts: true,
+        domains: [],
+        proxy: {
+          certificateId: 0,
+          hostId: 0,
+          redirectId: 0,
+        },
+      },
+      production: {
+        forceSsl: true,
+        hsts: true,
+        domains: [],
+        proxy: {
+          certificateId: 0,
+          hostId: 0,
+          redirectId: 0,
+        },
+      },
       created: { date: 0, userId: "", displayName: "" },
       updated: { date: 0, userId: "", displayName: "" },
     });
@@ -70,6 +88,11 @@ describe("ProjectModel", () => {
             isPrimary: false,
           },
         ],
+        proxy: {
+          certificateId: 0,
+          hostId: 0,
+          redirectId: 0,
+        },
       },
       production: {
         forceSsl: true,
@@ -82,6 +105,11 @@ describe("ProjectModel", () => {
             isPrimary: false,
           },
         ],
+        proxy: {
+          certificateId: 0,
+          hostId: 0,
+          redirectId: 0,
+        },
       },
       created: { date: 1234, userId: "", displayName: "" },
       updated: { date: 0, userId: "", displayName: "" },
