@@ -89,12 +89,7 @@ describe("updateProxyHostConf", () => {
     expect(result.forward_port).toBe(3000);
 
     expect(result.advanced_config).toBe(
-      [
-        "proxy_request_buffering off;",
-        "client_max_body_size 0;",
-        "# -- End of struxt config --",
-        "# Custom config",
-      ].join("\n")
+      ["# -- End of struxt config --", "# Custom config"].join("\n")
     );
   });
 
