@@ -4,24 +4,32 @@
 # example: ./database.sh backup
 # example: ./database.sh restore
 
+# Exit on error
+set -e
+
 # Database credentials from .env file
-DB_USER=root
-DB_PASS=$(grep MARIADB_ROOT_PASSWORD .env | cut -d '=' -f2)
+DB_USER=struxt
+DB_PASS=$(grep MONGODB_PASSWORD .env | cut -d '=' -f2)
 
 # Database name
-DB_NAME=$(grep PRIMARY_DB .env | cut -d '=' -f2)
+DB_NAME=$(grep MONGODB_PREFIX .env | cut -d '=' -f2)
 
 # Backup directory
-BACKUP_DIR=uploads/backup/database
+BACKUP_DIR="$(grep UPLOAD_DIR .env | cut -d '=' -f2)/backup/mongo"
 
 # Backup file
-BACKUP_FILE=$BACKUP_DIR/$DB_NAME-$(date +"%Y-%m-%d").sql
+BACKUP_FILE=$DB_NAME-$(date +"%Y-%m-%d").gz
 
 
 # Backup database
 backup() {
   mkdir -p $BACKUP_DIR
-  docker exec -i struxt-mariadb-1 mariadb-dump --password=$DB_PASS $DB_NAME > $BACKUP_FILE
+
+  docker exec -i struxt-mongo-1 \
+    mongodump --host=localhost:27017 \
+    --username=$DB_USER --password=$DB_PASS --authenticationDatabase=admin \
+    --db=$DB_NAME --archive=/backups/$BACKUP_FILE --gzip
+
   echo "Backup created: $BACKUP_FILE"
 }
 
@@ -33,12 +41,20 @@ restore() {
       read -p "Are you sure you want to restore the database? (y/n): " -n 1 -r
       echo
       if [[ $REPLY =~ ^[Yy]$ ]]; then
-            # docker cp $FILE struxt-mariadb-1:/dump.sql
-            docker exec -i struxt-mariadb-1 mariadb --user=$DB_USER --password=$DB_PASS $DB_NAME < $FILE
-            echo "Database restored: $FILE"
-            break
-          else
-            echo "Invalid selection"
+
+        BASE_NAME="$(basename $FILE)"
+
+        docker exec -i struxt-mongo-1 \
+          mongorestore --host=localhost:27017 \
+          --username=$DB_USER --password=$DB_PASS --authenticationDatabase=admin \
+          --archive=/backups/$BASE_NAME --gzip \
+          --nsExclude="sessions*" --drop
+
+
+        echo "Database restored: $FILE"
+        break
+      else
+        echo "Invalid selection"
       fi
     fi
   done
