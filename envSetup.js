@@ -202,7 +202,7 @@ async function main() {
   contents = contents.replace(/VERSION=.+$/gm, "").trim();
   // add the current version
   const packageJson = await readJsonFile("package.json");
-  const version = packageJson.version || "latest";
+  const version = packageJson.version ? `v${packageJson.version}` : "latest";
   contents = [`VERSION=${version}`, "", contents, ""].join("\n");
 
   // write the changes to disk
