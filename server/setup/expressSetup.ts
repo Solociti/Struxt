@@ -43,7 +43,6 @@ export async function expressSetup(app: Express) {
   // Health check is added in front of the middleware to avoid
   // spending time on rate limiting and logging
   app.get("/hc", (req, res) => {
-    console.log("Health Check");
     res.json({
       status: "ok",
     });
