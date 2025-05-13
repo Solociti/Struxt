@@ -10,11 +10,13 @@ WORKDIR /opt/keycloak
 # RUN keytool -genkeypair -storepass password -storetype PKCS12 -keyalg RSA -keysize 2048 -dname "CN=server" -alias server -ext "SAN:c=DNS:accounts.localhost,localhost,IP:127.0.0.1" -keystore conf/server.keystore
 
 RUN /opt/keycloak/bin/kc.sh build
-RUN apt -y update && apt -y install curl
+
+FROM curlimages/curl:latest AS curl
 
 FROM quay.io/keycloak/keycloak:latest
 
-COPY --from=builder /usr/bin/curl /usr/bin/curl
+COPY --from=curl /usr/bin/curl /usr/bin/curl
+
 COPY --from=builder /opt/keycloak/ /opt/keycloak/
 
 ENV KC_HEALTH_ENABLED=true
