@@ -203,7 +203,7 @@ async function main() {
   // add the current version
   const packageJson = await readJsonFile("package.json");
   const version = packageJson.version || "latest";
-  contents = [`VERSION=${version}`, "", contents, ""].join("\n");
+  contents = [`VERSION=v${version}`, "", contents, ""].join("\n");
 
   // write the changes to disk
   await writeFile(".env", contents, { encoding: "utf8" });
