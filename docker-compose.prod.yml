@@ -18,6 +18,8 @@ services:
       timeout: 6s
       retries: 5
       start_period: 30s
+    labels:
+      autoheal-app: true
     volumes:
       - ${UPLOAD_DIR}:/uploads
       - ${SITE_STORAGE_DIR}:/sites
@@ -48,6 +50,8 @@ services:
       timeout: 6s
       retries: 5
       start_period: 30s
+    labels:
+      autoheal-app: true
     volumes:
       - ${UPLOAD_DIR}:/uploads
       - ${SITE_STORAGE_DIR}:/sites
@@ -69,6 +73,8 @@ services:
       timeout: 11s
       retries: 5
       start_period: 45s
+    labels:
+      autoheal-app: true
     environment:
       - KC_HEALTH_ENABLED=true
       - KC_HOSTNAME=${KEYCLOAK_HOSTNAME}
@@ -101,3 +107,18 @@ services:
       - struxt-net
     profiles:
       - ${KEYCLOAK_DISABLED:-}
+
+  autoheal:
+    deploy:
+      replicas: 1
+    environment:
+      AUTOHEAL_CONTAINER_LABEL: autoheal-app
+      AUTOHEAL_INTERVAL: 30s
+      AUTOHEAL_START_PERIOD: 60s
+
+    image: willfarrell/autoheal:latest
+    network_mode: none
+    restart: always
+    volumes:
+      - /etc/localtime:/etc/localtime:ro
+      - /var/run/docker.sock:/var/run/docker.sock

@@ -13,6 +13,8 @@ services:
       timeout: 5s
       retries: 5
       start_period: 10s
+    labels:
+      autoheal-app: true
     ports:
       - "127.0.0.1:27017:27017"
     volumes:
@@ -51,6 +53,8 @@ services:
       timeout: 6s
       retries: 5
       start_period: 30s
+    labels:
+      autoheal-app: true
     ports:
       - "127.0.0.1:3030:3000"
     volumes:
@@ -70,6 +74,8 @@ services:
       timeout: 5s
       retries: 5
       start_period: 10s
+    labels:
+      autoheal-app: true
     ports:
       - "127.0.0.1:6379:6379"
     volumes:
@@ -86,6 +92,8 @@ services:
       interval: 30s
       timeout: 5s
       start_period: 10s
+    labels:
+      autoheal-app: true
     ports:
       - "80:80"
       - "127.0.0.1:81:81"
