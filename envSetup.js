@@ -3,6 +3,7 @@ import { randomBytes } from "node:crypto";
 import { readFile, writeFile } from "node:fs/promises";
 import * as path from "node:path";
 import prompts from "prompts";
+import { readJsonFile } from "./scripts/jsonUtils.mjs";
 
 async function main() {
   let contents = await readFile(".env", "utf8");
@@ -147,7 +148,12 @@ async function main() {
 
     const choices = lines
       .map((line, index) => ({ title: line, value: index }))
-      .filter((line) => line.title && !line.title.startsWith("#"));
+      .filter(
+        (line) =>
+          line.title &&
+          !line.title.startsWith("#") &&
+          !line.title.startsWith("VERSION=")
+      );
 
     choices.sort((a, b) => {
       return a.title.localeCompare(b.title);
@@ -189,14 +195,18 @@ async function main() {
       }
     }
 
-    // add a new line at the end
-    if (lines[lines.length - 1]) {
-      lines.push("");
-    }
-
-    // write the changes to disk
-    await writeFile(".env", lines.join("\n"));
+    contents = lines.join("\n");
   }
+
+  // remove the version line
+  contents = contents.replace(/VERSION=.+$/gm, "").trim();
+  // add the current version
+  const packageJson = await readJsonFile("package.json");
+  const version = packageJson.version || "latest";
+  contents = [`VERSION=${version}`, "", contents, ""].join("\n");
+
+  // write the changes to disk
+  await writeFile(".env", contents, { encoding: "utf8" });
 }
 
 main();

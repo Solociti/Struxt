@@ -1,7 +1,7 @@
 {
   "name": "struxt",
   "private": true,
-  "version": "0.0.1",
+  "version": "0.2.4-pre.2",
   "type": "module",
   "scripts": {
     "test": "vitest",
@@ -9,7 +9,8 @@
     "build": "tsc && cd client && vite build",
     "preview": "cd client && vite preview",
     "docker": "./docker.sh up",
-    "migrate": "docker exec -it struxt-editor-api-1 node server/migrationEntry.js"
+    "migrate": "docker exec -it struxt-editor-api-1 node server/migrationEntry.js",
+    "release": "node scripts/release/createRelease.mjs"
   },
   "devDependencies": {
     "@babel/cli": "^7.27.0",
@@ -35,6 +36,7 @@
     "@vitejs/plugin-react": "^4.3.4",
     "babel-plugin-module-extension-resolver": "^1.0.0",
     "babel-plugin-module-resolver": "^5.0.2",
+    "chalk": "^5.4.1",
     "chart.js": "^4.4.9",
     "react": "^19.0.0",
     "react-chartjs-2": "^5.3.0",
@@ -42,6 +44,7 @@
     "react-router": "^7.5.0",
     "sass": "^1.84.0",
     "sass-embedded": "^1.86.3",
+    "simple-git": "^3.27.0",
     "typescript": "5.8",
     "vite": "^6.2.1",
     "vite-svg-loader": "^5.1.0",
