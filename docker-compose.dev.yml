@@ -68,6 +68,12 @@ services:
       - GEOTMPDIR=/uploads/geoip/tmp
       - GEODATADIR=/uploads/geoip/data
     command: bash -c "sleep 10 && nodemon --delay 2 server/publicHost.js"
+    healthcheck:
+      test: curl --fail http://localhost:3000/hc --max-time 5 --connect-timeout 5 || exit 1
+      interval: 1m
+      timeout: 6s
+      retries: 5
+      start_period: 30s
     volumes:
       - ./node_modules/:/app/node_modules
       - ./docker-package.json:/app/package.json
@@ -99,6 +105,12 @@ services:
       - GEOTMPDIR=/uploads/geoip/tmp
       - GEODATADIR=/uploads/geoip/data
     command: bash -c "sleep 10 && nodemon --delay 2 server/apiEntry.js"
+    healthcheck:
+      test: curl --fail http://localhost:3000/hc --max-time 5 --connect-timeout 5 || exit 1
+      interval: 1m
+      timeout: 6s
+      retries: 5
+      start_period: 30s
     volumes:
       - ./node_modules/:/app/node_modules
       - ./package.json:/app/package.json

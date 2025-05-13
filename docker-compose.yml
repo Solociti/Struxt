@@ -5,10 +5,21 @@ services:
     environment:
       - MONGO_INITDB_ROOT_USERNAME=${MONGODB_USERNAME}
       - MONGO_INITDB_ROOT_PASSWORD=${MONGODB_PASSWORD}
+    healthcheck:
+      # found this health check on stackoverflow. not sure why the grep is needed
+      # https://www.mongodb.com/docs/manual/reference/command/serverStatus/
+      test: echo 'db.runCommand({serverStatus:1}).ok' | mongosh admin -u ${MONGODB_USERNAME} -p ${MONGODB_PASSWORD} --quiet | grep 1
+      interval: 30s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+    labels:
+      autoheal-app: true
     ports:
       - "127.0.0.1:27017:27017"
     volumes:
       - mongo_data:/data/db
+      - ${UPLOAD_DIR}/backup/mongo/:/backups/
     networks:
       - struxt-net
 
@@ -26,6 +37,8 @@ services:
       - -promscrape.config=/etc/victoria-metrics/victoria-metrics.yml
       - -memory.allowedPercent=20
       - -retentionPeriod=1y
+    # No health checks for now. Might have to do a custom container to add health checks
+    # curl isn't present in the docker container
     networks:
       - struxt-net
 
@@ -34,6 +47,14 @@ services:
     restart: unless-stopped
     environment:
       - GF_PLUGINS_PREINSTALL=victoriametrics-metrics-datasource
+    healthcheck:
+      test: curl --fail http://localhost:3000/health --max-time 5 --connect-timeout 5 || exit 1
+      interval: 5m
+      timeout: 6s
+      retries: 5
+      start_period: 30s
+    labels:
+      autoheal-app: true
     ports:
       - "127.0.0.1:3030:3000"
     volumes:
@@ -46,18 +67,33 @@ services:
     image: "docker.dragonflydb.io/dragonflydb/dragonfly"
     ulimits:
       memlock: -1
+    command: "dragonfly --flagfile=/flags.txt"
+    healthcheck:
+      test: redis-cli -h localhost ping
+      interval: 30s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+    labels:
+      autoheal-app: true
     ports:
-      - "6379:6379"
+      - "127.0.0.1:6379:6379"
     volumes:
       - dragonflydata:/data
       - ./config/dragonFlyFlags.txt:/flags.txt
     networks:
       - struxt-net
-    command: "dragonfly --flagfile=/flags.txt"
 
   nginx:
     image: "jc21/nginx-proxy-manager:latest"
     restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "/usr/bin/check-health"]
+      interval: 30s
+      timeout: 5s
+      start_period: 10s
+    labels:
+      autoheal-app: true
     ports:
       - "80:80"
       - "127.0.0.1:81:81"

@@ -12,6 +12,14 @@ services:
       - GEOTMPDIR=/uploads/geoip/tmp
       - GEODATADIR=/uploads/geoip/data
     command: "node server/publicHost.js"
+    healthcheck:
+      test: curl --fail http://localhost:3000/hc --max-time 5 --connect-timeout 5 || exit 1
+      interval: 1m
+      timeout: 6s
+      retries: 5
+      start_period: 30s
+    labels:
+      autoheal-app: true
     volumes:
       - ${UPLOAD_DIR}:/uploads
       - ${SITE_STORAGE_DIR}:/sites
@@ -36,6 +44,14 @@ services:
       - GEOTMPDIR=/uploads/geoip/tmp
       - GEODATADIR=/uploads/geoip/data
     command: "node server/apiEntry.js"
+    healthcheck:
+      test: curl --fail http://localhost:3000/hc --max-time 5 --connect-timeout 5 || exit 1
+      interval: 1m
+      timeout: 6s
+      retries: 5
+      start_period: 30s
+    labels:
+      autoheal-app: true
     volumes:
       - ${UPLOAD_DIR}:/uploads
       - ${SITE_STORAGE_DIR}:/sites
@@ -51,6 +67,14 @@ services:
     image: ghcr.io/solociti/struxt-keycloak:${VERSION:-latest}
     restart: unless-stopped
     command: "start --optimized --http-enabled true"
+    healthcheck:
+      test: curl --fail http://localhost:3000/health/ready --max-time 10 --connect-timeout 10 || exit 1
+      interval: 1m
+      timeout: 11s
+      retries: 5
+      start_period: 45s
+    labels:
+      autoheal-app: true
     environment:
       - KC_HEALTH_ENABLED=true
       - KC_HOSTNAME=${KEYCLOAK_HOSTNAME}
@@ -83,3 +107,18 @@ services:
       - struxt-net
     profiles:
       - ${KEYCLOAK_DISABLED:-}
+
+  autoheal:
+    deploy:
+      replicas: 1
+    environment:
+      AUTOHEAL_CONTAINER_LABEL: autoheal-app
+      AUTOHEAL_INTERVAL: 30s
+      AUTOHEAL_START_PERIOD: 60s
+
+    image: willfarrell/autoheal:latest
+    network_mode: none
+    restart: always
+    volumes:
+      - /etc/localtime:/etc/localtime:ro
+      - /var/run/docker.sock:/var/run/docker.sock
