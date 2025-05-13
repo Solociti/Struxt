@@ -1,5 +1,6 @@
 // @ts-check
 import chalk from "chalk";
+import { execSync } from "node:child_process";
 import prompts from "prompts";
 import simpleGit from "simple-git";
 import { readJsonFile, writeJsonFile } from "../jsonUtils.mjs";
@@ -98,7 +99,9 @@ async function main() {
     currentBranch.current
   } ${releaseType === "pre" ? "--prerelease" : ""}`;
 
-  console.log(releaseCommand);
+  execSync(releaseCommand, {
+    stdio: "inherit",
+  });
 }
 
 main().catch((err) => {
