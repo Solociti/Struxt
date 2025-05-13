@@ -1,5 +1,6 @@
 import "dotenv/config";
 
+import { roles } from "common/models/user/Roles";
 import express, { NextFunction, Request, Response } from "express";
 import {
   router as assetsRouter,
@@ -65,6 +66,12 @@ async function main() {
   app.use(formsRouter); // TODO: move to the web server
 
   // setup the admin pages. This should be moved to a separate server at some point
+  app.use(
+    "/admin",
+    protectEndpoint([roles.struxt.admin], {
+      onFail: "redirect",
+    })
+  );
   app.use("/admin/queues", serverAdapter.getRouter());
 
   // Error handling middleware for the api
