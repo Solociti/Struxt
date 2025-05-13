@@ -67,14 +67,14 @@ services:
     image: ghcr.io/solociti/struxt-keycloak:${VERSION:-latest}
     restart: unless-stopped
     command: "start --optimized --http-enabled true"
-    healthcheck:
-      test: curl --fail http://localhost:3000/health/ready --max-time 10 --connect-timeout 10 || exit 1
-      interval: 1m
-      timeout: 11s
-      retries: 5
-      start_period: 45s
-    labels:
-      autoheal-app: true
+    # healthcheck:
+    #   test: curl --fail http://localhost:3000/health/ready --max-time 10 --connect-timeout 10 || exit 1
+    #   interval: 1m
+    #   timeout: 11s
+    #   retries: 5
+    #   start_period: 45s
+    # labels:
+    #   autoheal-app: true
     environment:
       - KC_HEALTH_ENABLED=true
       - KC_HOSTNAME=${KEYCLOAK_HOSTNAME}

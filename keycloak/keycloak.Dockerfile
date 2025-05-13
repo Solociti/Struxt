@@ -11,11 +11,7 @@ WORKDIR /opt/keycloak
 
 RUN /opt/keycloak/bin/kc.sh build
 
-FROM curlimages/curl:latest AS curl
-
 FROM quay.io/keycloak/keycloak:latest
-
-COPY --from=curl /usr/bin/curl /usr/bin/curl
 
 COPY --from=builder /opt/keycloak/ /opt/keycloak/
 
