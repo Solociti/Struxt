@@ -10,6 +10,7 @@ import ProgressBar from "react-bootstrap/ProgressBar";
 import Row from "react-bootstrap/Row";
 import Tab from "react-bootstrap/Tab";
 import Tabs from "react-bootstrap/Tabs";
+import { AddUserRoles } from "./AddUserRoles";
 import { EnvironmentSettings } from "./EnvironmentSettings";
 
 export default function SettingsContent() {
@@ -98,7 +99,13 @@ export default function SettingsContent() {
           </Card.Body>
         </Card>
 
-        {/* TODO: add users access control */}
+        {/* add users access control */}
+        <Card className="my-4">
+          <Card.Header as="h5">Users</Card.Header>
+          <Card.Body>
+            <AddUserRoles projectId={project.projectId} />
+          </Card.Body>
+        </Card>
 
         <Card className="my-4">
           <Card.Header as="h5">Storage Usage</Card.Header>

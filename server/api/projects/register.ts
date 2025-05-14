@@ -3,12 +3,14 @@ import {
   ProjectEditorApi,
   ProjectListApi,
 } from "common/api/projects/project";
+import { ProjectRolesApi } from "common/api/projects/projectRoles";
 import { customError } from "common/custom-error/custom-error";
 import { roles } from "common/models/user/Roles";
 import { registerApi } from "server/api/registerApi";
 import { getProjectEditorData } from "./getProject";
 import { getProjectDetails } from "./getProjectDetails";
 import { getProjectsAdmin, getProjectsForUser } from "./getProjectList";
+import { getProjectRoleVisualDocs } from "./projectRoles";
 import { saveProjectEditorData } from "./saveProject";
 
 registerApi<ProjectListApi>("/api/projects").get([], async ({ user }) => {
@@ -91,5 +93,26 @@ registerApi<ProjectDetailsApi>("/api/projects/:projectId/details").get(
     const details = await getProjectDetails(projectId);
 
     return { details };
+  }
+);
+
+registerApi<ProjectRolesApi>("/api/projects/:projectId/roles").get(
+  [],
+  async ({ user, params }) => {
+    const projectId = params.projectId;
+
+    if (
+      !user.hasPermission(roles.struxt.admin) &&
+      !user.hasProjectPermission(projectId, [roles.projects.edit])
+    ) {
+      throw customError(
+        403,
+        "You do not have permission to view the project roles.",
+        "Forbidden"
+      );
+    }
+
+    const list = await getProjectRoleVisualDocs(projectId);
+    return { list };
   }
 );
