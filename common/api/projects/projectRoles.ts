@@ -1,4 +1,5 @@
 import { ProjectRoleVisualDocument } from "common/models/projects/ProjectRoles";
+import { ProjectRoleTypes } from "common/models/user/Roles";
 import { Api } from "../api";
 
 export interface ProjectRolesApi extends Api {
@@ -14,9 +15,12 @@ export interface ProjectRolesApi extends Api {
   };
 
   PostBody: {
+    /**
+     * The user this update is for
+     */
     userId: string;
 
-    role: string;
+    roles: ProjectRoleTypes[];
   };
 
   PostResponse: {

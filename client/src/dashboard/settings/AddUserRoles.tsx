@@ -1,7 +1,19 @@
 import { useLoadAsync } from "client/api/useLoadAsync";
-import { getProjectRoleDocs } from "client/projects/projectRoles";
+import {
+  getProjectRoleDocs,
+  updateProjectRoles,
+} from "client/projects/projectRoles";
+import { ProjectRoleVisualDocument } from "common/models/projects/ProjectRoles";
+import { ProjectRoleTypes, roles } from "common/models/user/Roles";
+import { useState } from "react";
 import Button from "react-bootstrap/Button";
+import Spinner from "react-bootstrap/Spinner";
 import Table from "react-bootstrap/Table";
+import { ProjectRolesModal } from "./ProjectRolesModal";
+
+interface AddUserRolesProps {
+  projectId: string;
+}
 
 /**
  * Add user roles to a project
@@ -9,12 +21,34 @@ import Table from "react-bootstrap/Table";
  * @param param0
  * @returns
  */
-export function AddUserRoles({ projectId }: { projectId: string }) {
+export function AddUserRoles({ projectId }: AddUserRolesProps) {
+  const [reload, setReload] = useState(0);
+
   const { error, isLoading, response } = useLoadAsync(async () => {
     return await getProjectRoleDocs(projectId);
-  }, [projectId]);
+  }, [projectId, reload]);
 
   const list = response || [];
+
+  const [showModal, setShowModal] = useState<boolean>(false);
+  const [roleDoc, setRoleDoc] = useState<null | ProjectRoleVisualDocument>(
+    null
+  );
+
+  /**
+   * Update the roles for a user
+   *
+   * @param userId
+   * @param roles
+   */
+  const saveRoles = async (userId: string, roles: ProjectRoleTypes[]) => {
+    const doc = await updateProjectRoles(projectId, userId, roles);
+
+    if (doc) {
+      setReload(reload + 1);
+      setShowModal(false);
+    }
+  };
 
   return (
     <>
@@ -25,6 +59,18 @@ export function AddUserRoles({ projectId }: { projectId: string }) {
           Invite User
         </Button>
       </div>
+
+      <ProjectRolesModal
+        show={showModal}
+        onHide={() => {
+          setShowModal(false);
+        }}
+        onExit={() => {
+          setRoleDoc(null);
+        }}
+        onUpdate={saveRoles}
+        roleDoc={roleDoc}
+      />
 
       {/* show the list of users */}
       <Table striped bordered hover>
@@ -38,17 +84,46 @@ export function AddUserRoles({ projectId }: { projectId: string }) {
         </thead>
 
         <tbody>
+          {isLoading && (
+            <tr>
+              <td colSpan={4} className="text-center">
+                <Spinner animation="border" variant="secondary" />
+              </td>
+            </tr>
+          )}
+
+          {error && (
+            <tr>
+              <td colSpan={4} className="text-danger text-center">
+                {error.message}
+              </td>
+            </tr>
+          )}
+
           {list.map((doc) => (
             <tr key={doc.userId}>
               <td style={{ width: "3em" }} className="py-0 align-middle">
-                <Button variant="secondary" size="sm">
+                <Button
+                  variant="secondary"
+                  size="sm"
+                  onClick={() => {
+                    setRoleDoc(doc);
+                    setShowModal(true);
+                  }}
+                >
                   Edit
                 </Button>
               </td>
 
               <td>{doc.userDisplayName}</td>
               <td>{doc.userEmail}</td>
-              <td>{doc.roles.join(" | ")}</td>
+              <td>
+                {doc.roles.includes(roles.projects.admin)
+                  ? "Admin"
+                  : doc.roles.includes(roles.projects.edit)
+                  ? "Editor"
+                  : "Other"}
+              </td>
             </tr>
           ))}
         </tbody>

@@ -53,3 +53,31 @@ export async function getUserRoles(userId: string) {
   const roles = doc.roles || [];
   return roles;
 }
+
+/**
+ * Check if the given user is is valid.
+ *
+ * @param userId
+ */
+export async function validateUserId(userId: string) {
+  if (!userId || userId.length < 16) {
+    return false;
+  }
+
+  // check if the user exists
+  const collection = await getCollection<UserModel>("users");
+  const doc = await collection.findOne(
+    {
+      id: userId,
+    },
+    {
+      projection: { id: 1 },
+    }
+  );
+
+  if (doc) {
+    return true;
+  }
+
+  return false;
+}
