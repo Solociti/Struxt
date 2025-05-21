@@ -1,4 +1,5 @@
 import { useLoadAsync } from "client/api/useLoadAsync";
+import { getCurrentUser } from "client/auth/user";
 import {
   getProjectRoleDocs,
   updateProjectRoles,
@@ -22,6 +23,11 @@ interface AddUserRolesProps {
  * @returns
  */
 export function AddUserRoles({ projectId }: AddUserRolesProps) {
+  const currentUser = getCurrentUser();
+  const hasEditPermission =
+    currentUser.hasPermission(roles.struxt.admin) ||
+    currentUser.hasProjectPermission(projectId, [roles.projects.admin]);
+
   const [reload, setReload] = useState(0);
 
   const { error, isLoading, response } = useLoadAsync(async () => {
@@ -55,9 +61,11 @@ export function AddUserRoles({ projectId }: AddUserRolesProps) {
       <div className="d-flex align-items-center justify-content-between mb-4">
         <p className="my-0">Manage users and their access to the project.</p>
 
-        <Button variant="primary" className="text-nowrap" onClick={() => {}}>
-          Invite User
-        </Button>
+        {hasEditPermission && (
+          <Button variant="primary" className="text-nowrap" onClick={() => {}}>
+            Invite User
+          </Button>
+        )}
       </div>
 
       <ProjectRolesModal
@@ -76,7 +84,7 @@ export function AddUserRoles({ projectId }: AddUserRolesProps) {
       <Table striped bordered hover>
         <thead>
           <tr>
-            <th></th>
+            {hasEditPermission && <th></th>}
             <th>Name</th>
             <th>Email</th>
             <th>Role</th>
@@ -102,18 +110,20 @@ export function AddUserRoles({ projectId }: AddUserRolesProps) {
 
           {list.map((doc) => (
             <tr key={doc.userId}>
-              <td style={{ width: "3em" }} className="py-0 align-middle">
-                <Button
-                  variant="secondary"
-                  size="sm"
-                  onClick={() => {
-                    setRoleDoc(doc);
-                    setShowModal(true);
-                  }}
-                >
-                  Edit
-                </Button>
-              </td>
+              {hasEditPermission && (
+                <td style={{ width: "3em" }} className="py-0 align-middle">
+                  <Button
+                    variant="secondary"
+                    size="sm"
+                    onClick={() => {
+                      setRoleDoc(doc);
+                      setShowModal(true);
+                    }}
+                  >
+                    Edit
+                  </Button>
+                </td>
+              )}
 
               <td>{doc.userDisplayName}</td>
               <td>{doc.userEmail}</td>
