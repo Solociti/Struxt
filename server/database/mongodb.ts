@@ -51,6 +51,7 @@ export type CollectionNames =
   | "id_counters"
   | "migrations"
   | "project_members"
+  | "project_members_invites"
   | "projects_published"
   | "projects"
   | "users";

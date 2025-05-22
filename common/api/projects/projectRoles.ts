@@ -29,3 +29,28 @@ export interface ProjectRolesApi extends Api {
     item: ProjectRoleVisualDocument;
   };
 }
+
+export interface ProjectRolesInviteApi extends Api {
+  Endpoint: "/api/projects/:projectId/roles/invite";
+
+  UrlParams: {
+    projectId: string;
+  };
+
+  PostBody: {
+    email: string;
+    roles: ProjectRoleTypes[];
+  };
+  PostResponse: {
+    success: boolean;
+
+    invite: object;
+  };
+
+  DeleteQuery: {
+    inviteId: string;
+  };
+  DeleteResponse: {
+    success: boolean;
+  };
+}

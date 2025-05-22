@@ -11,7 +11,10 @@ import { validateUserId } from "server/auth/user/getUser";
 import { getProjectEditorData } from "./getProject";
 import { getProjectDetails } from "./getProjectDetails";
 import { getProjectsAdmin, getProjectsForUser } from "./getProjectList";
-import { getProjectRoleVisualDocs, updateProjectRoles } from "./projectRoles";
+import {
+  getProjectRoleVisualDocs,
+  updateProjectRoles,
+} from "./roles/projectRoles";
 import { saveProjectEditorData } from "./saveProject";
 
 registerApi<ProjectListApi>("/api/projects").get([], async ({ user }) => {
