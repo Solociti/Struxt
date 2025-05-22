@@ -3,6 +3,7 @@ import { ProjectRolesInviteModel } from "common/models/projects/ProjectRolesInvi
 import { ProjectRoleList, ProjectRoleTypes } from "common/models/user/Roles";
 import { getCollection } from "server/database/mongodb";
 import { createSimpleId } from "server/utils/createId";
+import { scheduleInviteEmail } from "../queues/setupQueue";
 
 /**
  * Creates a new invite for the given user email.
@@ -11,15 +12,17 @@ import { createSimpleId } from "server/utils/createId";
  *
  * @param projectId
  * @param email
- * @param user
  * @param roles
+ * @param message
+ * @param user
  * @returns
  */
 export async function inviteUser(
   projectId: string,
   email: string,
-  user: { userId: string; displayName: string },
-  roles: ProjectRoleTypes[]
+  roles: ProjectRoleTypes[],
+  message: string,
+  user: { userId: string; displayName: string }
 ): Promise<ProjectRolesInviteModel> {
   const collection = await getCollection<ProjectRolesInviteModel>(
     "project_members_invites"
@@ -39,6 +42,7 @@ export async function inviteUser(
     projectId,
     email,
     roles,
+    message,
     created: {
       userId: user.userId,
       displayName: user.displayName,
@@ -47,7 +51,8 @@ export async function inviteUser(
 
   await collection.insertOne(invite);
 
-  // TODO: schedule the invite email to be sent
+  // schedule the invite email to be sent
+  await scheduleInviteEmail(inviteId);
 
   return invite;
 }

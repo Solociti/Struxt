@@ -17,6 +17,7 @@ describe("ProjectRolesInviteModel", () => {
       inviteId: "",
       projectId: "",
       email: "",
+      message: "",
       roles: [],
       created: { date: 0, userId: "", displayName: "" },
       accepted: { active: false, date: 0, userId: "", displayName: "" },
@@ -41,6 +42,7 @@ describe("ProjectRolesInviteModel", () => {
       inviteId: "invite-1",
       projectId: "p-1",
       email: "",
+      message: "",
       roles: [],
       created: {
         date: 12345,

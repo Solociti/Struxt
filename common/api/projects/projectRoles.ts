@@ -40,6 +40,7 @@ export interface ProjectRolesInviteApi extends Api {
   PostBody: {
     email: string;
     roles: ProjectRoleTypes[];
+    message: string;
   };
   PostResponse: {
     success: boolean;

@@ -10,7 +10,10 @@ import { useState } from "react";
 import Button from "react-bootstrap/Button";
 import Spinner from "react-bootstrap/Spinner";
 import Table from "react-bootstrap/Table";
-import { ProjectRolesModal } from "./ProjectRolesModal";
+import {
+  ProjectRolesInviteModal,
+  ProjectRolesModal,
+} from "./ProjectRolesModal";
 
 interface AddUserRolesProps {
   projectId: string;
@@ -37,6 +40,7 @@ export function AddUserRoles({ projectId }: AddUserRolesProps) {
   const list = response || [];
 
   const [showModal, setShowModal] = useState<boolean>(false);
+  const [showInviteModal, setShowInviteModal] = useState(false);
   const [roleDoc, setRoleDoc] = useState<null | ProjectRoleVisualDocument>(
     null
   );
@@ -62,7 +66,13 @@ export function AddUserRoles({ projectId }: AddUserRolesProps) {
         <p className="my-0">Manage users and their access to the project.</p>
 
         {hasEditPermission && (
-          <Button variant="primary" className="text-nowrap" onClick={() => {}}>
+          <Button
+            variant="primary"
+            className="text-nowrap"
+            onClick={() => {
+              setShowInviteModal(true);
+            }}
+          >
             Invite User
           </Button>
         )}
@@ -78,6 +88,14 @@ export function AddUserRoles({ projectId }: AddUserRolesProps) {
         }}
         onUpdate={saveRoles}
         roleDoc={roleDoc}
+      />
+
+      <ProjectRolesInviteModal
+        projectId={projectId}
+        show={showInviteModal}
+        onHide={() => {
+          setShowInviteModal(false);
+        }}
       />
 
       {/* show the list of users */}

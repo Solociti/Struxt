@@ -3,7 +3,10 @@ import {
   ProjectEditorApi,
   ProjectListApi,
 } from "common/api/projects/project";
-import { ProjectRolesApi } from "common/api/projects/projectRoles";
+import {
+  ProjectRolesApi,
+  ProjectRolesInviteApi,
+} from "common/api/projects/projectRoles";
 import { customError } from "common/custom-error/custom-error";
 import { roles } from "common/models/user/Roles";
 import { registerApi } from "server/api/registerApi";
@@ -16,6 +19,7 @@ import {
   updateProjectRoles,
 } from "./roles/projectRoles";
 import { saveProjectEditorData } from "./saveProject";
+import { inviteUser } from "./roles/inviteUser";
 
 registerApi<ProjectListApi>("/api/projects").get([], async ({ user }) => {
   // load the projects for an admin
@@ -147,5 +151,61 @@ registerApi<ProjectRolesApi>("/api/projects/:projectId/roles")
     return {
       success: true,
       item: document,
+    };
+  });
+
+registerApi<ProjectRolesInviteApi>("/api/projects/:projectId/roles/invite")
+  .post([], async ({ user, params, body }) => {
+    const projectId = params.projectId;
+
+    if (
+      !user.hasPermission(roles.struxt.admin) &&
+      !user.hasProjectPermission(projectId, [roles.projects.admin])
+    ) {
+      throw customError(
+        403,
+        "You do not have permission to invite users to this project.",
+        "Forbidden"
+      );
+    }
+
+    // TODO: check if the given email is valid
+
+    // create the invite
+    const invite = await inviteUser(
+      projectId,
+      body.email,
+      body.roles,
+      body.message,
+      {
+        userId: user.id,
+        displayName: user.name,
+      }
+    );
+
+    return {
+      invite,
+      success: true,
+    };
+  })
+  .delete([], async ({ user, params, query }) => {
+    const projectId = params.projectId;
+    const inviteId = query.inviteId;
+
+    if (
+      !user.hasPermission(roles.struxt.admin) &&
+      !user.hasProjectPermission(projectId, [roles.projects.admin])
+    ) {
+      throw customError(
+        403,
+        "You do not have permission to delete this invite.",
+        "Forbidden"
+      );
+    }
+
+    // TODO: delete the invite from the database
+
+    return {
+      success: false,
     };
   });

@@ -1,0 +1,72 @@
+import { ProjectRolesInviteModel } from "common/models/projects/ProjectRolesInviteModel";
+import { getCollection } from "server/database/mongodb";
+import { loadTemplate } from "server/email/loadTemplate";
+import { getProjectData } from "../getProject";
+import { getUser } from "server/auth/user/getUser";
+import { sendEmail } from "server/email/sendEmail";
+
+/**
+ * Load the project invite from database
+ *
+ * @param inviteId
+ * @returns
+ */
+export async function getProjectInvite(
+  inviteId: string
+): Promise<ProjectRolesInviteModel | null> {
+  const collection = await getCollection<ProjectRolesInviteModel>(
+    "project_members_invites"
+  );
+
+  const invite = await collection.findOne({
+    inviteId,
+  });
+
+  if (!invite) {
+    return null;
+  }
+
+  return new ProjectRolesInviteModel(invite);
+}
+
+/**
+ * Send the project invite email
+ *
+ * @param inviteId
+ */
+export async function sendProjectInviteEmail(inviteId: string) {
+  const invite = await getProjectInvite(inviteId);
+  if (!invite) {
+    throw new Error("Invite not found. Could not send email.");
+  }
+
+  const project = await getProjectData(invite.projectId);
+  if (!project) {
+    throw new Error("Project not found. Could not send email.");
+  }
+
+  const sender = await getUser(invite.created.userId);
+  if (!sender) {
+    throw new Error("Sender not found. Could not send email.");
+  }
+
+  // send the invite email
+  const template = await loadTemplate("project-invite");
+  const html = template({
+    email: invite.email,
+    sender_email: sender.email,
+    sender_name: sender.name,
+    project_name: project.name,
+    project_url: "https://struxt.solociti.com/dashboard/", // TODO: get the project URL
+    custom_message: invite.message,
+  });
+
+  // send the email
+  await sendEmail({
+    to: invite.email,
+    subject: `Invitation to join project ${project.name}`,
+    html,
+  });
+
+  return html;
+}

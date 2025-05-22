@@ -20,6 +20,8 @@ export class ProjectRolesInviteModel extends Model {
    */
   public email: string = "";
 
+  public message: string = "";
+
   /**
    * The roles this invite is for
    */

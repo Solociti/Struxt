@@ -1,5 +1,8 @@
 import { getApi, postApi } from "client/api/api";
-import { ProjectRolesApi } from "common/api/projects/projectRoles";
+import {
+  ProjectRolesApi,
+  ProjectRolesInviteApi,
+} from "common/api/projects/projectRoles";
 import { ProjectRoleTypes } from "common/models/user/Roles";
 
 /**
@@ -41,4 +44,33 @@ export async function updateProjectRoles(
   );
 
   return response.item;
+}
+
+/**
+ * Invite a user to a project
+ *
+ * @param projectId
+ * @param email
+ * @param roles
+ * @param message
+ * @returns
+ */
+export async function inviteUser(
+  projectId: string,
+  email: string,
+  roles: ProjectRoleTypes[],
+  message: string
+) {
+  const body: ProjectRolesInviteApi["PostBody"] = {
+    email,
+    roles,
+    message,
+  };
+
+  const response: ProjectRolesInviteApi["PostResponse"] = await postApi(
+    ["/api/projects", projectId, "roles/invite"],
+    body
+  );
+
+  return response.invite;
 }

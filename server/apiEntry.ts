@@ -25,6 +25,9 @@ import { router as apiRouter } from "./api/registerApi";
 import "server/api/register";
 import "server/utils/geoLocation";
 
+// imports for workers
+import "server/api/projects/queues/projectWorker";
+
 // run init scripts and then start the server
 main();
 
