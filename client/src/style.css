@@ -3,3 +3,8 @@
 .cursor-pointer {
   cursor: pointer;
 }
+
+/* customize the material symbols */
+.material-symbols-outlined {
+  vertical-align: text-bottom;
+}

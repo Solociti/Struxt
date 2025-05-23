@@ -4,11 +4,15 @@ import Navbar from "react-bootstrap/Navbar";
 import { useCurrentUser } from "../auth/userCurrentUser";
 import { useCurrentProject } from "../projects/ProjectContext";
 import SelectProject from "../projects/SelectProject";
+import MaterialIcon from "client/components/MaterialIcon";
+import { useState } from "react";
 
 export function DashboardHeader() {
   const { user } = useCurrentUser();
   const { project, setProject } = useCurrentProject();
   const { theme } = useTheme();
+
+  const [notificationsOpen, setNotificationsOpen] = useState(false);
 
   return (
     <Navbar className="p-2 border-bottom sticky-top" bg={theme}>
@@ -22,8 +26,12 @@ export function DashboardHeader() {
       </div>
 
       <div className="d-flex align-items-center">
-        <Button variant="light" className="me-2 p-2" aria-label="Notifications">
-          <i className="far fa-bell"></i>
+        <Button
+          variant="transparent"
+          className="mx-3 px-2"
+          onClick={() => setNotificationsOpen(!notificationsOpen)}
+        >
+          <MaterialIcon filled={notificationsOpen}>notifications</MaterialIcon>
           {/* TODO: setup the notifications */}
         </Button>
 
