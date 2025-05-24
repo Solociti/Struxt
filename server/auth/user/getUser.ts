@@ -81,3 +81,37 @@ export async function validateUserId(userId: string) {
 
   return false;
 }
+
+/**
+ * Update the user display name in a model action
+ *
+ * @param action
+ * @returns
+ */
+export async function updateModelActionUser(action: {
+  userId: string;
+  displayName: string;
+}) {
+  if (!action.userId) {
+    return;
+  }
+
+  const collection = await getCollection<UserModel>("users");
+
+  // load the roles for the user
+  const doc = await collection.findOne(
+    {
+      id: action.userId,
+    },
+    {
+      projection: {
+        name: 1,
+      },
+    }
+  );
+
+  if (!doc) {
+    return;
+  }
+  action.displayName = doc.name;
+}

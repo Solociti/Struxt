@@ -8,3 +8,8 @@
 .material-symbols-outlined {
   vertical-align: text-bottom;
 }
+
+.btn-sm .material-symbols-outlined {
+  margin-top: -0.15em;
+  margin-bottom: -0.15em;
+}

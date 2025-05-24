@@ -14,12 +14,14 @@ import { validateUserId } from "server/auth/user/getUser";
 import { getProjectEditorData } from "./getProject";
 import { getProjectDetails } from "./getProjectDetails";
 import { getProjectsAdmin, getProjectsForUser } from "./getProjectList";
+import { cancelUserInvite } from "./invites/cancelUserInvite";
+import { inviteUser } from "./invites/inviteUser";
+import { getProjectInvite } from "./invites/projectInvite";
 import {
   getProjectRoleVisualDocs,
   updateProjectRoles,
 } from "./roles/projectRoles";
 import { saveProjectEditorData } from "./saveProject";
-import { inviteUser } from "./roles/inviteUser";
 
 registerApi<ProjectListApi>("/api/projects").get([], async ({ user }) => {
   // load the projects for an admin
@@ -203,9 +205,29 @@ registerApi<ProjectRolesInviteApi>("/api/projects/:projectId/roles/invite")
       );
     }
 
-    // TODO: delete the invite from the database
+    const invite = await getProjectInvite(inviteId);
+    if (!invite) {
+      throw customError(404, "Invite not found.");
+    }
+
+    // check that the invite is for the current project
+    if (invite.projectId !== projectId) {
+      throw customError(404, "Invite not found for this project.");
+    }
+
+    // check if the invite is still valid
+    const validResult = invite.isInviteValid();
+    if (!validResult.valid) {
+      throw customError(400, validResult.message);
+    }
+
+    // cancel the invite
+    const success = await cancelUserInvite(invite, {
+      userId: user.id,
+      displayName: user.name,
+    });
 
     return {
-      success: false,
+      success,
     };
   });

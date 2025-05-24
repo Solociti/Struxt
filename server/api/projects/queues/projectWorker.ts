@@ -1,5 +1,5 @@
 import { setupWorker } from "server/database/setupQueue";
-import { sendProjectInviteEmail } from "../roles/projectInvite";
+import { sendProjectInviteEmail } from "../invites/sendProjectInviteEmail";
 
 setupWorker(
   "projects",

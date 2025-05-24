@@ -16,6 +16,11 @@ export class ProjectRolesInviteModel extends Model {
   public projectId: string = "";
 
   /**
+   * The name of the project this invite is for
+   */
+  public projectName: string = "";
+
+  /**
    * The email address this invite is for
    */
   public email: string = "";
@@ -34,6 +39,13 @@ export class ProjectRolesInviteModel extends Model {
   };
 
   public accepted: UserModelAction = {
+    active: false,
+    date: 0,
+    userId: "",
+    displayName: "",
+  };
+
+  public cancelled: UserModelAction = {
     active: false,
     date: 0,
     userId: "",
@@ -68,5 +80,23 @@ export class ProjectRolesInviteModel extends Model {
 
   clone(): ProjectRolesInviteModel {
     return new ProjectRolesInviteModel(JSON.parse(JSON.stringify(this)));
+  }
+
+  /**
+   * Checks if the invite can still be accepted
+   */
+  isInviteValid(): { valid: boolean; message: string } {
+    if (this.accepted.active) {
+      return { valid: false, message: "Invite already accepted." };
+    }
+    if (this.cancelled.active) {
+      return { valid: false, message: "Invite is cancelled." };
+    }
+
+    if (this.expirationDate < Math.floor(Date.now() / 1000)) {
+      return { valid: false, message: "Invite expired." };
+    }
+
+    return { valid: true, message: "" };
   }
 }

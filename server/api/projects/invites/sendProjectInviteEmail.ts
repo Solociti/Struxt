@@ -1,40 +1,22 @@
 import { ProjectRolesInviteModel } from "common/models/projects/ProjectRolesInviteModel";
+import { getUser } from "server/auth/user/getUser";
 import { getCollection } from "server/database/mongodb";
 import { loadTemplate } from "server/email/loadTemplate";
-import { getProjectData } from "../getProject";
-import { getUser } from "server/auth/user/getUser";
 import { sendEmail } from "server/email/sendEmail";
-
-/**
- * Load the project invite from database
- *
- * @param inviteId
- * @returns
- */
-export async function getProjectInvite(
-  inviteId: string
-): Promise<ProjectRolesInviteModel | null> {
-  const collection = await getCollection<ProjectRolesInviteModel>(
-    "project_members_invites"
-  );
-
-  const invite = await collection.findOne({
-    inviteId,
-  });
-
-  if (!invite) {
-    return null;
-  }
-
-  return new ProjectRolesInviteModel(invite);
-}
+import { getProjectData } from "../getProject";
+import { getProjectInvite } from "./projectInvite";
 
 /**
  * Send the project invite email
  *
  * @param inviteId
  */
+
 export async function sendProjectInviteEmail(inviteId: string) {
+  const collection = await getCollection<ProjectRolesInviteModel>(
+    "project_members_invites"
+  );
+
   const invite = await getProjectInvite(inviteId);
   if (!invite) {
     throw new Error("Invite not found. Could not send email.");
@@ -67,6 +49,24 @@ export async function sendProjectInviteEmail(inviteId: string) {
     subject: `Invitation to join project ${project.name}`,
     html,
   });
+
+  // update the invite to mark it as sent
+  invite.emailSent = {
+    ...invite.emailSent,
+    active: true,
+    date: Math.floor(Date.now() / 1000),
+  };
+
+  await collection.updateOne(
+    {
+      inviteId,
+    },
+    {
+      $set: {
+        emailSent: invite.emailSent,
+      },
+    }
+  );
 
   return html;
 }
