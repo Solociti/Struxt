@@ -17,6 +17,8 @@ export async function getProjectUserInvites(
 
   const cursor = collection.find({
     "created.userId": userId,
+    "accepted.active": { $ne: true },
+    "cancelled.active": { $ne: true },
   });
   const list = await toArray(cursor);
 

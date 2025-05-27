@@ -40,7 +40,13 @@ export default function NotificationsPopover({}) {
         {/* show the list of project invites */}
         <div className="d-flex flex-column gap-2">
           {invites.map((invite) => {
-            return <ProjectInviteCard key={invite.inviteId} invite={invite} />;
+            return (
+              <ProjectInviteCard
+                key={invite.inviteId}
+                invite={invite}
+                update={() => setReload((r) => r + 1)}
+              />
+            );
           })}
         </div>
       </Popover.Body>
@@ -53,6 +59,9 @@ export default function NotificationsPopover({}) {
       placement="bottom"
       overlay={popover}
       onEnter={() => setReload((r) => r + 1)}
+      popperConfig={{
+        strategy: "fixed",
+      }}
     >
       <Button
         variant={hasNotifications ? "info" : "outline-info"}

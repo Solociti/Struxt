@@ -181,7 +181,7 @@ export function registerApi<T extends Api>(api: T["Endpoint"]) {
       roles: PermType[],
       callback: (param: DeleteCallbackParam<T>) => Promise<T["DeleteResponse"]>
     ) {
-      router.get(
+      router.delete(
         api,
         protectEndpoint(roles, { onFail: "json" }),
         async (req, res) => {
