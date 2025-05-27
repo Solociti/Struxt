@@ -2,6 +2,7 @@ services:
   mongo:
     image: mongo:8.0
     restart: unless-stopped
+    attach: ${ATTACH_DB_LOGS:-true}
     environment:
       - MONGO_INITDB_ROOT_USERNAME=${MONGODB_USERNAME}
       - MONGO_INITDB_ROOT_PASSWORD=${MONGODB_PASSWORD}
@@ -26,6 +27,7 @@ services:
   victoriametrics:
     image: victoriametrics/victoria-metrics:stable
     restart: unless-stopped
+    attach: ${ATTACH_DB_LOGS:-true}
     ports:
       - "127.0.0.1:8428:8428"
     volumes:
@@ -45,6 +47,7 @@ services:
   grafana:
     image: grafana/grafana:main
     restart: unless-stopped
+    attach: ${ATTACH_DB_LOGS:-true}
     environment:
       - GF_PLUGINS_PREINSTALL=victoriametrics-metrics-datasource
     healthcheck:
@@ -68,6 +71,7 @@ services:
     ulimits:
       memlock: -1
     command: "dragonfly --flagfile=/flags.txt"
+    attach: ${ATTACH_DB_LOGS:-true}
     healthcheck:
       test: redis-cli -h localhost ping
       interval: 30s
@@ -87,6 +91,7 @@ services:
   nginx:
     image: "jc21/nginx-proxy-manager:latest"
     restart: unless-stopped
+    attach: ${ATTACH_DB_LOGS:-true}
     healthcheck:
       test: ["CMD", "/usr/bin/check-health"]
       interval: 30s
