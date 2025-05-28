@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { addToastError } from "./ErrorSnackBar";
 
 /**
  * Setup a callback to be used in a component
@@ -7,7 +8,8 @@ import { useState } from "react";
  * @returns
  */
 export function useAsyncCallback<T extends Function>(
-  callback: T
+  callback: T,
+  options?: Partial<{ toastError: boolean }>
 ): { callback: T; isLoading: boolean; error: Error | null } {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<Error | null>(null);
@@ -19,6 +21,10 @@ export function useAsyncCallback<T extends Function>(
       return await callback(...args);
     } catch (err) {
       setError(err as Error);
+
+      if (options?.toastError) {
+        addToastError(err as Error);
+      }
     } finally {
       setIsLoading(false);
     }

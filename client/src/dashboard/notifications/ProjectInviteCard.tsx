@@ -20,17 +20,27 @@ export default function ProjectInviteCard({
   invite,
   update,
 }: ProjectInviteCardProps) {
-  const handleDecline = useAsyncCallback(async () => {
-    await declineProjectInvite(invite.inviteId);
+  const handleDecline = useAsyncCallback(
+    async () => {
+      await declineProjectInvite(invite.inviteId);
 
-    update();
-  });
+      update();
+    },
+    {
+      toastError: true,
+    }
+  );
 
-  const handleAccept = useAsyncCallback(async () => {
-    await acceptProjectInvite(invite.inviteId);
+  const handleAccept = useAsyncCallback(
+    async () => {
+      await acceptProjectInvite(invite.inviteId);
 
-    update();
-  });
+      update();
+    },
+    {
+      toastError: true,
+    }
+  );
 
   return (
     <Card>
