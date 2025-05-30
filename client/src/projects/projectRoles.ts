@@ -1,8 +1,9 @@
-import { getApi, postApi } from "client/api/api";
+import { deleteApi, getApi, postApi } from "client/api/api";
 import {
   ProjectRolesApi,
   ProjectRolesInviteApi,
 } from "common/api/projects/projectRoles";
+import { ProjectRolesInviteModel } from "common/models/projects/ProjectRolesInviteModel";
 import { ProjectRoleTypes } from "common/models/user/Roles";
 
 /**
@@ -73,4 +74,39 @@ export async function inviteUser(
   );
 
   return response.invite;
+}
+
+/**
+ * Get the list of current user invites for a project
+ *
+ * @param projectId
+ * @returns
+ */
+export async function getProjectInvitesList(projectId: string) {
+  const response: ProjectRolesInviteApi["GetResponse"] = await getApi([
+    "/api/projects",
+    projectId,
+    "roles/invite",
+  ]);
+
+  return response.list.map((invite) => new ProjectRolesInviteModel(invite));
+}
+
+/**
+ * Get the list of current user invites for a project
+ *
+ * @param projectId
+ * @returns
+ */
+export async function cancelUserInvite(projectId: string, inviteId: string) {
+  const response: ProjectRolesInviteApi["DeleteResponse"] = await deleteApi(
+    ["/api/projects", projectId, "roles/invite"],
+    {
+      params: {
+        inviteId,
+      },
+    }
+  );
+
+  return response;
 }

@@ -15,6 +15,7 @@ import { getProjectEditorData } from "./getProject";
 import { getProjectDetails } from "./getProjectDetails";
 import { getProjectsAdmin, getProjectsForUser } from "./getProjectList";
 import { cancelUserInvite } from "./invites/cancelUserInvite";
+import { getProjectInvitesList } from "./invites/getProjectUserInvites";
 import { inviteUser } from "./invites/inviteUser";
 import { getProjectInvite } from "./invites/projectInvite";
 import {
@@ -157,6 +158,27 @@ registerApi<ProjectRolesApi>("/api/projects/:projectId/roles")
   });
 
 registerApi<ProjectRolesInviteApi>("/api/projects/:projectId/roles/invite")
+  .get([], async ({ user, params }) => {
+    const projectId = params.projectId;
+
+    if (
+      !user.hasPermission(roles.struxt.admin) &&
+      !user.hasProjectPermission(projectId, [roles.projects.admin])
+    ) {
+      throw customError(
+        403,
+        "You do not have permission to view the project invites.",
+        "Forbidden"
+      );
+    }
+
+    // get the list of invites for the project
+    const list = await getProjectInvitesList(projectId);
+
+    return {
+      list,
+    };
+  })
   .post([], async ({ user, params, body }) => {
     const projectId = params.projectId;
 

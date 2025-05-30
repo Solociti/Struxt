@@ -1,9 +1,14 @@
 import { useLoadAsync } from "client/api/useLoadAsync";
 import { getCurrentUser } from "client/auth/user";
+import { ShowError } from "client/components/ShowError";
+import { useAsyncCallback } from "client/components/useAsyncCallback";
 import {
+  cancelUserInvite,
+  getProjectInvitesList,
   getProjectRoleDocs,
   updateProjectRoles,
 } from "client/projects/projectRoles";
+import { formatDate } from "common/format/date";
 import { ProjectRoleVisualDocument } from "common/models/projects/ProjectRoles";
 import { ProjectRoleTypes, roles } from "common/models/user/Roles";
 import { useState } from "react";
@@ -36,7 +41,6 @@ export function AddUserRoles({ projectId }: AddUserRolesProps) {
   const { error, isLoading, response } = useLoadAsync(async () => {
     return await getProjectRoleDocs(projectId);
   }, [projectId, reload]);
-
   const list = response || [];
 
   const [showModal, setShowModal] = useState<boolean>(false);
@@ -95,6 +99,7 @@ export function AddUserRoles({ projectId }: AddUserRolesProps) {
         show={showInviteModal}
         onHide={() => {
           setShowInviteModal(false);
+          setReload((r) => r + 1);
         }}
       />
 
@@ -151,6 +156,90 @@ export function AddUserRoles({ projectId }: AddUserRolesProps) {
                   : doc.roles.includes(roles.projects.edit)
                   ? "Editor"
                   : "Other"}
+              </td>
+            </tr>
+          ))}
+        </tbody>
+      </Table>
+
+      {/* Add a table for pending invites */}
+      <PendingInvites
+        projectId={projectId}
+        reload={reload}
+        onReload={() => setReload((r) => r + 1)}
+      />
+    </>
+  );
+}
+
+/**
+ * Add the list of pending invites for the project
+ *
+ * @param param0
+ * @returns
+ */
+function PendingInvites({
+  projectId,
+  reload,
+  onReload,
+}: {
+  projectId: string;
+  reload: number;
+  onReload: () => void;
+}) {
+  // load the list of pending invites for the project
+  const { error, response } = useLoadAsync(async () => {
+    return await getProjectInvitesList(projectId);
+  }, [projectId, reload]);
+  const list = response || [];
+
+  // setup the callback to cancel an invite
+  const cancelInviteCallback = useAsyncCallback(
+    async (inviteId: string) => {
+      await cancelUserInvite(projectId, inviteId);
+
+      onReload();
+    },
+    {
+      toastError: true,
+    }
+  );
+
+  if (list.length === 0 && !error) {
+    return null;
+  }
+
+  return (
+    <>
+      <hr />
+
+      <h4>Pending Invites ({list.length})</h4>
+      <ShowError error={error} />
+
+      <Table striped bordered hover>
+        <thead>
+          <tr>
+            <th>Email</th>
+            <th>Expires</th>
+            <th></th>
+          </tr>
+        </thead>
+
+        <tbody>
+          {list.map((invite) => (
+            <tr key={invite.inviteId}>
+              <td>{invite.email}</td>
+              <td>{formatDate(invite.expirationDate, true)}</td>
+              <td style={{ width: "10px" }} className="text-nowrap py-1">
+                <Button
+                  className="mx-1"
+                  variant="secondary"
+                  size="sm"
+                  disabled={cancelInviteCallback.isLoading}
+                  onClick={() => cancelInviteCallback.callback(invite.inviteId)}
+                >
+                  Cancel Invite
+                </Button>
               </td>
             </tr>
           ))}

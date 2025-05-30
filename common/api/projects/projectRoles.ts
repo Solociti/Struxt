@@ -1,4 +1,5 @@
 import { ProjectRoleVisualDocument } from "common/models/projects/ProjectRoles";
+import { ProjectRolesInviteModel } from "common/models/projects/ProjectRolesInviteModel";
 import { ProjectRoleTypes } from "common/models/user/Roles";
 import { Api } from "../api";
 
@@ -35,6 +36,12 @@ export interface ProjectRolesInviteApi extends Api {
 
   UrlParams: {
     projectId: string;
+  };
+
+  GetParams: {};
+
+  GetResponse: {
+    list: ProjectRolesInviteModel[];
   };
 
   PostBody: {
