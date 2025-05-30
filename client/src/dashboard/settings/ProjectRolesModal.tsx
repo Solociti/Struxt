@@ -163,7 +163,7 @@ export function ProjectRolesInviteModal({
 
       <ShowError error={error} />
 
-      <form ref={form}>
+      <form ref={form} onSubmit={(e) => e.preventDefault()}>
         <div className="d-flex flex-column gap-2">
           <Group prepend="Email">
             <input

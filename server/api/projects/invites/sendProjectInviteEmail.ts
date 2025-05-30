@@ -32,6 +32,11 @@ export async function sendProjectInviteEmail(inviteId: string) {
     throw new Error("Sender not found. Could not send email.");
   }
 
+  const projectUrl = new URL(
+    "/dashboard",
+    `https://${process.env.STRUXT_DOMAIN || "localhost"}`
+  );
+
   // send the invite email
   const template = await loadTemplate("project-invite");
   const html = template({
@@ -39,7 +44,7 @@ export async function sendProjectInviteEmail(inviteId: string) {
     sender_email: sender.email,
     sender_name: sender.name,
     project_name: project.name,
-    project_url: "https://struxt.solociti.com/dashboard/", // TODO: get the project URL
+    project_url: projectUrl.toString(),
     custom_message: invite.message,
   });
 
