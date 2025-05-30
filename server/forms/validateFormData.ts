@@ -1,5 +1,5 @@
 import { FormSettingsModel } from "common/models/projects/forms/FormSettingsModel";
-import { sanitizeValue } from "./sanitize";
+import { sanitizeValue } from "../utils/sanitize";
 
 export interface FormValidationError {
   name: string;

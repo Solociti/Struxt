@@ -1,5 +1,5 @@
 import { expect, test, describe } from "vitest";
-import { sanitizeValue } from "./sanitize";
+import { sanitizeObject, sanitizeValue } from "../utils/sanitize";
 
 describe("sanitize values", () => {
   test("should remove the entire script html", () => {
@@ -82,6 +82,79 @@ describe("sanitize values", () => {
       const sanitizedValue = sanitizeValue(value);
 
       expect(sanitizedValue).to.equal(value);
+    });
+  });
+});
+
+describe("sanitize object", () => {
+  test("should sanitize an object with various types", () => {
+    const obj = {
+      name: "<b>John</b>",
+      age: 30,
+      isActive: true,
+      nested: {
+        description: "<i>Developer</i>",
+        tags: ["<script>alert('xss')</script>", "tag1", "tag2"],
+      },
+      nullValue: null,
+    };
+
+    const sanitizedObj = sanitizeObject(obj);
+
+    expect(sanitizedObj).toEqual({
+      name: "John",
+      age: 30,
+      isActive: true,
+      nested: {
+        description: "Developer",
+        tags: ["", "tag1", "tag2"],
+      },
+      nullValue: null,
+    });
+  });
+
+  test("should handle empty objects", () => {
+    const obj = {};
+    const sanitizedObj = sanitizeObject(obj);
+
+    expect(sanitizedObj).toEqual({});
+  });
+
+  test("should handle arrays within arrays", () => {
+    const obj = {
+      items: [
+        "<script>alert('xss')</script>",
+        ["<b>Nested</b>", "item2"],
+        { key: "<i>Value</i>" },
+      ],
+      emptyArray: [],
+      nullValue: null,
+    };
+    const sanitizedObj = sanitizeObject(obj);
+    expect(sanitizedObj).toEqual({
+      items: ["", ["Nested", "item2"], { key: "Value" }],
+      emptyArray: [],
+      nullValue: null,
+    });
+  });
+
+  test("should sanitize the object keys", () => {
+    const obj = {
+      "<script>alert('xss')</script>": "value",
+      normalKey: "<b>value</b>",
+      nested: {
+        "<i>nestedKey</i>": "nestedValue",
+      },
+    };
+
+    const sanitizedObj = sanitizeObject(obj);
+
+    expect(sanitizedObj).toEqual({
+      "": "value",
+      normalKey: "value",
+      nested: {
+        nestedKey: "nestedValue",
+      },
     });
   });
 });

@@ -16,11 +16,13 @@ describe("ProjectRolesInviteModel", () => {
     expect(model).toEqual({
       inviteId: "",
       projectId: "",
+      projectName: "",
       email: "",
       message: "",
       roles: [],
       created: { date: 0, userId: "", displayName: "" },
       accepted: { active: false, date: 0, userId: "", displayName: "" },
+      cancelled: { active: false, date: 0, userId: "", displayName: "" },
       emailSent: { active: false, date: 0 },
       expirationDate: 0,
     });
@@ -41,6 +43,7 @@ describe("ProjectRolesInviteModel", () => {
     expect(model).toEqual({
       inviteId: "invite-1",
       projectId: "p-1",
+      projectName: "",
       email: "",
       message: "",
       roles: [],
@@ -50,6 +53,7 @@ describe("ProjectRolesInviteModel", () => {
         displayName: "User 1",
       },
       accepted: { active: false, date: 0, userId: "", displayName: "" },
+      cancelled: { active: false, date: 0, userId: "", displayName: "" },
       emailSent: { active: false, date: 0 },
       expirationDate: 123456,
     });
