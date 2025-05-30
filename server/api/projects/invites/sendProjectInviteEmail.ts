@@ -11,7 +11,6 @@ import { getProjectInvite } from "./projectInvite";
  *
  * @param inviteId
  */
-
 export async function sendProjectInviteEmail(inviteId: string) {
   const collection = await getCollection<ProjectRolesInviteModel>(
     "project_members_invites"

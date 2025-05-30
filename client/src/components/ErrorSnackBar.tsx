@@ -72,7 +72,7 @@ export function SetupErrorSnackBar({}) {
         change.splice(index, 1);
       }
     };
-  });
+  }, []);
 
   return (
     <ToastContainer
