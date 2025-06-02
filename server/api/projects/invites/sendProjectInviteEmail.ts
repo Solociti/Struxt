@@ -21,6 +21,10 @@ export async function sendProjectInviteEmail(inviteId: string) {
     throw new Error("Invite not found. Could not send email.");
   }
 
+  if (invite.cancelled.active) {
+    return null;
+  }
+
   const project = await getProjectData(invite.projectId);
   if (!project) {
     throw new Error("Project not found. Could not send email.");
@@ -48,7 +52,7 @@ export async function sendProjectInviteEmail(inviteId: string) {
   });
 
   // send the email
-  await sendEmail({
+  const response = await sendEmail({
     to: invite.email,
     subject: `Invitation to join project ${project.name}`,
     html,
@@ -72,5 +76,5 @@ export async function sendProjectInviteEmail(inviteId: string) {
     }
   );
 
-  return html;
+  return response;
 }
