@@ -193,7 +193,7 @@ export async function putApi(
  */
 export async function deleteApi(
   url: string | string[] | URL,
-  options?: Omit<ApiOptions, "body">
+  options?: Omit<ApiOptions, "body" | "method">
 ) {
   return await callApi(url, {
     method: "DELETE",

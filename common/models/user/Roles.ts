@@ -100,6 +100,32 @@ export namespace roles {
   };
 }
 
+export const ProjectRoleGroups: Record<"Admin" | "Editor", ProjectRoleTypes[]> =
+  {
+    Admin: [
+      roles.projects.admin,
+      roles.projects.edit,
+      roles.projects.metrics,
+      roles.projects.publish.production,
+      roles.projects.publish.staging,
+    ],
+    Editor: [
+      roles.projects.edit,
+      roles.projects.metrics,
+      roles.projects.publish.staging,
+    ],
+  };
+
+export const ProjectRoleDescriptions: Record<ProjectRoleTypes, string> = {
+  "projects.admin":
+    "Can manage all aspects of the project, including user management.",
+
+  "projects.edit": "Can edit the website contents.",
+  "projects.metrics": "Can view the project details.",
+  "projects.publish.production": "Can publish to the production site.",
+  "projects.publish.staging": "Can publish to the staging site.",
+};
+
 export type PermType = RoleTypes | { or: PermType[] } | { and: PermType[] };
 export type ProjectPermType =
   | ProjectRoleTypes

@@ -1,6 +1,6 @@
 import { getCollection } from "server/database/mongodb";
 
-export type IdCounterName = "submission" | "project" | "publish";
+export type IdCounterName = "submission" | "project" | "publish" | "invite";
 
 async function counter(name: IdCounterName) {
   const collection = await getCollection<{ value: number; name: string }>(

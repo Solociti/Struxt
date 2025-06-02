@@ -3,6 +3,7 @@ import { CurrentUserModel } from "common/models/user/CurrentUserModel";
 import { PermType } from "common/models/user/Roles";
 import express from "express";
 import { protectEndpoint } from "server/auth/protectEndpoint";
+import { sanitizeObject } from "server/utils/sanitize";
 import { userFromReq } from "./auth/userFromReq";
 
 export const router = express.Router();
@@ -83,8 +84,8 @@ export function registerApi<T extends Api>(api: T["Endpoint"]) {
             req,
             res,
             user,
-            params: req.params,
-            query: req.query,
+            params: sanitizeObject(req.params),
+            query: sanitizeObject(req.query),
           };
 
           // process the request.
@@ -119,8 +120,8 @@ export function registerApi<T extends Api>(api: T["Endpoint"]) {
             req,
             res,
             user,
-            params: req.params,
-            body: req.body,
+            params: sanitizeObject(req.params),
+            body: sanitizeObject(req.body),
           };
 
           // process the request.
@@ -155,8 +156,8 @@ export function registerApi<T extends Api>(api: T["Endpoint"]) {
             req,
             res,
             user,
-            params: req.params,
-            body: req.body,
+            params: sanitizeObject(req.params),
+            body: sanitizeObject(req.body),
           };
 
           // process the request.
@@ -181,7 +182,7 @@ export function registerApi<T extends Api>(api: T["Endpoint"]) {
       roles: PermType[],
       callback: (param: DeleteCallbackParam<T>) => Promise<T["DeleteResponse"]>
     ) {
-      router.get(
+      router.delete(
         api,
         protectEndpoint(roles, { onFail: "json" }),
         async (req, res) => {
@@ -192,8 +193,8 @@ export function registerApi<T extends Api>(api: T["Endpoint"]) {
             req,
             res,
             user,
-            params: req.params,
-            query: req.query,
+            params: sanitizeObject(req.params),
+            query: sanitizeObject(req.query),
           };
 
           // process the request.

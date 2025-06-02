@@ -142,6 +142,14 @@ async function main() {
     ].join("\n");
   }
 
+  if (!contents.includes("STRUXT_DOMAIN")) {
+    contents += [
+      "",
+      "# Primary struxt domain",
+      "STRUXT_DOMAIN=struxt.solociti.com",
+    ].join("\n");
+  }
+
   if (contents !== original) {
     // allow the value to be edited
     const lines = contents.split("\n");

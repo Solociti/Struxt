@@ -1,6 +1,6 @@
+import { ProjectDetails } from "common/models/projects/ProjectDetails";
 import { ProjectListItem } from "common/models/projects/ProjectItem";
 import { Api } from "../api";
-import { ProjectDetails } from "common/models/projects/ProjectDetails";
 
 export interface ProjectListApi extends Api {
   Endpoint: "/api/projects";

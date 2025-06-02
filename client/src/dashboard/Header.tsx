@@ -1,9 +1,9 @@
 import { useTheme } from "client/bootstrap/Theme";
-import Button from "react-bootstrap/Button";
 import Navbar from "react-bootstrap/Navbar";
 import { useCurrentUser } from "../auth/userCurrentUser";
 import { useCurrentProject } from "../projects/ProjectContext";
 import SelectProject from "../projects/SelectProject";
+import NotificationsPopover from "./notifications/NotificationsPopover";
 
 export function DashboardHeader() {
   const { user } = useCurrentUser();
@@ -22,10 +22,7 @@ export function DashboardHeader() {
       </div>
 
       <div className="d-flex align-items-center">
-        <Button variant="light" className="me-2 p-2" aria-label="Notifications">
-          <i className="far fa-bell"></i>
-          {/* TODO: setup the notifications */}
-        </Button>
+        <NotificationsPopover />
 
         {/* User section */}
         <div className="d-flex align-items-center">
