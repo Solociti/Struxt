@@ -32,7 +32,7 @@ export async function acceptProjectInvite(inviteId: string) {
   const body: ProjectInvitesApi["PostBody"] = {};
 
   const response: ProjectInvitesApi["PostResponse"] = await postApi(
-    ["/api/projects/invites/", inviteId],
+    ["/api/projects/invites", inviteId],
     body
   );
 
