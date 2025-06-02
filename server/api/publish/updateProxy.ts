@@ -117,7 +117,13 @@ export async function updateProjectProxy(
   }
 
   // check if the proxy host is set
-  await configureProxyHost(project, env, publish, [primaryDomain]);
+  const hostId = await configureProxyHost(project, env, publish, [
+    primaryDomain,
+  ]);
+
+  if (envSettings.proxy.hostId !== hostId) {
+    envSettings.proxy.hostId = hostId;
+  }
 
   // check if a redirect is needed
   if (redirectDomains.length > 0) {
