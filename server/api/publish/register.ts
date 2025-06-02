@@ -6,7 +6,14 @@ import { publishProject } from "./publishProject";
 
 const validTypes = ["staging", "production"];
 
-registerApi<PublishApi>("/api/publish/:projectId").post(
+registerApi<PublishApi>("/api/publish/:projectId", {
+  bodySanitization: {
+    "files.*.content": {
+      // uploaded files are the html text files
+      skipSanitize: true,
+    },
+  },
+}).post(
   [roles.struxt.publish.staging, roles.struxt.publish.production],
   async ({ params, user, body }) => {
     const publishEnv = body.type;

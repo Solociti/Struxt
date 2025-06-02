@@ -157,4 +157,98 @@ describe("sanitize object", () => {
       },
     });
   });
+
+  test("should skip sanitization for specified keys", () => {
+    const obj = {
+      name: "<b>John</b>",
+      age: 30,
+      isActive: true,
+      nested: {
+        description: "<i>Developer</i>",
+        tags: ["<script>alert('xss')</script>", "tag1", "tag2"],
+      },
+    };
+
+    const options = {
+      "nested.description": { skipSanitize: true },
+    };
+
+    const sanitizedObj = sanitizeObject(obj, options);
+
+    expect(sanitizedObj).toEqual({
+      name: "John",
+      age: 30,
+      isActive: true,
+      nested: {
+        description: "<i>Developer</i>",
+        tags: ["", "tag1", "tag2"],
+      },
+    });
+  });
+
+  test("should handle nested objects with options", () => {
+    const obj = {
+      user: {
+        name: "<b>Jane</b>",
+        age: 25,
+        address: {
+          street: "<i>Main St</i>",
+          city: "New York",
+          zip: "<script>12345</script>",
+          country: "USA",
+        },
+      },
+      tags: ["<script>alert('xss')</script>", "tag1", "tag2"],
+    };
+    const options = {
+      "user.address.street": { skipSanitize: true },
+      "user.address.zip": { skipSanitize: true },
+    };
+    const sanitizedObj = sanitizeObject(obj, options);
+    expect(sanitizedObj).toEqual({
+      user: {
+        name: "Jane",
+        age: 25,
+        address: {
+          street: "<i>Main St</i>",
+          city: "New York",
+          zip: "<script>12345</script>",
+          country: "USA",
+        },
+      },
+      tags: ["", "tag1", "tag2"],
+    });
+  });
+
+  test("should handle items nested in arrays", () => {
+    const obj = {
+      files: [
+        {
+          contents: "<b>file 1</b> contents",
+          name: "<i>file 1</i>.txt",
+        },
+        {
+          contents: "<b>file 2</b> contents",
+          name: "<i>file 2</i>.txt",
+        },
+      ],
+    };
+
+    const sanitizedObj = sanitizeObject(obj, {
+      "files.*.contents": { skipSanitize: true },
+    });
+
+    expect(sanitizedObj).toEqual({
+      files: [
+        {
+          contents: "<b>file 1</b> contents",
+          name: "file 1.txt",
+        },
+        {
+          contents: "<b>file 2</b> contents",
+          name: "file 2.txt",
+        },
+      ],
+    });
+  });
 });

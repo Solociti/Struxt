@@ -3,7 +3,7 @@ import { CurrentUserModel } from "common/models/user/CurrentUserModel";
 import { PermType } from "common/models/user/Roles";
 import express from "express";
 import { protectEndpoint } from "server/auth/protectEndpoint";
-import { sanitizeObject } from "server/utils/sanitize";
+import { sanitizeObject, SanitizeObjOptions } from "server/utils/sanitize";
 import { userFromReq } from "./auth/userFromReq";
 
 export const router = express.Router();
@@ -52,13 +52,33 @@ interface DeleteCallbackParam<T extends Api> {
   query: T["DeleteQuery"];
 }
 
+interface RegisterApiOptions {
+  querySanitization?: Record<string, SanitizeObjOptions>;
+  bodySanitization?: Record<string, SanitizeObjOptions>;
+}
+
 /**
  * Register an API endpoint with the server
  *
  * @param api
  * @returns
  */
-export function registerApi<T extends Api>(api: T["Endpoint"]) {
+export function registerApi<T extends Api>(
+  api: T["Endpoint"],
+  options?: RegisterApiOptions
+) {
+  const opt: Required<RegisterApiOptions> = Object.assign(
+    {
+      querySanitization: {
+        skipSanitize: false,
+      },
+      bodySanitization: {
+        skipSanitize: false,
+      },
+    },
+    options
+  );
+
   const handlers = {
     /**
      * Register a GET handler for the API
@@ -69,8 +89,11 @@ export function registerApi<T extends Api>(api: T["Endpoint"]) {
      */
     get(
       roles: PermType[],
-      callback: (param: GetCallbackParam<T>) => Promise<T["GetResponse"]>
+      callback: (param: GetCallbackParam<T>) => Promise<T["GetResponse"]>,
+      options?: RegisterApiOptions
     ) {
+      const getOptions = Object.assign(opt, options);
+
       router.get(
         api,
         protectEndpoint(roles, {
@@ -85,7 +108,7 @@ export function registerApi<T extends Api>(api: T["Endpoint"]) {
             res,
             user,
             params: sanitizeObject(req.params),
-            query: sanitizeObject(req.query),
+            query: sanitizeObject(req.query, getOptions.querySanitization),
           };
 
           // process the request.
@@ -107,8 +130,11 @@ export function registerApi<T extends Api>(api: T["Endpoint"]) {
      */
     post(
       roles: PermType[],
-      callback: (param: PostCallbackParam<T>) => Promise<T["PostResponse"]>
+      callback: (param: PostCallbackParam<T>) => Promise<T["PostResponse"]>,
+      options?: RegisterApiOptions
     ) {
+      const postOptions = Object.assign(opt, options);
+
       router.post(
         api,
         protectEndpoint(roles, { onFail: "json" }),
@@ -121,7 +147,7 @@ export function registerApi<T extends Api>(api: T["Endpoint"]) {
             res,
             user,
             params: sanitizeObject(req.params),
-            body: sanitizeObject(req.body),
+            body: sanitizeObject(req.body, postOptions.bodySanitization),
           };
 
           // process the request.
@@ -143,8 +169,11 @@ export function registerApi<T extends Api>(api: T["Endpoint"]) {
      */
     put(
       roles: PermType[],
-      callback: (param: PutCallbackParam<T>) => Promise<T["PutResponse"]>
+      callback: (param: PutCallbackParam<T>) => Promise<T["PutResponse"]>,
+      options?: RegisterApiOptions
     ) {
+      const putOptions = Object.assign(opt, options);
+
       router.put(
         api,
         protectEndpoint(roles, { onFail: "json" }),
@@ -157,7 +186,7 @@ export function registerApi<T extends Api>(api: T["Endpoint"]) {
             res,
             user,
             params: sanitizeObject(req.params),
-            body: sanitizeObject(req.body),
+            body: sanitizeObject(req.body, putOptions.bodySanitization),
           };
 
           // process the request.
@@ -180,8 +209,11 @@ export function registerApi<T extends Api>(api: T["Endpoint"]) {
      */
     delete(
       roles: PermType[],
-      callback: (param: DeleteCallbackParam<T>) => Promise<T["DeleteResponse"]>
+      callback: (param: DeleteCallbackParam<T>) => Promise<T["DeleteResponse"]>,
+      options?: RegisterApiOptions
     ) {
+      const deleteOptions = Object.assign(opt, options);
+
       router.delete(
         api,
         protectEndpoint(roles, { onFail: "json" }),
@@ -194,7 +226,7 @@ export function registerApi<T extends Api>(api: T["Endpoint"]) {
             res,
             user,
             params: sanitizeObject(req.params),
-            query: sanitizeObject(req.query),
+            query: sanitizeObject(req.query, deleteOptions.querySanitization),
           };
 
           // process the request.
