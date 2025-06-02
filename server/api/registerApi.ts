@@ -92,7 +92,7 @@ export function registerApi<T extends Api>(
       callback: (param: GetCallbackParam<T>) => Promise<T["GetResponse"]>,
       options?: RegisterApiOptions
     ) {
-      const getOptions = Object.assign(opt, options);
+      const getOptions = Object.assign({}, opt, options);
 
       router.get(
         api,
@@ -133,7 +133,7 @@ export function registerApi<T extends Api>(
       callback: (param: PostCallbackParam<T>) => Promise<T["PostResponse"]>,
       options?: RegisterApiOptions
     ) {
-      const postOptions = Object.assign(opt, options);
+      const postOptions = Object.assign({}, opt, options);
 
       router.post(
         api,
@@ -172,7 +172,7 @@ export function registerApi<T extends Api>(
       callback: (param: PutCallbackParam<T>) => Promise<T["PutResponse"]>,
       options?: RegisterApiOptions
     ) {
-      const putOptions = Object.assign(opt, options);
+      const putOptions = Object.assign({}, opt, options);
 
       router.put(
         api,
@@ -212,7 +212,7 @@ export function registerApi<T extends Api>(
       callback: (param: DeleteCallbackParam<T>) => Promise<T["DeleteResponse"]>,
       options?: RegisterApiOptions
     ) {
-      const deleteOptions = Object.assign(opt, options);
+      const deleteOptions = Object.assign({}, opt, options);
 
       router.delete(
         api,
