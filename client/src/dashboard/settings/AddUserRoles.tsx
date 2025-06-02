@@ -1,11 +1,13 @@
 import { useLoadAsync } from "client/api/useLoadAsync";
 import { getCurrentUser } from "client/auth/user";
+import { useConfirmModal } from "client/components/modals/useConfirmModal";
 import { ShowError } from "client/components/ShowError";
 import { useAsyncCallback } from "client/components/useAsyncCallback";
 import {
   cancelUserInvite,
   getProjectInvitesList,
   getProjectRoleDocs,
+  removeProjectUser,
   updateProjectRoles,
 } from "client/projects/projectRoles";
 import { formatDate } from "common/format/date";
@@ -64,6 +66,19 @@ export function AddUserRoles({ projectId }: AddUserRolesProps) {
     }
   };
 
+  // setup the modal to confirm removing a user
+  const { confirmModal, showConfirmModal } = useConfirmModal({
+    title: "Remove User",
+    message: "Are you sure you want to remove this user from the project?",
+    onConfirm: async () => {
+      if (roleDoc) {
+        await removeProjectUser(roleDoc.projectId, roleDoc.userId);
+        setReload((r) => r + 1);
+        setShowModal(false);
+      }
+    },
+  });
+
   return (
     <>
       <div className="d-flex align-items-center justify-content-between mb-4">
@@ -91,8 +106,11 @@ export function AddUserRoles({ projectId }: AddUserRolesProps) {
           setRoleDoc(null);
         }}
         onUpdate={saveRoles}
+        onRemove={() => showConfirmModal()}
         roleDoc={roleDoc}
       />
+
+      {confirmModal}
 
       <ProjectRolesInviteModal
         projectId={projectId}

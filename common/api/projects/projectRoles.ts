@@ -29,6 +29,14 @@ export interface ProjectRolesApi extends Api {
 
     item: ProjectRoleVisualDocument;
   };
+
+  DeleteQuery: {
+    userId: string;
+  };
+
+  DeleteResponse: {
+    success: boolean;
+  };
 }
 
 export interface ProjectRolesInviteApi extends Api {

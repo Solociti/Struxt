@@ -48,6 +48,26 @@ export async function updateProjectRoles(
 }
 
 /**
+ * Removes a user from a project
+ *
+ * @param projectId
+ * @param userId
+ * @returns
+ */
+export async function removeProjectUser(projectId: string, userId: string) {
+  const response: ProjectRolesApi["DeleteResponse"] = await deleteApi(
+    ["/api/projects", projectId, "roles"],
+    {
+      params: {
+        userId,
+      },
+    }
+  );
+
+  return response;
+}
+
+/**
  * Invite a user to a project
  *
  * @param projectId

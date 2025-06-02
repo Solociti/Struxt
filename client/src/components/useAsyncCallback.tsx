@@ -10,7 +10,7 @@ import { addToastError } from "./ErrorSnackBar";
 export function useAsyncCallback<T extends Function>(
   callback: T,
   options?: Partial<{ toastError: boolean }>
-): { callback: T; isLoading: boolean; error: Error | null } {
+): { callback: T; isLoading: boolean; error: Error | null; reset: () => void } {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<Error | null>(null);
 
@@ -30,5 +30,10 @@ export function useAsyncCallback<T extends Function>(
     }
   };
 
-  return { callback: asyncCallback as unknown as T, isLoading, error };
+  const reset = () => {
+    setIsLoading(false);
+    setError(null);
+  };
+
+  return { callback: asyncCallback as unknown as T, isLoading, error, reset };
 }

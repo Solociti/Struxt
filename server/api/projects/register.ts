@@ -20,6 +20,7 @@ import { inviteUser } from "./invites/inviteUser";
 import { getProjectInvite } from "./invites/projectInvite";
 import {
   getProjectRoleVisualDocs,
+  removeProjectUser,
   updateProjectRoles,
 } from "./roles/projectRoles";
 import { saveProjectEditorData } from "./saveProject";
@@ -134,8 +135,7 @@ registerApi<ProjectRolesApi>("/api/projects/:projectId/roles")
     ) {
       throw customError(
         403,
-        "You do not have permission to update the project roles.",
-        "Forbidden"
+        "You do not have permission to update the project roles."
       );
     }
 
@@ -155,6 +155,32 @@ registerApi<ProjectRolesApi>("/api/projects/:projectId/roles")
       success: true,
       item: document,
     };
+  })
+  .delete([], async ({ user, params, query }) => {
+    const projectId = params.projectId;
+    const userId = query.userId;
+
+    if (
+      !user.hasPermission(roles.struxt.admin) &&
+      !user.hasProjectPermission(projectId, [roles.projects.admin])
+    ) {
+      throw customError(
+        403,
+        "You do not have permission to remove users from this project."
+      );
+    }
+
+    // validate the user id
+    const userIdValid = await validateUserId(userId);
+    if (!userId || !userIdValid) {
+      throw customError(400, "Invalid user selected.");
+    }
+
+    // remove the user from the project
+    const { success } = await removeProjectUser(projectId, userId);
+    return {
+      success,
+    };
   });
 
 registerApi<ProjectRolesInviteApi>("/api/projects/:projectId/roles/invite")
@@ -167,8 +193,7 @@ registerApi<ProjectRolesInviteApi>("/api/projects/:projectId/roles/invite")
     ) {
       throw customError(
         403,
-        "You do not have permission to view the project invites.",
-        "Forbidden"
+        "You do not have permission to view the project invites."
       );
     }
 

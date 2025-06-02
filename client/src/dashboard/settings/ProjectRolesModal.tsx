@@ -1,6 +1,6 @@
 import Group from "client/components/Group";
 import { ShowError } from "client/components/ShowError";
-import SimpleModal from "client/components/SimpleModal";
+import SimpleModal from "client/components/modals/SimpleModal";
 import { useAsyncCallback } from "client/components/useAsyncCallback";
 import { inviteUser } from "client/projects/projectRoles";
 import { ProjectRoleVisualDocument } from "common/models/projects/ProjectRoles";
@@ -20,7 +20,23 @@ interface ProjectRolesModalProps {
   onHide: () => void;
   onExit: () => void;
   roleDoc: ProjectRoleVisualDocument | null;
+
+  /**
+   * Handle updating the user roles
+   *
+   * @param userId
+   * @param roles
+   * @returns
+   */
   onUpdate: (userId: string, roles: ProjectRoleTypes[]) => Promise<void>;
+
+  /**
+   * Remove the user from the project
+   *
+   * @param userId
+   * @returns
+   */
+  onRemove: (userId: string) => void;
 }
 
 /**
@@ -33,6 +49,7 @@ export function ProjectRolesModal({
   onExit,
   onHide,
   onUpdate,
+  onRemove,
   roleDoc,
   show,
 }: ProjectRolesModalProps) {
@@ -52,6 +69,12 @@ export function ProjectRolesModal({
     }
   });
 
+  const removeUserCallback = useAsyncCallback(async () => {
+    if (roleDoc) {
+      await onRemove(roleDoc.userId);
+    }
+  });
+
   return (
     <SimpleModal
       show={show}
@@ -61,6 +84,15 @@ export function ProjectRolesModal({
       title="Project Roles"
       footer={
         <>
+          <div className="d-flex justify-content-start flex-grow-1">
+            <Button
+              variant="warning"
+              onClick={removeUserCallback.callback}
+              disabled={removeUserCallback.isLoading}
+            >
+              Remove User
+            </Button>
+          </div>
           <Button variant="secondary" onClick={onHide}>
             Cancel
           </Button>
@@ -77,6 +109,7 @@ export function ProjectRolesModal({
       {roleDoc && (
         <>
           <ShowError error={saveCallback.error} />
+          <ShowError error={removeUserCallback.error} />
 
           <AddRolesTable
             currentRoles={currentRoles}

@@ -4,7 +4,11 @@ import {
   ProjectRoleDocument,
   ProjectRoleVisualDocument,
 } from "common/models/projects/ProjectRoles";
-import { ProjectRoleList, ProjectRoleTypes } from "common/models/user/Roles";
+import {
+  ProjectRoleList,
+  ProjectRoleTypes,
+  roles,
+} from "common/models/user/Roles";
 import { getUser } from "server/auth/user/getUser";
 import { getCollection, toArray } from "server/database/mongodb";
 
@@ -119,4 +123,44 @@ export async function updateProjectRoles(
   }
 
   return await getProjectRoleVisualDoc(projectId, userId);
+}
+
+/**
+ * Removes a user from a project
+ *
+ * @param projectId
+ * @param userId
+ * @returns
+ */
+export async function removeProjectUser(projectId: string, userId: string) {
+  // get the list of roles in the project
+  const list = await getProjectRoleVisualDocs(projectId);
+
+  const existing = list.find((item) => item.userId === userId);
+  if (!existing) {
+    throw customError(404, "User not found in project.");
+  }
+
+  // ensure that there is another admin in the project
+  const adminCount = list.filter(
+    (item) =>
+      item.userId !== userId && item.roles.includes(roles.projects.admin)
+  ).length;
+  if (adminCount === 0) {
+    throw customError(
+      400,
+      "You cannot remove the last admin from the project. Please assign another user as admin before removing this user."
+    );
+  }
+
+  // remove the user from the project
+  const collection = await getCollection<ProjectRoleDocument>(
+    "project_members"
+  );
+  await collection.deleteOne({
+    projectId,
+    userId,
+  });
+
+  return { success: true };
 }
