@@ -10,6 +10,7 @@ This is like a mono repo setup.
 ## Coding Style
 
 Do not use useless comments. Code should be self-explanatory as much as possible.
+DO NOT GENERATE ANY COMMENTS ANYWHERE with exception to jsdoc comments.
 For React Bootstrap components, use the `react-bootstrap` library and import specific components per file. Example: `react-bootstrap/Button`.
 Use react styles when possible for styling components.
 

@@ -11,6 +11,7 @@ import { customError } from "common/custom-error/custom-error";
 import { roles } from "common/models/user/Roles";
 import { registerApi } from "server/api/registerApi";
 import { validateUserId } from "server/auth/user/getUser";
+import { validateEmailAddress } from "server/utils/validateEmailAddress";
 import { getProjectEditorData } from "./getProject";
 import { getProjectDetails } from "./getProjectDetails";
 import { getProjectsAdmin, getProjectsForUser } from "./getProjectList";
@@ -218,7 +219,11 @@ registerApi<ProjectRolesInviteApi>("/api/projects/:projectId/roles/invite")
       );
     }
 
-    // TODO: check if the given email is valid
+    // check if the given email is valid
+    const isEmailValid = await validateEmailAddress(body.email);
+    if (!isEmailValid) {
+      throw customError(400, "Invalid email address provided.");
+    }
 
     // create the invite
     const invite = await inviteUser(
