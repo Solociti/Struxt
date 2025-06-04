@@ -51,3 +51,50 @@ export function createDefaultProxyHostConf(): ProxyHostUpdate {
     ],
   };
 }
+
+export function createEditorProxyPaths() {
+  return [
+    {
+      path: "/admin",
+      advanced_config: ["# -- End of struxt config --"].join("\n"),
+      forward_scheme: "http",
+      forward_host: "editor-api/admin",
+      forward_port: 3000,
+    },
+    {
+      path: "/api",
+      advanced_config: ["# -- End of struxt config --"].join("\n"),
+      forward_scheme: "http",
+      forward_host: "editor-api/api",
+      forward_port: 3000,
+    },
+    {
+      path: "/auth",
+      advanced_config: ["# -- End of struxt config --"].join("\n"),
+      forward_scheme: "http",
+      forward_host: "editor-api/auth",
+      forward_port: 3000,
+    },
+    {
+      path: "/assets",
+      advanced_config: ["# -- End of struxt config --"].join("\n"),
+      forward_scheme: "http",
+      forward_host: "editor-api/assets",
+      forward_port: 3000,
+    },
+    {
+      path: "/dashboard",
+      advanced_config: ["# -- End of struxt config --"].join("\n"),
+      forward_scheme: "http",
+      forward_host: "web-host/dashboard",
+      forward_port: 3000,
+    },
+    {
+      path: "/resource",
+      advanced_config: ["# -- End of struxt config --"].join("\n"),
+      forward_scheme: "http",
+      forward_host: "web-host/resource",
+      forward_port: 3000,
+    },
+  ];
+}
