@@ -23,7 +23,7 @@ export function DashboardSidebar() {
         {/* Logo */}
         <div className="p-3 d-flex align-items-center">
           <div className="fs-4">
-            <img src="/logo.svg" alt="Logo" width="32" height="32" />
+            <img src="/dashboard/logo.svg" alt="Logo" width="32" height="32" />
           </div>
         </div>
 
