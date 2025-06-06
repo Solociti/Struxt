@@ -11,7 +11,7 @@ export default defineConfig({
       input: {
         home: "index.html",
         dashboard: "dashboard/index.html",
-        editor: "editor/index.html",
+        editor: "dashboard/editor/index.html",
       },
       output: {
         assetFileNames: "resource/[name]-[hash].[ext]",
