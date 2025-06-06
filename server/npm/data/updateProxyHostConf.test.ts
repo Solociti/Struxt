@@ -74,6 +74,7 @@ describe("updateProxyHostConf", () => {
       projectEnv: "staging",
       projectId: "project123",
       publishId: "publish123",
+      isEditorSite: false,
     });
 
     expect(result.ssl_forced).toBe(true);
@@ -117,6 +118,7 @@ describe("updateProxyHostConf", () => {
       projectEnv: "production",
       projectId: "project123",
       publishId: "publish123",
+      isEditorSite: false,
     });
 
     expect(result.locations.length).toBe(2);
@@ -162,6 +164,7 @@ describe("updateProxyHostConf", () => {
       },
       publishId: "publish123",
       domains: [],
+      isEditorSite: false,
     });
 
     expect(result.locations.length).toBe(2);
@@ -216,6 +219,7 @@ describe("updateProxyHostConf", () => {
       },
       publishId: "publish123",
       domains: [],
+      isEditorSite: false,
     });
 
     expect(result.locations.length).toBe(3);
