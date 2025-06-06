@@ -2,7 +2,10 @@ import {
   EnvironmentTypes,
   ProjectEnvSettings,
 } from "common/models/projects/Environment";
-import { createDefaultProxyHostConf } from "server/npm/data/createProxyHostConf";
+import {
+  createDefaultProxyHostConf,
+  createEditorProxyPaths,
+} from "server/npm/data/createProxyHostConf";
 import { ProxyHostUpdate } from "server/npm/types";
 
 /**
@@ -36,16 +39,23 @@ export function updateProxyHostConf(
     envSettings,
     publishId,
     domains,
+    isEditorSite,
   }: {
     projectId: string;
     projectEnv: EnvironmentTypes;
     envSettings: ProjectEnvSettings;
+    isEditorSite: boolean;
     publishId: string;
     domains: string[];
   }
 ): ProxyHostUpdate {
   // get the new proxy host settings as default values
   const newProxy = createDefaultProxyHostConf();
+
+  if (isEditorSite) {
+    // add the editor proxy paths
+    newProxy.locations.push(...createEditorProxyPaths());
+  }
 
   // set the ssl settings
   proxy.ssl_forced = envSettings.forceSsl;

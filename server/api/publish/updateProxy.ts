@@ -251,6 +251,7 @@ async function configureProxyHost(
       envSettings,
       publishId: publish.uuid,
       domains: domainNames,
+      isEditorSite: Boolean(project.isEditorSite),
     });
 
     await updateProxyHost(hostId, proxyHost);
@@ -265,6 +266,7 @@ async function configureProxyHost(
     envSettings,
     publishId: publish.uuid,
     domains: domainNames,
+    isEditorSite: Boolean(project.isEditorSite),
   });
 
   const newProxyHost = await createProxyHost(proxyHost);

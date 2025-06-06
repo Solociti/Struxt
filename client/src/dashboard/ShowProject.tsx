@@ -30,7 +30,7 @@ export function ShowProject({ project }: { project: ProjectDetails }) {
             <Col xs="auto">
               <Button
                 variant="outline-primary"
-                href={"/editor/?projectId=" + project.projectId}
+                href={"/dashboard/editor/?projectId=" + project.projectId}
                 target="_blank"
                 as="a"
                 className="me-2"

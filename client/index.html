@@ -3,811 +3,226 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Struxt | Complete Website Solution by Solociti</title>
-
-    <link rel="preconnect" href="https://fonts.googleapis.com" />
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <title>Web Editor - Powerful Editing Tools</title>
     <link
-      href="https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,100..900;1,14..32,100..900&display=swap"
+      href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/css/bootstrap.min.css"
       rel="stylesheet"
+      integrity="sha384-EVSTQN3/azprG1Anm3QDgpJLIm9Nao0Yz1ztcQTwFspd3yD65VohhpuuCOmLASjC"
+      crossorigin="anonymous"
     />
-
+    <link rel="icon" href="/dashboard/favicon.ico" />
+    <meta name="robots" content="noindex, nofollow" />
+    <link rel="robots" href="/dashboard/robots.txt" />
     <style>
-      :root {
-        --primary: #4f46e5;
-        --primary-dark: #4338ca;
-        --secondary: #10b981;
-        --dark: #1f2937;
-        --light: #f9fafb;
-        --gray: #6b7280;
-        --light-gray: #e5e7eb;
-      }
-
-      * {
+      html,
+      body {
+        height: 100%;
         margin: 0;
         padding: 0;
-        box-sizing: border-box;
-        font-family: "Inter", "Segoe UI", Roboto, Ubuntu, "Open Sans",
-          sans-serif;
+        background-color: #f8f9fa;
       }
 
-      body {
-        background-color: var(--light);
-        color: var(--dark);
-        line-height: 1.5;
+      .logo-section {
+        background: white;
+        border-bottom: 1px solid #e9ecef;
+        padding: 2rem 0;
       }
 
-      header {
-        background-color: white;
-        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
-        position: fixed;
-        width: 100%;
-        z-index: 10;
-      }
-
-      .container {
-        max-width: 1200px;
-        margin: 0 auto;
-        padding: 0 2rem;
-      }
-
-      .header-content {
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        padding: 1.5rem 0;
-      }
-
-      .logo {
-        display: flex;
-        align-items: center;
-        font-weight: 700;
-        font-size: 1.5rem;
-        color: var(--dark);
-        text-decoration: none;
-      }
-
-      .logo img {
-        height: 60px;
+      .logo-img {
         width: 60px;
-      }
-
-      .logo span {
-        color: var(--primary);
-      }
-
-      nav ul {
-        display: flex;
-        list-style: none;
-        gap: 2rem;
-        align-items: center;
-      }
-
-      nav a {
-        color: var(--dark);
-        text-decoration: none;
-        font-weight: 500;
-        transition: color 0.2s;
-      }
-
-      nav a:hover {
-        color: var(--primary);
-      }
-
-      .btn {
-        display: inline-block;
-        padding: 0.75rem 1.5rem;
-        border-radius: 0.375rem;
-        font-weight: 500;
-        text-decoration: none;
-        transition: all 0.2s;
-        cursor: pointer;
-      }
-
-      .btn-primary {
-        background-color: var(--primary);
-        color: white;
-        border: none;
-      }
-
-      .btn-primary:hover {
-        background-color: var(--primary-dark);
-      }
-
-      .btn-outline {
-        background-color: transparent;
-        color: var(--primary);
-        border: 1px solid var(--primary);
-      }
-
-      .btn-outline:hover {
-        background-color: var(--primary);
-        color: white;
-      }
-
-      .hero {
-        padding: 10rem 0 5rem 0;
-        text-align: center;
-      }
-
-      .hero h1 {
-        font-size: 3.5rem;
-        font-weight: 800;
-        margin-bottom: 1.5rem;
-        line-height: 1.2;
-      }
-
-      .hero p {
-        font-size: 1.25rem;
-        color: var(--gray);
-        max-width: 600px;
-        margin: 0 auto 2rem auto;
-      }
-
-      .hero-buttons {
-        display: flex;
-        gap: 1rem;
-        justify-content: center;
-        margin-bottom: 3rem;
-      }
-
-      .hero-image {
-        max-width: 1000px;
-        margin: 0 auto;
-        border-radius: 0.5rem;
-        box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1),
-          0 10px 10px -5px rgba(0, 0, 0, 0.04);
-        overflow: hidden;
-      }
-
-      .hero-image img {
-        width: 100%;
-        height: auto;
-        display: block;
-      }
-
-      .features {
-        padding: 5rem 0;
-        background-color: white;
-      }
-
-      .section-header {
-        text-align: center;
-        margin-bottom: 3rem;
-      }
-
-      .section-header h2 {
-        font-size: 2.5rem;
-        font-weight: 700;
-        margin-bottom: 1rem;
-      }
-
-      .section-header p {
-        font-size: 1.125rem;
-        color: var(--gray);
-        max-width: 600px;
+        height: 60px;
         margin: 0 auto;
       }
 
-      .features-grid {
-        display: flex;
-        gap: 2rem;
-        flex-wrap: wrap;
-        justify-content: center;
+      .main-content {
+        padding: 4rem 0;
       }
 
       .feature-card {
-        background-color: var(--light);
-        padding: 2rem;
-        border-radius: 0.5rem;
         text-align: center;
-        max-width: 30rem;
+        padding: 2rem 1.5rem;
+        background: white;
+        border-radius: 12px;
+        box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+        height: 100%;
+        transition: all 0.3s ease;
+        border: 1px solid #f0f0f0;
+      }
+
+      .feature-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
       }
 
       .feature-icon {
+        width: 70px;
+        height: 70px;
+        border-radius: 50%;
         display: flex;
         align-items: center;
         justify-content: center;
-        width: 4rem;
-        height: 4rem;
-        background-color: rgba(79, 70, 229, 0.1);
-        border-radius: 50%;
         margin: 0 auto 1.5rem auto;
-        color: var(--primary);
-        font-size: 1.5rem;
+        font-size: 1.8rem;
       }
 
-      .feature-card h3 {
+      .icon-blue {
+        background: rgba(13, 110, 253, 0.1);
+        color: #0d6efd;
+      }
+      .icon-green {
+        background: rgba(25, 135, 84, 0.1);
+        color: #198754;
+      }
+      .icon-purple {
+        background: rgba(111, 66, 193, 0.1);
+        color: #6f42c1;
+      }
+      .icon-orange {
+        background: rgba(253, 126, 20, 0.1);
+        color: #fd7e14;
+      }
+      .icon-teal {
+        background: rgba(32, 201, 151, 0.1);
+        color: #20c997;
+      }
+
+      .feature-title {
         font-size: 1.25rem;
+        font-weight: 600;
+        color: #212529;
         margin-bottom: 1rem;
       }
 
-      .feature-card p {
-        color: var(--gray);
+      .feature-description {
+        color: #6c757d;
+        line-height: 1.6;
+        font-size: 0.95rem;
       }
 
-      .services {
-        padding: 5rem 0;
-        background-color: var(--light);
-      }
-
-      .services-container {
-        display: flex;
-        flex-direction: column;
-        gap: 3rem;
-      }
-
-      .service-item {
-        display: flex;
-        align-items: center;
-        gap: 3rem;
-        background-color: white;
-        border-radius: 0.5rem;
-        box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1),
-          0 2px 4px -1px rgba(0, 0, 0, 0.06);
-        overflow: hidden;
-      }
-
-      .service-image {
-        flex: 0 0 40%;
-        max-height: 300px;
-        overflow: hidden;
-      }
-
-      .service-image img {
-        width: 100%;
-        height: 100%;
-        object-fit: cover;
-      }
-
-      .service-content {
-        flex: 1;
-        padding: 2rem;
-      }
-
-      .service-content h3 {
-        font-size: 1.5rem;
-        margin-bottom: 1rem;
-        color: var(--dark);
-      }
-
-      .service-content p {
-        color: var(--gray);
-        margin-bottom: 1.5rem;
-      }
-
-      .service-list {
-        list-style: none;
-        margin-bottom: 1.5rem;
-      }
-
-      .service-list li {
-        margin-bottom: 0.5rem;
-        display: flex;
-        align-items: center;
-      }
-
-      .service-list li:before {
-        content: "✓";
-        color: var(--secondary);
-        font-weight: bold;
-        margin-right: 0.5rem;
-      }
-
-      .cta {
-        padding: 5rem 0;
+      .header-section {
         text-align: center;
-        background-color: white;
+        margin-bottom: 4rem;
       }
 
-      .cta-content {
-        max-width: 700px;
-        margin: 0 auto;
-      }
-
-      .cta h2 {
+      .main-title {
         font-size: 2.5rem;
         font-weight: 700;
-        margin-bottom: 1.5rem;
+        color: #212529;
+        margin-bottom: 1rem;
       }
 
-      .cta p {
-        font-size: 1.125rem;
-        color: var(--gray);
+      .main-subtitle {
+        font-size: 1.2rem;
+        color: #6c757d;
         margin-bottom: 2rem;
       }
 
-      .testimonials {
-        padding: 5rem 0;
-        background-color: var(--light);
-      }
-
-      .testimonials-grid {
-        display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-        gap: 2rem;
-      }
-
-      .testimonial-card {
-        background-color: white;
-        padding: 2rem;
-        border-radius: 0.5rem;
-        box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1),
-          0 2px 4px -1px rgba(0, 0, 0, 0.06);
-      }
-
-      .testimonial-text {
-        font-style: italic;
-        margin-bottom: 1.5rem;
-        color: var(--dark);
-      }
-
-      .testimonial-author {
-        display: flex;
-        align-items: center;
-      }
-
-      .testimonial-avatar {
-        width: 3rem;
-        height: 3rem;
-        border-radius: 50%;
-        margin-right: 1rem;
-        background-color: var(--light-gray);
-        overflow: hidden;
-      }
-
-      .testimonial-avatar img {
-        width: 100%;
-        height: 100%;
-        object-fit: cover;
-      }
-
-      .testimonial-info h4 {
+      .btn-dashboard {
+        padding: 12px 40px;
         font-weight: 600;
-        margin-bottom: 0.25rem;
-      }
-
-      .testimonial-info p {
-        color: var(--gray);
-        font-size: 0.875rem;
-      }
-
-      footer {
-        background-color: var(--dark);
-        color: white;
-        padding: 3rem 0;
-      }
-
-      .footer-content {
-        display: flex;
-        justify-content: space-between;
-        flex-wrap: wrap;
-        gap: 2rem;
-      }
-
-      .footer-logo {
-        font-size: 1.5rem;
-        font-weight: 700;
-        margin-bottom: 1rem;
-      }
-
-      .footer-logo span {
-        color: var(--primary);
-      }
-
-      .footer-text {
-        max-width: 300px;
-        margin-bottom: 1rem;
-        color: var(--light-gray);
-      }
-
-      .footer-links h4 {
-        font-size: 1.125rem;
-        margin-bottom: 1.5rem;
-      }
-
-      .footer-links ul {
-        list-style: none;
-      }
-
-      .footer-links li {
-        margin-bottom: 0.75rem;
-      }
-
-      .footer-links a {
-        color: var(--light-gray);
-        text-decoration: none;
-        transition: color 0.2s;
-      }
-
-      .footer-links a:hover {
-        color: white;
-      }
-
-      .copyright {
-        text-align: center;
-        padding-top: 2rem;
-        margin-top: 2rem;
-        border-top: 1px solid rgba(255, 255, 255, 0.1);
-        color: var(--light-gray);
-      }
-
-      .grapesjs-credit {
-        font-size: 0.875rem;
-        opacity: 0.8;
-        margin-top: 0.5rem;
-      }
-
-      /* mobile portrait */
-      @media (max-width: 480px) {
-        .container {
-          padding: 0 0.5rem;
-        }
-      }
-
-      /* mobile landscape */
-      @media (max-width: 768px) {
-        .container {
-          padding: 0 1rem;
-        }
-
-        .hero h1 {
-          font-size: 2.5rem;
-        }
-
-        .header-content {
-          flex-direction: column;
-          text-align: center;
-          gap: 1rem;
-        }
-
-        nav ul {
-          gap: 1rem;
-        }
-
-        .hero-buttons {
-          flex-direction: column;
-          align-items: center;
-        }
-
-        .feature-card {
-          max-width: 100%;
-        }
-
-        .service-item {
-          flex-direction: column;
-        }
-
-        .service-image {
-          flex: 0 0 100%;
-          max-height: 200px;
-        }
-
-        .footer-content {
-          flex-direction: column;
-          text-align: center;
-        }
-
-        .footer-text {
-          max-width: 100%;
-        }
-      }
-
-      /* tablet */
-      @media (max-width: 992px) {
-      }
-
-      /* desktop */
-      @media (max-width: 1024px) {
-        .service-item {
-          flex-direction: column;
-        }
-
-        .service-image {
-          flex: 0 0 100%;
-          max-height: 250px;
-        }
+        font-size: 1.1rem;
+        border-radius: 8px;
       }
     </style>
   </head>
   <body>
-    <header>
+    <!-- Logo Section -->
+    <div class="logo-section">
       <div class="container">
-        <div class="header-content">
-          <a href="#" class="logo">
-            <img src="/logo.svg" alt="Solociti Logo" />
+        <div class="row justify-content-center">
+          <div class="col-auto">
+            <img src="/dashboard/logo.svg" alt="Struxt Logo" class="logo-img" />
+            <div class="text-center mt-3">
+              <h4 class="mb-0 fw-bold">Struxt</h4>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Main Content -->
+    <div class="main-content">
+      <div class="container">
+        <!-- Header Section -->
+        <div class="header-section">
+          <h1 class="main-title">Powerful Editor Features</h1>
+          <p class="main-subtitle">
+            Struxt gives you access to these powerful editing tools
+          </p>
+        </div>
+
+        <!-- Dashboard Button -->
+        <div class="text-center mb-5">
+          <a href="/dashboard/" class="btn btn-primary btn-dashboard">
+            Dashboard
           </a>
-          <nav>
-            <ul>
-              <li><a href="#features">Editor</a></li>
-              <li><a href="#services">Services</a></li>
-              <!-- <li><a href="#testimonials">Testimonials</a></li> -->
-              <li><a href="#contact">Contact</a></li>
-              <li>
-                <a href="/dashboard/" class="btn btn-primary">Dashboard</a>
-              </li>
-            </ul>
-          </nav>
-        </div>
-      </div>
-    </header>
-
-    <section class="hero">
-      <div class="container">
-        <h1>Your Business Website<br />Made Simple</h1>
-        <p>
-          Struxt provides hands-on website development with a powerful WYSIWYG
-          editor that gives you full control over your content.
-        </p>
-        <div class="hero-buttons">
-          <a href="#" class="btn btn-primary">Get Started Today</a>
-          <a href="#" class="btn btn-outline">Book a Demo</a>
         </div>
 
-        <div class="hero-image">
-          <img src="/screenshots/editor-1.png" alt="Struxt Editor Interface" />
-        </div>
-      </div>
-    </section>
-
-    <section class="features" id="features">
-      <div class="container">
-        <div class="section-header">
-          <h2>Powerful Editor Features</h2>
-          <p>Struxt gives you access to these powerful editing tools</p>
-        </div>
-        <div class="features-grid">
-          <div class="feature-card">
-            <div class="feature-icon">📝</div>
-            <h3>Real-time Editing</h3>
-            <p>
-              See your changes instantly with our advanced real-time editor that
-              shows exactly how your content will look.
-            </p>
-          </div>
-          <div class="feature-card">
-            <div class="feature-icon">🧩</div>
-            <h3>Drag & Drop Components</h3>
-            <p>
-              Easily add and arrange pre-built components to create professional
-              layouts in minutes.
-            </p>
-          </div>
-          <div class="feature-card">
-            <div class="feature-icon">📱</div>
-            <h3>Responsive Design</h3>
-            <p>
-              All content created with Struxt looks great on any device, from
-              desktop to mobile.
-            </p>
-          </div>
-          <div class="feature-card">
-            <div class="feature-icon">⚡</div>
-            <h3>Lightning Fast</h3>
-            <p>
-              Our optimized editor ensures a smooth experience even with complex
-              content.
-            </p>
-          </div>
-          <div class="feature-card">
-            <div class="feature-icon">📦</div>
-            <h3>Site Export</h3>
-            <p>
-              Code export allows you to host your site anywhere, even without
-              Struxt.
-            </p>
-          </div>
-        </div>
-      </div>
-    </section>
-
-    <section class="services" id="services">
-      <div class="container">
-        <div class="section-header">
-          <h2>Complete Business Solution</h2>
-          <p>
-            We don't just provide software — we work hands-on to ensure your
-            success
-          </p>
-        </div>
-
-        <div class="services-container">
-          <div class="service-item">
-            <div class="service-image">
-              <img
-                src="/screenshots/web-design-1.jpg"
-                alt="Website Design & Development"
-              />
-            </div>
-            <div class="service-content">
-              <h3>Website Design & Development</h3>
-              <p>
-                We'll work closely with you to design and build a website that
-                perfectly represents your brand and meets your business goals.
+        <!-- Features Grid -->
+        <div class="row g-4 mb-5 justify-content-center">
+          <!-- Real-time Editing -->
+          <div class="col-lg-4 col-md-6">
+            <div class="feature-card">
+              <div class="feature-icon icon-blue">📝</div>
+              <h3 class="feature-title">Real-time Editing</h3>
+              <p class="feature-description">
+                See your changes instantly with our advanced real-time editor
+                that shows exactly how your content will look.
               </p>
-              <ul class="service-list">
-                <li>Custom website design specific to your brand</li>
-                <li>Professional development with clean code</li>
-                <li>Mobile-optimized responsive layouts</li>
-                <li>Hands-on setup and configuration</li>
-              </ul>
-              <!-- <a href="#" class="btn btn-outline">Learn More</a> -->
             </div>
           </div>
 
-          <div class="service-item">
-            <div class="service-image">
-              <img src="/screenshots/seo.jpg" alt="SEO & Marketing" />
-            </div>
-            <div class="service-content">
-              <h3>SEO & Marketing</h3>
-              <p>
-                Get found online with our comprehensive SEO and marketing
-                services designed to drive targeted traffic to your website.
+          <!-- Drag & Drop Components -->
+          <div class="col-lg-4 col-md-6">
+            <div class="feature-card">
+              <div class="feature-icon icon-green">🧩</div>
+              <h3 class="feature-title">Drag & Drop Components</h3>
+              <p class="feature-description">
+                Easily add and arrange pre-built components to create
+                professional layouts in minutes.
               </p>
-              <ul class="service-list">
-                <li>Search engine optimization (SEO)</li>
-                <li>Google Ads campaign setup and management</li>
-                <li>Keyword research and content optimization</li>
-                <li>Performance tracking and reporting</li>
-              </ul>
-              <!-- <a href="#" class="btn btn-outline">Learn More</a> -->
             </div>
           </div>
 
-          <div class="service-item">
-            <div class="service-image">
-              <img
-                src="/screenshots/analytics.jpg"
-                alt="Analytics & Reporting"
-              />
-            </div>
-            <div class="service-content">
-              <h3>Analytics & Customer Insights</h3>
-              <p>
-                Understand your visitors and optimize your website with
-                data-driven insights and comprehensive analytics.
+          <!-- Responsive Design -->
+          <div class="col-lg-4 col-md-6">
+            <div class="feature-card">
+              <div class="feature-icon icon-purple">📱</div>
+              <h3 class="feature-title">Responsive Design</h3>
+              <p class="feature-description">
+                All content created with Struxt looks great on any device, from
+                desktop to mobile.
               </p>
-              <ul class="service-list">
-                <li>Analytics setup and configuration</li>
-                <li>Customer interaction reports</li>
-                <li>Conversion tracking and optimization</li>
-                <li>Regular performance reviews</li>
-              </ul>
-              <!-- <a href="#" class="btn btn-outline">Learn More</a> -->
+            </div>
+          </div>
+
+          <!-- Lightning Fast -->
+          <div class="col-lg-4 col-md-6">
+            <div class="feature-card">
+              <div class="feature-icon icon-orange">⚡</div>
+              <h3 class="feature-title">Lightning Fast</h3>
+              <p class="feature-description">
+                Our optimized editor ensures a smooth experience even with
+                complex content.
+              </p>
+            </div>
+          </div>
+
+          <!-- Site Export -->
+          <div class="col-lg-4 col-md-6">
+            <div class="feature-card">
+              <div class="feature-icon icon-teal">📦</div>
+              <h3 class="feature-title">Site Export</h3>
+              <p class="feature-description">
+                Code export allows you to host your site anywhere, even without
+                Struxt.
+              </p>
             </div>
           </div>
         </div>
       </div>
-    </section>
-    <!-- 
-    <section class="testimonials" id="testimonials">
-      <div class="container">
-        <div class="section-header">
-          <h2>What Our Clients Say</h2>
-          <p>
-            Hear from businesses that have transformed their online presence
-            with Struxt
-          </p>
-        </div>
-        <div class="testimonials-grid">
-          <div class="testimonial-card">
-            <p class="testimonial-text">
-              "Solociti transformed our outdated website into a powerful
-              marketing tool. Their hands-on approach made the process so
-              smooth, and the Struxt editor makes updating our content
-              incredibly easy."
-            </p>
-            <div class="testimonial-author">
-              <div class="testimonial-avatar">
-                <img src="/api/placeholder/100/100" alt="Client Avatar" />
-              </div>
-              <div class="testimonial-info">
-                <h4>Sarah Johnson</h4>
-                <p>Marketing Director, TechFlow Inc.</p>
-              </div>
-            </div>
-          </div>
+    </div>
 
-          <div class="testimonial-card">
-            <p class="testimonial-text">
-              "The SEO services provided by Solociti have dramatically increased
-              our organic traffic. We're now ranking for keywords we never
-              thought possible, and our Google Ads campaigns are performing
-              better than ever."
-            </p>
-            <div class="testimonial-author">
-              <div class="testimonial-avatar">
-                <img src="/api/placeholder/100/100" alt="Client Avatar" />
-              </div>
-              <div class="testimonial-info">
-                <h4>Michael Chen</h4>
-                <p>CEO, GrowthBound Solutions</p>
-              </div>
-            </div>
-          </div>
-
-          <div class="testimonial-card">
-            <p class="testimonial-text">
-              "What sets Solociti apart is their commitment to your success.
-              They didn't just build us a website and disappear — they continue
-              to provide valuable insights that help us grow our business
-              online."
-            </p>
-            <div class="testimonial-author">
-              <div class="testimonial-avatar">
-                <img src="/api/placeholder/100/100" alt="Client Avatar" />
-              </div>
-              <div class="testimonial-info">
-                <h4>Jessica Williams</h4>
-                <p>Owner, Coastal Boutique</p>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-    </section> -->
-
-    <section class="cta">
-      <div class="container">
-        <div class="cta-content">
-          <h2>Ready to transform your online presence?</h2>
-          <p>
-            Let's work together to create a website that drives real business
-            results. Our hands-on approach ensures you get exactly what you
-            need.
-          </p>
-          <a href="#" class="btn btn-primary">Schedule a Consultation</a>
-        </div>
-      </div>
-    </section>
-
-    <footer id="contact">
-      <div class="container">
-        <div class="footer-content">
-          <div class="footer-info">
-            <div class="footer-logo">
-              Struxt <i>by</i> <span>Solociti</span>
-            </div>
-            <p class="footer-text">
-              Your complete website solution with hands-on service and powerful
-              editing tools.
-            </p>
-            <p class="grapesjs-credit">Struxt editor is powered by GrapesJS</p>
-          </div>
-          <!-- <div class="footer-links">
-            <h4>Services</h4>
-            <ul>
-              <li><a href="#">Website Design</a></li>
-              <li><a href="#">SEO Optimization</a></li>
-              <li><a href="#">Google Ads</a></li>
-              <li><a href="#">Analytics Setup</a></li>
-            </ul>
-          </div> -->
-          <!-- <div class="footer-links">
-            <h4>Company</h4>
-            <ul>
-              <li><a href="#">About Us</a></li>
-              <li><a href="#">Our Process</a></li>
-              <li><a href="#">Portfolio</a></li>
-              <li><a href="#">Blog</a></li>
-            </ul>
-          </div> -->
-          <div class="footer-links">
-            <h4>Contact</h4>
-            <ul>
-              <li>
-                <a href="mailto:trevor@solociti.com">trevor@solociti.com</a>
-              </li>
-              <!-- <li><a href="tel:+15551234567">(555) 123-4567</a></li>
-              <li><a href="#">Support</a></li>
-              <li><a href="#">Schedule a Call</a></li> -->
-            </ul>
-          </div>
-        </div>
-        <div class="copyright">&copy; 2025 Solociti. All rights reserved.</div>
-      </div>
-    </footer>
-    <script type="module" src="/src/landing.tsx"></script>
+    <script type="module" src="./src/landing.tsx"></script>
   </body>
 </html>
