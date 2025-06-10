@@ -72,6 +72,11 @@ export interface ProjectDomain {
    * None primary domains will be redirected to the primary domain.
    */
   isPrimary: boolean;
+
+  /**
+   * Set when the domain is deleted.
+   */
+  deleted: UserModelAction;
 }
 
 export function setupProjectEnvSettings(
@@ -105,6 +110,12 @@ export function setupProjectEnvSettings(
           displayName: "",
         },
         isPrimary: false,
+        deleted: {
+          active: false,
+          date: 0,
+          userId: "",
+          displayName: "",
+        },
       };
 
       return mergeDeep(

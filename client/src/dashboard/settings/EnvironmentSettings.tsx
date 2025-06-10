@@ -1,3 +1,4 @@
+import MaterialIcon from "client/components/MaterialIcon";
 import { useHtmlId } from "client/components/useHtmlId";
 import { formatDate } from "common/format/date";
 import { EnvironmentTypes } from "common/models/projects/Environment";
@@ -60,7 +61,6 @@ export function EnvironmentSettings({
                 name="require-ssl"
                 defaultChecked={envData.forceSsl}
                 label="Require SSL"
-                disabled
               />
 
               <Form.Check
@@ -69,7 +69,7 @@ export function EnvironmentSettings({
                 name="hsts"
                 defaultChecked={envData.hsts}
                 label="HSTS"
-                disabled
+                disabled={!envData.forceSsl}
               />
             </div>
           </Form>
@@ -84,13 +84,11 @@ export function EnvironmentSettings({
 
           {/* Replace the existing code with this */}
           <div className="mt-4">
-            <Button
-              disabled
-              variant="primary"
-              onClick={() => setShowAddDomain(true)}
-            >
-              Add Domain
+            <Button variant="primary" onClick={() => setShowAddDomain(true)}>
+              <MaterialIcon>add</MaterialIcon>
+              Domain
             </Button>
+
             <AddDomainModal
               show={showAddDomain}
               onHide={() => setShowAddDomain(false)}
