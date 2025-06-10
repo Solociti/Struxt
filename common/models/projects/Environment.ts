@@ -127,3 +127,55 @@ export function setupProjectEnvSettings(
 
   return setting;
 }
+
+/**
+ * Get the valid domains for the given environment settings.
+ *
+ * @param envSettings
+ * @returns
+ */
+export function getValidDomains(envSettings: ProjectEnvSettings): {
+  domains: ProjectDomain[];
+  redirectDomains: ProjectDomain[];
+  primaryDomain: ProjectDomain | null;
+} {
+  const domains = envSettings.domains.filter(
+    (d) => d.enabled.active && d.dnsVerified.active && !d.deleted.active
+  );
+
+  const primaryDomain = getPrimaryDomain(domains);
+  const redirectDomains = domains.filter(
+    (d) => !primaryDomain || d.domain !== primaryDomain.domain
+  );
+
+  return { domains, redirectDomains, primaryDomain };
+}
+
+/**
+ * Get the primary domain from the environment domain list
+ *
+ * @param domains
+ * @returns
+ */
+export function getPrimaryDomain(
+  domains: ProjectDomain[]
+): ProjectDomain | null {
+  const primaryDomain = domains.find((d) => d.isPrimary);
+  if (primaryDomain) {
+    return primaryDomain;
+  }
+
+  // if no primary domain is set, set the first one that starts with www
+  const wwwDomain = domains.find((d) => d.domain.startsWith("www"));
+  if (wwwDomain) {
+    return wwwDomain;
+  }
+
+  // if no primary domain is set, set the first domain
+  const firstDomain = domains[0];
+  if (firstDomain) {
+    return firstDomain;
+  }
+
+  return null;
+}

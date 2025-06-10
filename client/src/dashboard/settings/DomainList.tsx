@@ -2,6 +2,7 @@ import MaterialIcon from "client/components/MaterialIcon";
 import { useConfirmModal } from "client/components/modals/useConfirmModal";
 import { ProjectDomain } from "common/models/projects/Environment";
 import { forwardRef } from "react";
+import Badge from "react-bootstrap/Badge";
 import Button from "react-bootstrap/Button";
 import Dropdown from "react-bootstrap/Dropdown";
 import ListGroup from "react-bootstrap/ListGroup";
@@ -38,7 +39,20 @@ function DomainListItem({ domain }: { domain: ProjectDomain }) {
         {domain.isPrimary && (
           <MaterialIcon title="Primary Domain">language</MaterialIcon>
         )}
-        <span className="ms-2">{domain.domain}</span>
+
+        <span
+          className={`ms-2 ${
+            domain.deleted.active ? "text-decoration-line-through" : ""
+          }`}
+        >
+          {domain.domain}
+        </span>
+
+        {domain.deleted.active && (
+          <Badge bg="danger" className="mx-2">
+            Deleted
+          </Badge>
+        )}
       </div>
 
       <div className="d-flex align-items-center flex-grow-1 justify-content-end">
@@ -70,7 +84,15 @@ function ListItemDropdown({ domain }: { domain: ProjectDomain }) {
   // setup the delete confirmation modal
   const { confirmModal: deleteModal, showConfirmModal: showDeleteModal } =
     useConfirmModal({
-      message: `Are you sure you want to delete the domain ${domain.domain}? The domain will be removed after the next publish.`,
+      message: (
+        <>
+          <p>
+            Are you sure you want to delete the domain <b>{domain.domain}</b>?
+          </p>
+
+          <p>The domain will be removed after the next publish.</p>
+        </>
+      ),
       title: "Delete Domain",
       confirmButtonText: "Delete",
       onConfirm: () => {

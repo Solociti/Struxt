@@ -1,6 +1,7 @@
 import { customError } from "common/custom-error/custom-error";
 import {
   EnvironmentTypes,
+  getValidDomains,
   ProjectDomain,
   ProjectEnvSettings,
 } from "common/models/projects/Environment";
@@ -8,6 +9,10 @@ import { ProjectModel } from "common/models/projects/ProjectModel";
 import { PublishModel } from "common/models/projects/PublishModel";
 import { createCertificate, getCertificate } from "server/npm/certificates";
 import { createDefaultProxyHostConf } from "server/npm/data/createProxyHostConf";
+import {
+  createRedirectionHostConf,
+  updateRedirectionHostConf,
+} from "server/npm/data/redirectionHostConf";
 import {
   createProxyHost,
   getProxyHost,
@@ -26,10 +31,6 @@ import {
   RedirectHostUpdate,
 } from "server/npm/types";
 import { updateProxyHostConf } from "../../npm/data/updateProxyHostConf";
-import {
-  createRedirectionHostConf,
-  updateRedirectionHostConf,
-} from "server/npm/data/redirectionHostConf";
 
 /**
  * Update all of the proxy settings for the given project.
@@ -46,17 +47,13 @@ export async function updateProjectProxy(
   const env = publish.siteEnv;
   const envSettings = project[env];
 
-  // TODO: verify that the domains are setup correctly
-  // TODO: check the dns for the domains
+  // get the list of valid domains
+  const { domains, primaryDomain, redirectDomains } =
+    getValidDomains(envSettings);
 
-  const primaryDomain = project.getPrimaryDomain(env);
   if (!primaryDomain) {
     throw customError(400, "No primary domain found for the project");
   }
-
-  const redirectDomains = envSettings.domains.filter(
-    (d) => d.domain !== primaryDomain.domain && !d.isPrimary
-  );
 
   // check if a certificate is needed
   let createNewCert = false;
@@ -67,7 +64,7 @@ export async function updateProjectProxy(
 
     // create string sets of the domains to match them
     const certDomainStr = certificate.domain_names.slice().sort().join(",");
-    const domainStr = envSettings.domains
+    const domainStr = domains
       .map((d) => d.domain)
       .sort()
       .join(",");
@@ -97,7 +94,7 @@ export async function updateProjectProxy(
 
     // create a new certificate
     const newCertificate = await createCertificate({
-      domain_names: envSettings.domains.map((d) => d.domain),
+      domain_names: domains.map((d) => d.domain),
       nice_name: `${project.name} - ${env}`,
       provider: "letsencrypt",
       meta: {
