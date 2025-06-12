@@ -3,6 +3,8 @@ import { DeepPartial, mergeDeep } from "../utils";
 
 export type EnvironmentTypes = "staging" | "production";
 
+export const validEnvironments: EnvironmentTypes[] = ["staging", "production"];
+
 /**
  * Environment specific settings for a project
  */
@@ -75,6 +77,8 @@ export interface ProjectDomain {
 
   /**
    * Set when the domain is deleted.
+   *
+   * When this is true, the domain should be removed on next publish.
    */
   deleted: UserModelAction;
 }

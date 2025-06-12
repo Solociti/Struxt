@@ -150,6 +150,17 @@ async function main() {
     ].join("\n");
   }
 
+  if (!contents.includes("STRUXT_REGISTER_DOMAIN")) {
+    contents += [
+      "",
+      "# Domain used to to register the free subdomains.",
+      "STRUXT_REGISTER_DOMAIN=struxt.solociti.com",
+      "# The proxy domain. Will use the proxy domain A records as recommended settings for root domains.",
+      "# For subdomains, will recommend using a cname pointing to the proxy domain.",
+      "STRUXT_PROXY_DOMAIN=proxy.struxt.solociti.com",
+    ].join("\n");
+  }
+
   if (contents !== original) {
     // allow the value to be edited
     const lines = contents.split("\n");
