@@ -169,7 +169,7 @@ function ListItemDropdown({ domain }: { domain: ProjectDomain }) {
       <Dropdown.Menu>
         <Dropdown.Item
           onClick={() => showPrimaryModal()}
-          disabled={domain.isPrimary}
+          disabled={domain.isPrimary || !domain.dnsVerified.active}
         >
           <MaterialIcon className="me-2">language</MaterialIcon>
           Set Primary
@@ -177,7 +177,7 @@ function ListItemDropdown({ domain }: { domain: ProjectDomain }) {
 
         <Dropdown.Item
           onClick={() => showDisableModal()}
-          disabled={domain.isPrimary || domain.deleted.active}
+          disabled={domain.isPrimary || !domain.dnsVerified.active}
         >
           <MaterialIcon className="me-2">
             {domain.enabled.active ? "toggle_off" : "toggle_on"}

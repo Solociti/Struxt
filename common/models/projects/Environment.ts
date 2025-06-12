@@ -56,6 +56,11 @@ export interface ProjectDomain {
   domain: string;
 
   /**
+   * Information about who created the domain.
+   */
+  created: Omit<UserModelAction, "active">;
+
+  /**
    * if the domain is enabled or not.
    *
    * Default will be false.
@@ -101,35 +106,49 @@ export function setupProjectEnvSettings(
 
   if (data.domains) {
     setting.domains = data.domains.map((data) => {
-      const domain: ProjectEnvSettings["domains"][number] = {
-        domain: "",
-        dnsVerified: {
-          active: false,
-          date: 0,
-        },
-        enabled: {
-          active: false,
-          date: 0,
-          userId: "",
-          displayName: "",
-        },
-        isPrimary: false,
-        deleted: {
-          active: false,
-          date: 0,
-          userId: "",
-          displayName: "",
-        },
-      };
-
-      return mergeDeep(
-        domain,
-        data as Partial<ProjectEnvSettings["domains"][number]>
-      );
+      return setupDomainData(data as ProjectDomain);
     });
   }
 
   return setting;
+}
+
+/**
+ * Setup the default data for a project domain.
+ *
+ * @param data
+ * @returns
+ */
+export function setupDomainData(
+  data: DeepPartial<ProjectDomain>
+): ProjectDomain {
+  const domain: ProjectDomain = {
+    domain: "",
+    dnsVerified: {
+      active: false,
+      date: 0,
+    },
+    created: {
+      date: Math.floor(Date.now() / 1000),
+      userId: "",
+      displayName: "",
+    },
+    enabled: {
+      active: false,
+      date: 0,
+      userId: "",
+      displayName: "",
+    },
+    isPrimary: false,
+    deleted: {
+      active: false,
+      date: 0,
+      userId: "",
+      displayName: "",
+    },
+  };
+
+  return mergeDeep(domain, data);
 }
 
 /**

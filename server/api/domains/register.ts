@@ -4,37 +4,34 @@ import {
   DomainUpdateApi,
 } from "common/api/domains/domains";
 import { customError } from "common/custom-error/custom-error";
+import { validEnvironments } from "common/models/projects/Environment";
 import { roles } from "common/models/user/Roles";
 import { resolveDns } from "server/utils/dns/resolveDns";
 import { registerApi } from "../registerApi";
+import { addDomain } from "./addDomain";
+import { checkDomainAvailability } from "./checkDomainAvailability";
+import { getProxyDomain, getRegisterDomain } from "./proxyDomain";
 import { updateDomainDetails } from "./updateDomainDetails";
-import { validEnvironments } from "common/models/projects/Environment";
+import { validateDomain } from "./validateDomain";
 
 // get the domain information for struxt
 registerApi<DomainInfoApi>("/api/projects/domains/info").get(
   [roles.struxt.editor, roles.struxt.admin],
   async () => {
-    const proxyDomain = process.env.STRUXT_PROXY_DOMAIN || "";
-
-    // get the A records for the proxy domain
-    if (!proxyDomain) {
-      throw customError(
-        500,
-        "The STRUXT_PROXY_DOMAIN environment variable is not set."
-      );
-    }
+    const proxyDomain = getProxyDomain();
+    const registerDomain = getRegisterDomain();
 
     try {
       const { ips } = await resolveDns(proxyDomain);
 
       // get the dns settings needed to setup a domain
       const dnsSettings = {
-        proxy: process.env.STRUXT_PROXY_DOMAIN || "",
+        proxy: proxyDomain,
         ips,
       };
 
       return {
-        freeBaseDomain: process.env.STRUXT_REGISTER_DOMAIN || "",
+        freeBaseDomain: registerDomain,
         dnsSettings,
       };
     } catch (err) {
@@ -43,28 +40,113 @@ registerApi<DomainInfoApi>("/api/projects/domains/info").get(
   }
 );
 
-registerApi<DomainRegisterApi>(
-  "/api/projects/:projectId/domains/register"
-).post([roles.struxt.editor, roles.struxt.admin], async ({ params, user }) => {
-  const projectId = params.projectId;
+registerApi<DomainRegisterApi>("/api/projects/:projectId/domains/register")
+  .get(
+    [roles.struxt.editor, roles.struxt.admin],
+    async ({ params, user, query }) => {
+      const projectId = params.projectId;
 
-  // check if the user has access to the project
-  if (
-    !user.hasPermission(roles.struxt.admin) &&
-    !user.hasProjectPermission(projectId, [roles.projects.admin])
-  ) {
-    throw customError(
-      403,
-      "You don't have access to register a domain for this project."
-    );
-  }
+      // check if the user has access to the project
+      if (
+        !user.hasPermission(roles.struxt.admin) &&
+        !user.hasProjectPermission(projectId, [roles.projects.admin])
+      ) {
+        throw customError(
+          403,
+          "You don't have access to register a domain for this project."
+        );
+      }
 
-  // TODO: setup a new domain for a project
+      const domain = query.domain || query.freeSubdomain;
+      const isFreeDomain = !query.domain && Boolean(query.freeSubdomain);
 
-  return {
-    success: false,
-  };
-});
+      if (!domain) {
+        throw customError(
+          400,
+          "You must specify either a domain or a subdomain to check availability."
+        );
+      }
+
+      // validate the domain or subdomain
+      const result = validateDomain(domain, isFreeDomain);
+
+      if (!result.isValid) {
+        return {
+          domain: "",
+          isValid: false,
+          available: false,
+        };
+      }
+
+      // check that the domain is available / not used in a project
+      const isAvailable = await checkDomainAvailability(result.domain);
+
+      return {
+        domain: result.domain,
+        isValid: result.isValid,
+        available: isAvailable,
+      };
+    }
+  )
+  .post(
+    [roles.struxt.editor, roles.struxt.admin],
+    async ({ params, user, body }) => {
+      const projectId = params.projectId;
+
+      // check if the user has access to the project
+      if (
+        !user.hasPermission(roles.struxt.admin) &&
+        !user.hasProjectPermission(projectId, [roles.projects.admin])
+      ) {
+        throw customError(
+          403,
+          "You don't have access to register a domain for this project."
+        );
+      }
+
+      // validate the environment given
+      if (!body.environment || !validEnvironments.includes(body.environment)) {
+        throw customError(400, "Invalid environment specified.");
+      }
+
+      const domain = body.domain || body.freeSubdomain;
+      const isFreeDomain = !body.domain && Boolean(body.freeSubdomain);
+
+      if (!domain) {
+        throw customError(
+          400,
+          "You must specify either a domain or a subdomain to check availability."
+        );
+      }
+
+      // validate the domain or subdomain
+      const validResult = validateDomain(domain, isFreeDomain);
+      if (!validResult.isValid) {
+        throw customError(400, "The provided domain is not valid.");
+      }
+
+      const isAvailable = await checkDomainAvailability(validResult.domain);
+      if (!isAvailable) {
+        throw customError(400, "The provided domain is not available.");
+      }
+
+      // setup a new domain for a project
+      const domainResult = await addDomain(
+        projectId,
+        body.environment,
+        validResult.domain,
+        {
+          userId: user.id,
+          displayName: user.name,
+        }
+      );
+
+      return {
+        success: true,
+        environment: domainResult.updatedEnv,
+      };
+    }
+  );
 
 // handle updating the domain details for a project environment
 registerApi<DomainUpdateApi>("/api/projects/:projectId/domains/update")
@@ -86,7 +168,7 @@ registerApi<DomainUpdateApi>("/api/projects/:projectId/domains/update")
 
       // ensure that its a valid environment
       if (!body.environment || !validEnvironments.includes(body.environment)) {
-        throw customError(401, "Invalid environment specified.");
+        throw customError(400, "Invalid environment specified.");
       }
 
       if (!body.changes || body.changes.length === 0) {

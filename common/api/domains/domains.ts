@@ -26,6 +26,34 @@ export interface DomainRegisterApi extends Api {
     projectId: string;
   };
 
+  GetQuery: {
+    /**
+     * Check if the domain is available for setup
+     */
+    domain?: string;
+    /**
+     * Check if the subdomain is available for setup
+     */
+    freeSubdomain?: string;
+  };
+
+  GetResponse: {
+    /**
+     * If the domain is available for setup
+     */
+    available: boolean;
+
+    /**
+     * If the domain was valid.
+     */
+    isValid: boolean;
+
+    /**
+     * The updated domain if it was valid.
+     */
+    domain: string;
+  };
+
   PostBody: {
     /**
      * The project environment to register the domain for.
@@ -43,6 +71,11 @@ export interface DomainRegisterApi extends Api {
     freeSubdomain: string;
   };
   PostResponse: {
+    /**
+     * The project environment to update the domain for.
+     */
+    environment: ProjectEnvSettings;
+
     success: boolean;
   };
 }
