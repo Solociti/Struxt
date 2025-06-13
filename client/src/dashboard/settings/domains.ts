@@ -3,6 +3,7 @@ import {
   DomainDnsVerifyApi,
   DomainInfoApi,
   DomainRegisterApi,
+  DomainUpdateApi,
 } from "common/api/domains/domains";
 import { EnvironmentTypes } from "common/models/projects/Environment";
 
@@ -104,5 +105,31 @@ export async function verifyDomainDns(
     ["/api/projects", projectId, "domains/verify-dns"],
     body
   );
+  return result;
+}
+
+/**
+ * Update the domain details for a project environment.
+ *
+ * @param projectId
+ * @param environment
+ * @param changes
+ * @returns
+ */
+export async function updateDomainDetails(
+  projectId: string,
+  environment: EnvironmentTypes,
+  changes: DomainUpdateApi["PostBody"]["changes"]
+) {
+  const body: DomainUpdateApi["PostBody"] = {
+    environment,
+    changes,
+  };
+
+  const result: DomainUpdateApi["PostResponse"] = await postApi(
+    ["/api/projects", projectId, "domains/update"],
+    body
+  );
+
   return result;
 }

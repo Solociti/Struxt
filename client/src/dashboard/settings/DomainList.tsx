@@ -10,6 +10,7 @@ import Button from "react-bootstrap/Button";
 import Dropdown from "react-bootstrap/Dropdown";
 import ListGroup from "react-bootstrap/ListGroup";
 import VerifyDomainModal from "./VerifyDomainModal";
+import { updateDomainDetails } from "./domains";
 
 /**
  * Show the list of domains
@@ -162,13 +163,15 @@ function ListItemDropdown({
       confirmButtonText: `${
         domain.enabled.active ? "Disable" : "Enable"
       } Domain`,
-      onConfirm: () => {
-        // Handle the enable/disable logic here
-        console.log(
-          `${domain.enabled.active ? "Disabling" : "Enabling"} domain: ${
-            domain.domain
-          }`
-        );
+      onConfirm: async () => {
+        await updateDomainDetails(projectId, environment, [
+          {
+            domain: domain.domain,
+            enabled: !domain.enabled.active,
+          },
+        ]);
+
+        refreshProject();
       },
     });
 
