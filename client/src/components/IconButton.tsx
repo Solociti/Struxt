@@ -1,5 +1,5 @@
 import Button, { ButtonProps } from "react-bootstrap/Button";
-import MaterialIcon from "./MaterialIcon";
+import MaterialIcon, { MaterialIconProps } from "./MaterialIcon";
 import Spinner from "react-bootstrap/Spinner";
 
 export interface IconButtonProps extends ButtonProps {
@@ -7,6 +7,8 @@ export interface IconButtonProps extends ButtonProps {
    * The material font icon to display in the button.
    */
   icon: string;
+
+  iconProps?: MaterialIconProps;
 
   /**
    * When true, shows a spinner instead of the icon.
@@ -24,6 +26,7 @@ export default function IconButton({
   children,
   disabled,
   icon,
+  iconProps,
   size,
   spinner,
   ...props
@@ -51,9 +54,11 @@ export default function IconButton({
           />
         ) : (
           <MaterialIcon
+            {...iconProps}
             style={{
-              position: "relative",
               top: "0.06em",
+              position: "relative",
+              ...(iconProps?.style || {}),
             }}
           >
             {icon}
