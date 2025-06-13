@@ -84,7 +84,7 @@ export function useConfirmModal({
     >
       <ShowError error={handleSubmit.error} />
 
-      <p>{message}</p>
+      <div className="my-2">{message}</div>
     </SimpleModal>
   );
 

@@ -1,6 +1,6 @@
 import React from "react";
 
-type MaterialIconProps = {
+export type MaterialIconProps = {
   filled?: boolean;
 } & React.DetailedHTMLProps<React.HTMLAttributes<HTMLElement>, HTMLElement>;
 

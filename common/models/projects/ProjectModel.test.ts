@@ -55,6 +55,9 @@ describe("ProjectModel", () => {
         domains: [
           {
             domain: "example.com",
+            created: {
+              date: 12345,
+            },
           },
         ],
       },
@@ -62,6 +65,9 @@ describe("ProjectModel", () => {
         domains: [
           {
             domain: "example.com",
+            created: {
+              date: 12345,
+            },
           },
         ],
       },
@@ -84,7 +90,9 @@ describe("ProjectModel", () => {
           {
             domain: "example.com",
             dnsVerified: { active: false, date: 0 },
+            created: { date: 12345, userId: "", displayName: "" },
             enabled: { active: false, date: 0, userId: "", displayName: "" },
+            deleted: { active: false, date: 0, userId: "", displayName: "" },
             isPrimary: false,
           },
         ],
@@ -101,7 +109,9 @@ describe("ProjectModel", () => {
           {
             domain: "example.com",
             dnsVerified: { active: false, date: 0 },
+            created: { date: 12345, userId: "", displayName: "" },
             enabled: { active: false, date: 0, userId: "", displayName: "" },
+            deleted: { active: false, date: 0, userId: "", displayName: "" },
             isPrimary: false,
           },
         ],

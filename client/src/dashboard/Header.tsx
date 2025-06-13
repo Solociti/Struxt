@@ -4,11 +4,12 @@ import { useCurrentUser } from "../auth/userCurrentUser";
 import { useCurrentProject } from "../projects/ProjectContext";
 import SelectProject from "../projects/SelectProject";
 import NotificationsPopover from "./notifications/NotificationsPopover";
+import IconButton from "client/components/IconButton";
 
 export function DashboardHeader() {
   const { user } = useCurrentUser();
   const { project, setProject } = useCurrentProject();
-  const { theme } = useTheme();
+  const { theme, setTheme } = useTheme();
 
   return (
     <Navbar className="p-2 border-bottom sticky-top" bg={theme}>
@@ -22,6 +23,18 @@ export function DashboardHeader() {
       </div>
 
       <div className="d-flex align-items-center">
+        <IconButton
+          icon="contrast"
+          iconProps={{
+            style: {
+              transition: "all 0.3s ease",
+              transform: theme === "dark" ? "rotate(180deg)" : "rotate(0deg)",
+            },
+          }}
+          variant="outline-secondary"
+          onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
+        ></IconButton>
+
         <NotificationsPopover />
 
         {/* User section */}

@@ -26,6 +26,8 @@ import {
 } from "./roles/projectRoles";
 import { saveProjectEditorData } from "./saveProject";
 
+import "server/api/domains/register";
+
 registerApi<ProjectListApi>("/api/projects").get([], async ({ user }) => {
   // load the projects for an admin
   if (user.hasPermission(roles.struxt.admin)) {

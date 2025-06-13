@@ -1,3 +1,4 @@
+import { EnvironmentTypes } from "common/models/projects/Environment";
 import { PublishModel } from "common/models/projects/PublishModel";
 import { getCollection } from "server/database/mongodb";
 
@@ -8,16 +9,19 @@ import { getCollection } from "server/database/mongodb";
  * @param projectEnv
  * @returns
  */
-export async function getLatestPublish(projectId: string, projectEnv: string) {
+export async function getLatestPublish(
+  projectId: string,
+  projectEnv: EnvironmentTypes
+) {
   const collection = await getCollection<PublishModel>("projects_published");
 
   const doc = await collection.findOne(
     {
       projectId,
-      projectEnv,
+      siteEnv: projectEnv,
     },
     {
-      sort: { date: -1 },
+      sort: { "created.date": -1 },
     }
   );
   if (!doc) {

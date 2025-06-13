@@ -1,10 +1,9 @@
 import { PublishApi } from "common/api/publish/publish";
 import { customError } from "common/custom-error/custom-error";
+import { validEnvironments } from "common/models/projects/Environment";
 import { roles } from "common/models/user/Roles";
 import { registerApi } from "../registerApi";
 import { publishProject } from "./publishProject";
-
-const validTypes = ["staging", "production"];
 
 registerApi<PublishApi>("/api/publish/:projectId", {
   bodySanitization: {
@@ -20,7 +19,7 @@ registerApi<PublishApi>("/api/publish/:projectId", {
     const projectId = params.projectId;
 
     // check if the publish type is valid
-    if (!validTypes.includes(publishEnv)) {
+    if (!validEnvironments.includes(publishEnv)) {
       throw customError(400, `Type '${publishEnv}' not implemented!`);
     }
 

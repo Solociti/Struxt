@@ -2,6 +2,7 @@ import { useLoadAsync } from "client/api/useLoadAsync";
 import { useCurrentProject } from "client/projects/ProjectContext";
 import { getProjectDetails } from "client/projects/projects";
 import { formatStorageSize } from "common/format/storageSize";
+import { useState } from "react";
 import Card from "react-bootstrap/Card";
 import Col from "react-bootstrap/Col";
 import Container from "react-bootstrap/Container";
@@ -15,6 +16,7 @@ import { EnvironmentSettings } from "./EnvironmentSettings";
 
 export default function SettingsContent() {
   const { project } = useCurrentProject();
+  const [reload, setReload] = useState(0);
 
   // load the project
   const {
@@ -28,7 +30,7 @@ export default function SettingsContent() {
 
     // Load project details
     return await getProjectDetails(project.projectId);
-  }, [project.projectId]);
+  }, [project.projectId, reload]);
 
   if (project.projectId === "*") {
     return (
@@ -39,7 +41,7 @@ export default function SettingsContent() {
     );
   }
 
-  if (loadingProjectDetails) {
+  if (loadingProjectDetails && !projectDetails) {
     return (
       <Container className="py-4">
         <h1 className="fw-bold mb-3">Settings</h1>
@@ -147,12 +149,14 @@ export default function SettingsContent() {
                 <EnvironmentSettings
                   environment="production"
                   project={projectDetails}
+                  refreshProject={() => setReload((c) => c + 1)}
                 />
               </Tab>
               <Tab eventKey="staging" title="Staging">
                 <EnvironmentSettings
                   environment="staging"
                   project={projectDetails}
+                  refreshProject={() => setReload((c) => c + 1)}
                 />
               </Tab>
             </Tabs>

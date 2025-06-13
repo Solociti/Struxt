@@ -11,6 +11,8 @@ This is like a mono repo setup.
 
 Do not use useless comments. Code should be self-explanatory as much as possible.
 DO NOT GENERATE ANY COMMENTS ANYWHERE with exception to jsdoc comments.
+Every function should have a jsdoc comment explaining what it does and its parameters.
+Root level react components should always be defined as functional components. Not arrow functions.
 For React Bootstrap components, use the `react-bootstrap` library and import specific components per file. Example: `react-bootstrap/Button`.
 Use react styles when possible for styling components.
 
@@ -34,6 +36,14 @@ server/           # Contains the Node.js server application. Can be accessed usi
   database/       # Database models
   forms/          # Hosted site forms
 ```
+
+## Components
+
+Components are located in the `client/src/components` directory.
+For buttons prefer using the <IconButton /> component from `client/components/IconButton.tsx`.
+For icons use the <MaterialIcon /> component from `client/components/MaterialIcon.tsx`.
+For a modal use the <SimpleModal /> component from `client/components/modals/SimpleModal.tsx`.
+Use the <ShowError /> component from `client/components/ShowError.tsx` to display errors.
 
 ## DB models
 

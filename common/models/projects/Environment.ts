@@ -3,6 +3,8 @@ import { DeepPartial, mergeDeep } from "../utils";
 
 export type EnvironmentTypes = "staging" | "production";
 
+export const validEnvironments: EnvironmentTypes[] = ["staging", "production"];
+
 /**
  * Environment specific settings for a project
  */
@@ -54,6 +56,11 @@ export interface ProjectDomain {
   domain: string;
 
   /**
+   * Information about who created the domain.
+   */
+  created: Omit<UserModelAction, "active">;
+
+  /**
    * if the domain is enabled or not.
    *
    * Default will be false.
@@ -72,6 +79,13 @@ export interface ProjectDomain {
    * None primary domains will be redirected to the primary domain.
    */
   isPrimary: boolean;
+
+  /**
+   * Set when the domain is deleted.
+   *
+   * When this is true, the domain should be removed on next publish.
+   */
+  deleted: UserModelAction;
 }
 
 export function setupProjectEnvSettings(
@@ -92,27 +106,99 @@ export function setupProjectEnvSettings(
 
   if (data.domains) {
     setting.domains = data.domains.map((data) => {
-      const domain: ProjectEnvSettings["domains"][number] = {
-        domain: "",
-        dnsVerified: {
-          active: false,
-          date: 0,
-        },
-        enabled: {
-          active: false,
-          date: 0,
-          userId: "",
-          displayName: "",
-        },
-        isPrimary: false,
-      };
-
-      return mergeDeep(
-        domain,
-        data as Partial<ProjectEnvSettings["domains"][number]>
-      );
+      return setupDomainData(data as ProjectDomain);
     });
   }
 
   return setting;
+}
+
+/**
+ * Setup the default data for a project domain.
+ *
+ * @param data
+ * @returns
+ */
+export function setupDomainData(
+  data: DeepPartial<ProjectDomain>
+): ProjectDomain {
+  const domain: ProjectDomain = {
+    domain: "",
+    dnsVerified: {
+      active: false,
+      date: 0,
+    },
+    created: {
+      date: Math.floor(Date.now() / 1000),
+      userId: "",
+      displayName: "",
+    },
+    enabled: {
+      active: false,
+      date: 0,
+      userId: "",
+      displayName: "",
+    },
+    isPrimary: false,
+    deleted: {
+      active: false,
+      date: 0,
+      userId: "",
+      displayName: "",
+    },
+  };
+
+  return mergeDeep(domain, data);
+}
+
+/**
+ * Get the valid domains for the given environment settings.
+ *
+ * @param envSettings
+ * @returns
+ */
+export function getValidDomains(envSettings: ProjectEnvSettings): {
+  domains: ProjectDomain[];
+  redirectDomains: ProjectDomain[];
+  primaryDomain: ProjectDomain | null;
+} {
+  const domains = envSettings.domains.filter(
+    (d) => d.enabled.active && d.dnsVerified.active && !d.deleted.active
+  );
+
+  const primaryDomain = getPrimaryDomain(domains);
+  const redirectDomains = domains.filter(
+    (d) => !primaryDomain || d.domain !== primaryDomain.domain
+  );
+
+  return { domains, redirectDomains, primaryDomain };
+}
+
+/**
+ * Get the primary domain from the environment domain list
+ *
+ * @param domains
+ * @returns
+ */
+export function getPrimaryDomain(
+  domains: ProjectDomain[]
+): ProjectDomain | null {
+  const primaryDomain = domains.find((d) => d.isPrimary);
+  if (primaryDomain) {
+    return primaryDomain;
+  }
+
+  // if no primary domain is set, set the first one that starts with www
+  const wwwDomain = domains.find((d) => d.domain.startsWith("www"));
+  if (wwwDomain) {
+    return wwwDomain;
+  }
+
+  // if no primary domain is set, set the first domain
+  const firstDomain = domains[0];
+  if (firstDomain) {
+    return firstDomain;
+  }
+
+  return null;
 }

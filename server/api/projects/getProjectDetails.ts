@@ -50,23 +50,27 @@ export async function getProjectDetails(projectId: string) {
   const stagingPublish = await getLatestPublish(projectId, "staging");
   const productionPublish = await getLatestPublish(projectId, "production");
 
-  details.publish.staging = {
-    ...details.publish.staging,
-    active: !!stagingPublish,
-    date: stagingPublish?.created.date || 0,
-    userId: stagingPublish?.created.userId || "",
-    displayName: stagingPublish?.created.displayName || "",
-    screenshotUrl: stagingPublish?.screenshotUrl || "",
-  };
+  if (stagingPublish) {
+    details.publish.staging = {
+      ...details.publish.staging,
+      active: true,
+      date: stagingPublish.created.date,
+      userId: stagingPublish.created.userId,
+      displayName: stagingPublish.created.displayName,
+      screenshotUrl: stagingPublish.screenshotUrl,
+    };
+  }
 
-  details.publish.production = {
-    ...details.publish.production,
-    active: !!productionPublish,
-    date: productionPublish?.created.date || 0,
-    userId: productionPublish?.created.userId || "",
-    displayName: productionPublish?.created.displayName || "",
-    screenshotUrl: productionPublish?.screenshotUrl || "",
-  };
+  if (productionPublish) {
+    details.publish.production = {
+      ...details.publish.production,
+      active: true,
+      date: productionPublish.created.date,
+      userId: productionPublish.created.userId,
+      displayName: productionPublish.created.displayName,
+      screenshotUrl: productionPublish.screenshotUrl,
+    };
+  }
 
   // count the form submissions
   const submissions = await getFormSubmissionList(projectId, "production");
