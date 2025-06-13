@@ -6,9 +6,9 @@ import MaterialIcon from "./MaterialIcon";
 type ToastController = {
   showToast: (
     title: string,
-    icon?: string,
-    variant?: string,
-    autoHideDelay?: number
+    icon: string,
+    variant: string,
+    autoHideDelay: number
   ) => void;
 };
 
@@ -149,9 +149,9 @@ export default function ToastTopProvider() {
     toastController = {
       showToast: (
         title: string,
-        icon: string = "info",
-        variant: string = "secondary",
-        autoHideDelay: number = 5000
+        icon: string,
+        variant: string,
+        autoHideDelay: number
       ) => {
         setToastProps({
           show: true,
