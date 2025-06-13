@@ -201,9 +201,15 @@ function ListItemDropdown({
       ),
       title: "Make Primary Domain",
       confirmButtonText: "Make Primary",
-      onConfirm: () => {
-        // Handle the logic to make this domain primary
-        console.log(`Making domain ${domain.domain} primary`);
+      onConfirm: async () => {
+        await updateDomainDetails(projectId, environment, [
+          {
+            domain: domain.domain,
+            primary: true,
+          },
+        ]);
+
+        refreshProject();
       },
     });
 
