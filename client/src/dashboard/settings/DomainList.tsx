@@ -199,8 +199,8 @@ function ListItemDropdown({
           </p>
         </>
       ),
-      title: "Make Primary Domain",
-      confirmButtonText: "Make Primary",
+      title: "Set Primary Domain",
+      confirmButtonText: "Set Primary",
       onConfirm: async () => {
         await updateDomainDetails(projectId, environment, [
           {

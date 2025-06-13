@@ -32,6 +32,12 @@ interface VerifyDomainModalProps {
   onVerify: (data: DomainDnsVerifyApi["PostResponse"]) => void;
 }
 
+/**
+ * Modal to verify a domain's DNS settings
+ *
+ * @param param0
+ * @returns
+ */
 export default function VerifyDomainModal({
   show,
   onHide,
@@ -171,6 +177,12 @@ export default function VerifyDomainModal({
   );
 }
 
+/**
+ * Show a single DNS record
+ *
+ * @param param0
+ * @returns
+ */
 function ShowRecord({
   type,
   value,
