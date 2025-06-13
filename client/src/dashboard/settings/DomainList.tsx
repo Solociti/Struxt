@@ -10,7 +10,7 @@ import Button from "react-bootstrap/Button";
 import Dropdown from "react-bootstrap/Dropdown";
 import ListGroup from "react-bootstrap/ListGroup";
 import VerifyDomainModal from "./VerifyDomainModal";
-import { updateDomainDetails } from "./domains";
+import { deleteDomain, updateDomainDetails } from "./domains";
 
 /**
  * Show the list of domains
@@ -141,9 +141,10 @@ function ListItemDropdown({
       ),
       title: "Delete Domain",
       confirmButtonText: "Delete",
-      onConfirm: () => {
-        // Handle the deletion logic here
-        console.log(`Deleting domain: ${domain.domain}`);
+      onConfirm: async () => {
+        await deleteDomain(projectId, environment, domain.domain);
+
+        refreshProject();
       },
     });
 

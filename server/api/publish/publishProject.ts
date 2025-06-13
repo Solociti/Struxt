@@ -1,6 +1,9 @@
 import { PublishApi } from "common/api/publish/publish";
 import { customError } from "common/custom-error/custom-error";
-import { EnvironmentTypes } from "common/models/projects/Environment";
+import {
+  EnvironmentTypes,
+  getValidDomains,
+} from "common/models/projects/Environment";
 import { FormSettingsField } from "common/models/projects/forms/FormSettingsModel";
 import { PublishModel } from "common/models/projects/PublishModel";
 import { existsSync } from "node:fs";
@@ -37,8 +40,14 @@ export async function publishProject(
   // the get project editor data already throws an error if not found
   const project = await getProjectData(projectId);
 
+  // remove any deleted domains from the project environment
+  project[projectEnv].domains = project[projectEnv].domains.filter(
+    (d) => !d.deleted.active
+  );
+
   // check if the project has domains to publish to
-  if (project[projectEnv].domains.length == 0) {
+  const { domains } = getValidDomains(project[projectEnv]);
+  if (domains.length == 0) {
     throw customError(400, "No domains set for the project");
   }
 

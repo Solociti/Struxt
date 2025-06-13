@@ -147,5 +147,6 @@ export interface DomainUpdateApi extends Api {
   };
   DeleteResponse: {
     success: boolean;
+    updatedEnv: ProjectEnvSettings;
   };
 }

@@ -1,4 +1,4 @@
-import { getApi, postApi } from "client/api/api";
+import { deleteApi, getApi, postApi } from "client/api/api";
 import {
   DomainDnsVerifyApi,
   DomainInfoApi,
@@ -132,4 +132,31 @@ export async function updateDomainDetails(
   );
 
   return result;
+}
+
+/**
+ * Delete a domain from a project environment.
+ *
+ * @param projectId
+ * @param environment
+ * @param domain
+ * @returns
+ */
+export async function deleteDomain(
+  projectId: string,
+  environment: EnvironmentTypes,
+  domain: string
+) {
+  const params: DomainUpdateApi["DeleteQuery"] = {
+    environment,
+    domain,
+  };
+
+  // send the request to delete the domain
+  const response: DomainUpdateApi["DeleteResponse"] = await deleteApi(
+    [`/api/projects/${projectId}/domains/update`],
+    params
+  );
+
+  return response;
 }

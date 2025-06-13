@@ -58,9 +58,7 @@ export async function removeProjectUser(projectId: string, userId: string) {
   const response: ProjectRolesApi["DeleteResponse"] = await deleteApi(
     ["/api/projects", projectId, "roles"],
     {
-      params: {
-        userId,
-      },
+      userId,
     }
   );
 
@@ -122,9 +120,7 @@ export async function cancelUserInvite(projectId: string, inviteId: string) {
   const response: ProjectRolesInviteApi["DeleteResponse"] = await deleteApi(
     ["/api/projects", projectId, "roles/invite"],
     {
-      params: {
-        inviteId,
-      },
+      inviteId,
     }
   );
 

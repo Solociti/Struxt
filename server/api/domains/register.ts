@@ -11,6 +11,7 @@ import { resolveDns } from "server/utils/dns/resolveDns";
 import { registerApi } from "../registerApi";
 import { addDomain } from "./addDomain";
 import { checkDomainAvailability } from "./checkDomainAvailability";
+import { deleteDomain } from "./deleteDomain";
 import { getProxyDomain, getRegisterDomain } from "./proxyDomain";
 import { updateDomainDetails } from "./updateDomainDetails";
 import { validateDomain } from "./validateDomain";
@@ -252,8 +253,20 @@ registerApi<DomainUpdateApi>("/api/projects/:projectId/domains/update")
         );
       }
 
-      return {
-        success: false,
-      };
+      // ensure that its a valid environment
+      if (!environment || !validEnvironments.includes(environment)) {
+        throw customError(400, "Invalid environment specified.");
+      }
+      if (!domain) {
+        throw customError(400, "No domain specified to delete.");
+      }
+
+      // delete the domain from the project environment
+      const result = await deleteDomain(projectId, environment, domain, {
+        userId: user.id,
+        displayName: user.name,
+      });
+
+      return result;
     }
   );
