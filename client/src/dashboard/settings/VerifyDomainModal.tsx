@@ -13,6 +13,7 @@ import Badge from "react-bootstrap/Badge";
 import Form from "react-bootstrap/Form";
 import Spinner from "react-bootstrap/Spinner";
 import { getDomainInfo, verifyDomainDns } from "./domains";
+import { showToastTop } from "client/components/ToastTop";
 
 interface VerifyDomainModalProps {
   show: boolean;
@@ -183,7 +184,7 @@ function ShowRecord({
         className={`alert alert-${colour} p-0 d-flex align-items-center p-2 m-0 rounded`}
       >
         <div className="d-flex align-items-center flex-grow-1">
-          <Badge bg="secondary" className="text-uppercase me-2">
+          <Badge bg={colour} className="text-uppercase me-2">
             {type}
           </Badge>
           <div className="font-monospace">{value}</div>
@@ -193,7 +194,16 @@ function ShowRecord({
           icon="content_copy"
           variant="link"
           size="sm"
-          onClick={() => navigator.clipboard.writeText(value)}
+          onClick={() => {
+            navigator.clipboard.writeText(value);
+
+            showToastTop(
+              "Copied to clipboard!",
+              "content_copy",
+              "success",
+              3000
+            );
+          }}
           // TODO: Show a toast or feedback that the value was copied
         ></IconButton>
       </div>

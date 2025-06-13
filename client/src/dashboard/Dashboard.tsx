@@ -1,4 +1,5 @@
 import { SetupErrorSnackBar } from "client/components/ErrorSnackBar";
+import ToastTopProvider from "client/components/ToastTop";
 import { lazy, Suspense, useEffect } from "react";
 import Spinner from "react-bootstrap/Spinner";
 import { Route, HashRouter as Router, Routes } from "react-router";
@@ -57,6 +58,7 @@ export default function DashboardApp() {
 
         {/* Add the error snack bar */}
         <SetupErrorSnackBar />
+        <ToastTopProvider />
       </ProjectProvider>
     </Router>
   );

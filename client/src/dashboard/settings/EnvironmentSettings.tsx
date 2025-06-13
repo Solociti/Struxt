@@ -14,9 +14,11 @@ import { DomainList } from "./DomainList";
 export function EnvironmentSettings({
   environment,
   project,
+  refreshProject,
 }: {
   environment: EnvironmentTypes;
   project: ProjectDetails;
+  refreshProject: () => void;
 }) {
   const { id } = useHtmlId();
   const [showAddDomain, setShowAddDomain] = useState(false);
@@ -99,7 +101,7 @@ export function EnvironmentSettings({
               projectId={project.projectId}
               environment={environment}
               onAdd={() => {
-                // TODO refresh the domain list
+                refreshProject();
               }}
             />
           </div>
