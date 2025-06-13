@@ -56,8 +56,9 @@ export default function IconButton({
           <MaterialIcon
             {...iconProps}
             style={{
-              top: "0.06em",
+              top: size === "sm" ? "-0.06em" : "0.06em",
               position: "relative",
+              fontSize: size === "sm" ? "22px" : "24px",
               ...(iconProps?.style || {}),
             }}
           >

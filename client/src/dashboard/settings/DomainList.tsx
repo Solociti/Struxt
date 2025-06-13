@@ -1,11 +1,15 @@
 import MaterialIcon from "client/components/MaterialIcon";
 import { useConfirmModal } from "client/components/modals/useConfirmModal";
-import { ProjectDomain } from "common/models/projects/Environment";
-import { forwardRef } from "react";
+import {
+  EnvironmentTypes,
+  ProjectDomain,
+} from "common/models/projects/Environment";
+import { forwardRef, useState } from "react";
 import Badge from "react-bootstrap/Badge";
 import Button from "react-bootstrap/Button";
 import Dropdown from "react-bootstrap/Dropdown";
 import ListGroup from "react-bootstrap/ListGroup";
+import VerifyDomainModal from "./VerifyDomainModal";
 
 /**
  * Show the list of domains
@@ -13,17 +17,38 @@ import ListGroup from "react-bootstrap/ListGroup";
  * @param param0
  * @returns
  */
-export function DomainList({ domains }: { domains: ProjectDomain[] }) {
+export function DomainList({
+  domains,
+  environment,
+  projectId,
+}: {
+  domains: ProjectDomain[];
+  environment: EnvironmentTypes;
+  projectId: string;
+}) {
   return (
     <ListGroup>
       {domains.map((domain, index) => (
-        <DomainListItem key={index} domain={domain} />
+        <DomainListItem
+          key={index}
+          domain={domain}
+          environment={environment}
+          projectId={projectId}
+        />
       ))}
     </ListGroup>
   );
 }
 
-function DomainListItem({ domain }: { domain: ProjectDomain }) {
+function DomainListItem({
+  domain,
+  environment,
+  projectId,
+}: {
+  domain: ProjectDomain;
+  environment: EnvironmentTypes;
+  projectId: string;
+}) {
   const isEnabled = domain.enabled.active && domain.dnsVerified.active;
 
   return (
@@ -56,7 +81,11 @@ function DomainListItem({ domain }: { domain: ProjectDomain }) {
       </div>
 
       <div className="d-flex align-items-center flex-grow-1 justify-content-end">
-        <ListItemDropdown domain={domain} />
+        <ListItemDropdown
+          domain={domain}
+          environment={environment}
+          projectId={projectId}
+        />
       </div>
     </ListGroup.Item>
   );
@@ -68,7 +97,15 @@ function DomainListItem({ domain }: { domain: ProjectDomain }) {
  * @param param0
  * @returns
  */
-function ListItemDropdown({ domain }: { domain: ProjectDomain }) {
+function ListItemDropdown({
+  domain,
+  environment,
+  projectId,
+}: {
+  domain: ProjectDomain;
+  environment: EnvironmentTypes;
+  projectId: string;
+}) {
   const customToggle = forwardRef<HTMLButtonElement>((props, ref) => (
     <Button
       ref={ref}
@@ -158,6 +195,8 @@ function ListItemDropdown({ domain }: { domain: ProjectDomain }) {
       },
     });
 
+  const [showDnsModal, setShowDnsModal] = useState(false);
+
   return (
     <Dropdown>
       <Dropdown.Toggle as={customToggle} />
@@ -166,7 +205,20 @@ function ListItemDropdown({ domain }: { domain: ProjectDomain }) {
       {disableModal}
       {primaryModal}
 
+      <VerifyDomainModal
+        show={showDnsModal}
+        onHide={() => setShowDnsModal(false)}
+        domain={domain}
+        environment={environment}
+        projectId={projectId}
+      />
+
       <Dropdown.Menu>
+        <Dropdown.Item onClick={() => setShowDnsModal(true)}>
+          <MaterialIcon className="me-2">dns</MaterialIcon>
+          Verify DNS
+        </Dropdown.Item>
+
         <Dropdown.Item
           onClick={() => showPrimaryModal()}
           disabled={domain.isPrimary || !domain.dnsVerified.active}

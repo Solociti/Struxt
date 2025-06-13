@@ -1,5 +1,10 @@
 import { getApi, postApi } from "client/api/api";
-import { DomainInfoApi, DomainRegisterApi } from "common/api/domains/domains";
+import {
+  DomainDnsVerifyApi,
+  DomainInfoApi,
+  DomainRegisterApi,
+} from "common/api/domains/domains";
+import { EnvironmentTypes } from "common/models/projects/Environment";
 
 /**
  * Get the global domain information / settings.
@@ -74,5 +79,30 @@ export async function registerDomain(
     body
   );
 
+  return result;
+}
+
+/**
+ * Send request to verify the DNS settings for a domain.
+ *
+ * @param projectId
+ * @param environment
+ * @param domain
+ * @returns
+ */
+export async function verifyDomainDns(
+  projectId: string,
+  environment: EnvironmentTypes,
+  domain: string
+) {
+  const body: DomainDnsVerifyApi["PostBody"] = {
+    environment,
+    domain,
+  };
+
+  const result: DomainDnsVerifyApi["PostResponse"] = await postApi(
+    ["/api/projects", projectId, "domains/verify-dns"],
+    body
+  );
   return result;
 }

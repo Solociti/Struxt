@@ -1,4 +1,5 @@
 import {
+  DomainDnsVerifyApi,
   DomainInfoApi,
   DomainRegisterApi,
   DomainUpdateApi,
@@ -13,6 +14,7 @@ import { checkDomainAvailability } from "./checkDomainAvailability";
 import { getProxyDomain, getRegisterDomain } from "./proxyDomain";
 import { updateDomainDetails } from "./updateDomainDetails";
 import { validateDomain } from "./validateDomain";
+import { verifyDomainDns } from "./verifyDomainDns";
 
 // get the domain information for struxt
 registerApi<DomainInfoApi>("/api/projects/domains/info").get(
@@ -147,6 +149,47 @@ registerApi<DomainRegisterApi>("/api/projects/:projectId/domains/register")
       };
     }
   );
+
+registerApi<DomainDnsVerifyApi>(
+  "/api/projects/:projectId/domains/verify-dns"
+).post(
+  [roles.struxt.editor, roles.struxt.admin],
+  async ({ params, user, body }) => {
+    const projectId = params.projectId;
+
+    // check if the user has access to the project
+    if (
+      !user.hasPermission(roles.struxt.admin) &&
+      !user.hasProjectPermission(projectId, [roles.projects.admin])
+    ) {
+      throw customError(
+        403,
+        "You don't have access to register a domain for this project."
+      );
+    }
+
+    // validate the environment given
+    if (!body.environment || !validEnvironments.includes(body.environment)) {
+      throw customError(400, "Invalid environment specified.");
+    }
+
+    if (!body.domain) {
+      throw customError(
+        400,
+        "You must specify either a domain or a subdomain to check availability."
+      );
+    }
+
+    // verify the DNS settings for the domain
+    const response = await verifyDomainDns(
+      projectId,
+      body.environment,
+      body.domain
+    );
+
+    return response;
+  }
+);
 
 // handle updating the domain details for a project environment
 registerApi<DomainUpdateApi>("/api/projects/:projectId/domains/update")

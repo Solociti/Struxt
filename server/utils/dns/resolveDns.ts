@@ -17,7 +17,7 @@ export async function resolveDns(
   }
 
   // Resolve the A records for the given domain
-  const ips = await dns.resolve(domain, "A");
+  const ips = await dns.resolve(domain, "A").catch(() => []);
   const cname = await resolveCname(domain);
 
   return { ips, cname };

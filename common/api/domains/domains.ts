@@ -80,6 +80,43 @@ export interface DomainRegisterApi extends Api {
   };
 }
 
+export interface DomainDnsVerifyApi extends Api {
+  Endpoint: "/api/projects/:projectId/domains/verify-dns";
+
+  PostBody: {
+    /**
+     * The project environment
+     */
+    environment: EnvironmentTypes;
+    domain: string;
+  };
+
+  PostResponse: {
+    /**
+     * Tells if the dns is valid for the domain.
+     */
+    isValid: boolean;
+
+    /**
+     * Tells if the domain is a root domain (e.g. example.com).
+     *
+     * root domains don't need the cname set.
+     */
+    isRootDomain: boolean;
+
+    dnsRecords: {
+      type: "A" | "CNAME";
+      value: string;
+      valid: boolean;
+    }[];
+
+    /**
+     * The list of ips that the domain resolves to.
+     */
+    resolvedIps: string[];
+  };
+}
+
 export interface DomainUpdateApi extends Api {
   Endpoint: "/api/projects/:projectId/domains/update";
 

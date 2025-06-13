@@ -79,7 +79,11 @@ export function EnvironmentSettings({
           <h4 className="mb-3 fw-medium fs-5">Domains</h4>
 
           <div className="mb-4">
-            <DomainList domains={project[environment].domains} />
+            <DomainList
+              domains={project[environment].domains}
+              environment={environment}
+              projectId={project.projectId}
+            />
           </div>
 
           {/* Replace the existing code with this */}
@@ -94,6 +98,9 @@ export function EnvironmentSettings({
               onHide={() => setShowAddDomain(false)}
               projectId={project.projectId}
               environment={environment}
+              onAdd={() => {
+                // TODO refresh the domain list
+              }}
             />
           </div>
         </div>
