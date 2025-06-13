@@ -85,6 +85,7 @@ export function EnvironmentSettings({
               domains={project[environment].domains}
               environment={environment}
               projectId={project.projectId}
+              refreshProject={refreshProject}
             />
           </div>
 

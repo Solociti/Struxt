@@ -3,6 +3,8 @@ import Group from "client/components/Group";
 import IconButton from "client/components/IconButton";
 import SimpleModal from "client/components/modals/SimpleModal";
 import { ShowError } from "client/components/ShowError";
+import { showToastTop } from "client/components/ToastTop";
+import { DomainDnsVerifyApi } from "common/api/domains/domains";
 import {
   EnvironmentTypes,
   ProjectDomain,
@@ -13,7 +15,6 @@ import Badge from "react-bootstrap/Badge";
 import Form from "react-bootstrap/Form";
 import Spinner from "react-bootstrap/Spinner";
 import { getDomainInfo, verifyDomainDns } from "./domains";
-import { showToastTop } from "client/components/ToastTop";
 
 interface VerifyDomainModalProps {
   show: boolean;
@@ -22,6 +23,13 @@ interface VerifyDomainModalProps {
   domain: ProjectDomain;
   projectId: string;
   environment: EnvironmentTypes;
+
+  /**
+   * Gets called when the domain verification changes
+   *
+   * @returns
+   */
+  onVerify: (data: DomainDnsVerifyApi["PostResponse"]) => void;
 }
 
 export default function VerifyDomainModal({
@@ -30,6 +38,7 @@ export default function VerifyDomainModal({
   domain,
   projectId,
   environment,
+  onVerify,
 }: VerifyDomainModalProps) {
   const [reload, setReload] = useState(0);
 
@@ -52,7 +61,15 @@ export default function VerifyDomainModal({
 
     await new Promise((resolve) => setTimeout(resolve, 500));
 
-    return await verifyDomainDns(projectId, environment, domain.domain);
+    const response = await verifyDomainDns(
+      projectId,
+      environment,
+      domain.domain
+    );
+
+    onVerify(response);
+
+    return response;
   }, [show, domain.domain, reload]);
 
   const isRootDomain =
@@ -204,7 +221,6 @@ function ShowRecord({
               3000
             );
           }}
-          // TODO: Show a toast or feedback that the value was copied
         ></IconButton>
       </div>
     </div>

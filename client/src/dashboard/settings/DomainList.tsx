@@ -21,10 +21,12 @@ export function DomainList({
   domains,
   environment,
   projectId,
+  refreshProject,
 }: {
   domains: ProjectDomain[];
   environment: EnvironmentTypes;
   projectId: string;
+  refreshProject: () => void;
 }) {
   return (
     <ListGroup>
@@ -34,6 +36,7 @@ export function DomainList({
           domain={domain}
           environment={environment}
           projectId={projectId}
+          refreshProject={refreshProject}
         />
       ))}
     </ListGroup>
@@ -44,10 +47,12 @@ function DomainListItem({
   domain,
   environment,
   projectId,
+  refreshProject,
 }: {
   domain: ProjectDomain;
   environment: EnvironmentTypes;
   projectId: string;
+  refreshProject: () => void;
 }) {
   const isEnabled = domain.enabled.active && domain.dnsVerified.active;
 
@@ -85,6 +90,7 @@ function DomainListItem({
           domain={domain}
           environment={environment}
           projectId={projectId}
+          refreshProject={refreshProject}
         />
       </div>
     </ListGroup.Item>
@@ -101,10 +107,12 @@ function ListItemDropdown({
   domain,
   environment,
   projectId,
+  refreshProject,
 }: {
   domain: ProjectDomain;
   environment: EnvironmentTypes;
   projectId: string;
+  refreshProject: () => void;
 }) {
   const customToggle = forwardRef<HTMLButtonElement>((props, ref) => (
     <Button
@@ -211,6 +219,11 @@ function ListItemDropdown({
         domain={domain}
         environment={environment}
         projectId={projectId}
+        onVerify={(data) => {
+          if (domain.dnsVerified.active !== data.isValid) {
+            refreshProject();
+          }
+        }}
       />
 
       <Dropdown.Menu>
