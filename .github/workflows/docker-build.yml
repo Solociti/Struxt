@@ -33,8 +33,8 @@ jobs:
         with:
           context: .
           file: build.Dockerfile
-          push: false
-          tags: struxt-build:build,ghcr.io/solociti/struxt-build:build
+          push: true
+          tags: ghcr.io/solociti/struxt-build:build
 
       - name: Build and push Docker image
         uses: docker/build-push-action@v6
