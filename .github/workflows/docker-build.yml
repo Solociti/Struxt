@@ -28,13 +28,30 @@ jobs:
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
 
+      - name: Build and push shared build image
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          file: build.Dockerfile
+          push: false
+          tags: struxt-build:build,ghcr.io/solociti/struxt-build:build
+
       - name: Build and push Docker image
         uses: docker/build-push-action@v6
         with:
           context: .
-          file: Dockerfile
+          file: server.Dockerfile
           push: true
           tags: ghcr.io/solociti/struxt:${{ github.event.release.tag_name }},ghcr.io/solociti/struxt:latest
+
+      - name: Build and push puppeteer Docker image
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          file: puppeteer.Dockerfile
+          push: true
+          tags: ghcr.io/solociti/struxt-puppeteer:${{ github.event.release.tag_name }},ghcr.io/solociti/struxt-puppeteer:latest
+
 
       - name: Build and push Keycloak Docker image
         uses: docker/build-push-action@v6
