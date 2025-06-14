@@ -1,4 +1,4 @@
-FROM node:22:16 AS prod
+FROM node:22.16 AS prod
 
 WORKDIR /app
 
