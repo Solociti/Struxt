@@ -20,6 +20,7 @@ import { createSimpleId } from "server/utils/createId";
 import { mkDirRecursive } from "server/utils/mkDir";
 import { getAssetDir, getPublishDir } from "server/utils/uploadDir";
 import { getProjectData } from "../projects/getProject";
+import { schedulePublishScreenshot } from "../projects/projectScreenshots";
 import { saveProject } from "../projects/saveProject";
 import { savePublish, setActivePublish } from "./savePublish";
 import { updateProjectProxy } from "./updateProxy";
@@ -62,7 +63,7 @@ export async function publishProject(
       date: Math.floor(Date.now() / 1000),
     },
     siteEnv: projectEnv,
-    screenshotUrl: "", // TODO: setup a job to capture a screenshot
+    screenshotUrl: "",
   });
 
   // setup the site directory
@@ -153,6 +154,8 @@ export async function publishProject(
 
   // set the active publish
   await setActivePublish(publishId);
+
+  await schedulePublishScreenshot(publishId, projectId);
 
   return { publishId };
 }

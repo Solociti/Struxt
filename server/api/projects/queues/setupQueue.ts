@@ -27,3 +27,17 @@ export async function scheduleInviteEmail(inviteId: string) {
     }
   );
 }
+
+export const projectScreenshotQueue = setupQueue(
+  "projects",
+  "project-screenshots",
+  {
+    attempts: 3,
+    backoff: {
+      type: "exponential",
+      delay: 20000,
+    },
+    removeOnComplete: 10,
+    removeOnFail: 10,
+  }
+);

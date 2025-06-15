@@ -1,4 +1,10 @@
-import { DefaultJobOptions, Queue, Worker, WorkerOptions } from "bullmq";
+import {
+  DefaultJobOptions,
+  FlowProducer,
+  Queue,
+  Worker,
+  WorkerOptions,
+} from "bullmq";
 import { clientUrl } from "./dragonFly";
 
 const queues: Queue[] = [];
@@ -58,6 +64,8 @@ export function setupQueue(
   });
 
   return {
+    name: queueName,
+    prefix: `{${prefix}}`,
     queue,
     cleanUp: () => {
       queue.close();
@@ -100,4 +108,17 @@ export function setupWorker(
   });
 
   return worker;
+}
+
+/**
+ * Setup a new flow producer
+ *
+ * @returns
+ */
+export function createFlowProducer() {
+  return new FlowProducer({
+    connection: {
+      url: clientUrl,
+    },
+  });
 }

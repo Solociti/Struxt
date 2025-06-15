@@ -20,6 +20,7 @@ import { router as formsRouter } from "server/forms/register";
 import { registerErrorPage } from "server/setup/errorPages";
 import { expressSetup } from "server/setup/expressSetup";
 import "server/setup/startup";
+import { staticScreenshotFiles } from "./api/projects/projectScreenshots";
 import { router as apiRouter } from "./api/registerApi";
 
 import "server/api/register";
@@ -65,6 +66,8 @@ async function main() {
 
   app.use("/api/assets", assetsRouter);
   app.use("/assets", assetStaticFiles);
+
+  app.use("/screenshots", staticScreenshotFiles);
 
   app.use(formsRouter); // TODO: move to the web server
 

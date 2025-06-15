@@ -1,6 +1,7 @@
 import "dotenv/config";
 
 import express from "express";
+import "server/worker/screenshots/worker";
 
 // run init scripts and then start the server
 main();
