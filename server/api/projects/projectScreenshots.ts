@@ -40,6 +40,7 @@ export async function schedulePublishScreenshot(
       publishId,
       projectId,
     },
+    opts: projectScreenshotQueue.defaultJobOptions,
     children: [
       {
         name: `${publishId} screenshot`,
@@ -47,11 +48,16 @@ export async function schedulePublishScreenshot(
           options: {
             height: 800,
             width: 1600,
+            interceptHost: {
+              original: "http://localhost",
+              replacement: url,
+            },
           },
-          url,
+          url: "http://localhost",
         },
         queueName: puppeteerScreenshotQueue.name,
         prefix: puppeteerScreenshotQueue.prefix,
+        opts: puppeteerScreenshotQueue.defaultJobOptions,
       },
     ],
   });

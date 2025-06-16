@@ -11,6 +11,7 @@ import { getUploadDir } from "server/utils/uploadDir";
  *
  * @param url
  * @param options
+ * @param logger
  */
 export async function createSiteScreenshot(
   url: string,
@@ -18,10 +19,53 @@ export async function createSiteScreenshot(
     width?: number;
     height?: number;
     fullPage?: boolean;
-  } = {}
+    interceptHost?: {
+      original: string;
+      replacement: string;
+    };
+  } = {},
+  logger?: (message: string) => void
 ) {
   const browser = await puppeteer.launch();
   const page = await browser.newPage();
+
+  await page.setRequestInterception(true);
+  page.on("request", (request) => {
+    if (request.isInterceptResolutionHandled()) {
+      return request.continue();
+    }
+
+    let requestUrl = request.url();
+    if (!requestUrl.startsWith("http")) {
+      return request.continue();
+    }
+
+    logger && logger(`Request: ${requestUrl}`);
+
+    // for assets, we need to update the URL to point to the correct path
+    // this is necessary because the URL will be the root of the site,
+    // instead of relative to the original path
+    if (
+      options.interceptHost &&
+      requestUrl.startsWith(options.interceptHost.original)
+    ) {
+      const updated = requestUrl.replace(
+        options.interceptHost.original,
+        options.interceptHost.replacement
+      );
+
+      requestUrl = updated;
+      logger && logger(`Updated Request: ${requestUrl}`);
+    }
+
+    request.continue({
+      url: requestUrl,
+    });
+  });
+
+  page.on("console", (msg) => {
+    logger && logger(`Console: ${msg.text()}`);
+  });
 
   await page.goto(url, {
     waitUntil: "networkidle2",
