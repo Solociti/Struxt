@@ -31,12 +31,20 @@ export function ProjectEnvInfo({
 
         <div className="mb-3">
           <h4 className="h6">Domains</h4>
-          <ListGroup variant="flush">
+          <ListGroup>
             {envData.domains.map((domain, index) => (
-              <ListGroup.Item key={index} className="px-0 py-1 border-0">
-                <a href={`https://${domain.domain}`} className="link-primary">
-                  {domain.domain}
-                </a>
+              <ListGroup.Item
+                key={index}
+                as="a"
+                action
+                active={false}
+                className=""
+                disabled={!domain.enabled.active}
+                href={`https://${domain.domain}`}
+                referrerPolicy="no-referrer"
+                target="_blank"
+              >
+                {domain.domain}
               </ListGroup.Item>
             ))}
           </ListGroup>
@@ -57,20 +65,26 @@ export function ProjectEnvInfo({
 
         <div>
           <h4 className="h6 mb-2">Preview</h4>
-          {project.publish[envLabel].screenshotUrl ? (
-            <Card.Img
-              src={project.publish[envLabel].screenshotUrl}
-              alt="Staging site preview"
-              style={{ height: "10rem", objectFit: "cover" }}
-            />
-          ) : (
-            <div
-              className="d-flex align-items-center justify-content-center bg-light text-secondary border rounded"
-              style={{ height: "10rem" }}
-            >
-              No preview available
-            </div>
-          )}
+          <div
+            className="bg-light border rounded d-flex align-items-center justify-content-center overflow-hidden shadow-sm"
+            style={{ height: "16rem" }}
+          >
+            {project.publish[envLabel].screenshotUrl ? (
+              <img
+                src={project.publish[envLabel].screenshotUrl}
+                alt="Site preview"
+                className="img-fluid"
+                style={{
+                  objectFit: "cover",
+                  objectPosition: "top",
+                  width: "100%",
+                  height: "100%",
+                }}
+              />
+            ) : (
+              <span className="text-secondary">No preview available</span>
+            )}
+          </div>
         </div>
       </Card.Body>
     </Card>

@@ -1,6 +1,20 @@
 import { ProxyHostUpdate } from "../types";
 
 /**
+ * Get the forward host for a proxy based on project and publish ID
+ *
+ * @param projectId
+ * @param publishId
+ * @returns
+ */
+export function getProxyForwardHostUrl(
+  projectId: string,
+  publishId: string
+): string {
+  return `http://web-host:3000/sites/${projectId}/${publishId}/`;
+}
+
+/**
  * Create new proxy settings with default values
  *
  * @returns
@@ -80,6 +94,13 @@ export function createEditorProxyPaths() {
       advanced_config: ["# -- End of struxt config --"].join("\n"),
       forward_scheme: "http",
       forward_host: "editor-api/assets",
+      forward_port: 3000,
+    },
+    {
+      path: "/screenshots",
+      advanced_config: ["# -- End of struxt config --"].join("\n"),
+      forward_scheme: "http",
+      forward_host: "editor-api/screenshots",
       forward_port: 3000,
     },
     {

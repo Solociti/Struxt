@@ -1,6 +1,7 @@
 services:
   web-host:
     image: ghcr.io/solociti/struxt:${VERSION:-latest}
+    user: "1000:1000"
     restart: unless-stopped
     scale: 2
     env_file:
@@ -33,6 +34,7 @@ services:
 
   editor-api:
     image: ghcr.io/solociti/struxt:${VERSION:-latest}
+    user: "1000:1000"
     restart: unless-stopped
     scale: 1
     env_file:
@@ -60,6 +62,41 @@ services:
       - mongo
       - dragonfly
       - nginx
+    networks:
+      - struxt-net
+
+  puppeteer:
+    image: ghcr.io/solociti/struxt-puppeteer:${VERSION:-latest}
+    user: "1000:1000"
+    restart: unless-stopped
+    scale: 1
+    env_file:
+      - .env
+    environment:
+      - IS_DOCKER=true
+      - UPLOAD_DIR=/uploads
+      - CONTAINER_NAME=puppeteer
+      - GEOTMPDIR=/uploads/geoip/tmp
+      - GEODATADIR=/uploads/geoip/data
+    command: "node server/puppeteerEntry.js"
+    healthcheck:
+      test: curl --fail http://localhost:3000/hc --max-time 5 --connect-timeout 5 || exit 1
+      interval: 1m
+      timeout: 6s
+      retries: 5
+      start_period: 30s
+    labels:
+      autoheal-app: true
+    volumes:
+      - ${UPLOAD_DIR}:/uploads
+      - ${SITE_STORAGE_DIR}:/sites
+      - .env:/app/.env:ro
+    depends_on:
+      - mongo
+      - dragonfly
+      - nginx
+    cap_add:
+      - SYS_ADMIN
     networks:
       - struxt-net
 

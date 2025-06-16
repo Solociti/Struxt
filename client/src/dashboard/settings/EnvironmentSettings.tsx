@@ -187,9 +187,15 @@ export function EnvironmentSettings({
               src={project.publish[environment].screenshotUrl}
               alt="Site preview"
               className="img-fluid"
+              style={{
+                objectFit: "cover",
+                objectPosition: "top",
+                width: "100%",
+                height: "100%",
+              }}
             />
           ) : (
-            <span className="text-muted">No preview available</span>
+            <span className="text-secondary">No preview available</span>
           )}
         </div>
       </Col>

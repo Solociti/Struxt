@@ -27,6 +27,16 @@ export function getAssetDir(projectId?: string) {
 }
 
 /**
+ * Get the screenshot directory for the given project
+ *
+ * @param projectId
+ * @returns
+ */
+export function getScreenshotDir(projectId?: string) {
+  return getUploadDir("screenshots", projectId || "");
+}
+
+/**
  * Get the upload directory for any uploads from the sites forms
  *
  * @param projectId

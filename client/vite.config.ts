@@ -53,6 +53,10 @@ export default defineConfig({
         target: "http://localhost:3000",
         changeOrigin: false,
       },
+      "/screenshots": {
+        target: "http://localhost:3000",
+        changeOrigin: false,
+      },
     },
   },
 });

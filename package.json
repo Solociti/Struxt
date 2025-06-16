@@ -1,7 +1,7 @@
 {
   "name": "struxt",
   "private": true,
-  "version": "0.3.1",
+  "version": "0.3.1-pre.6",
   "type": "module",
   "scripts": {
     "test": "vitest",
@@ -38,6 +38,7 @@
     "babel-plugin-module-resolver": "^5.0.2",
     "chalk": "^5.4.1",
     "chart.js": "^4.4.9",
+    "puppeteer": "^24.10.1",
     "react": "^19.0.0",
     "react-chartjs-2": "^5.3.0",
     "react-dom": "^19.0.0",
