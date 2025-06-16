@@ -18,7 +18,7 @@ WORKDIR /home/node
 ENV DBUS_SESSION_BUS_ADDRESS=autolaunch:
 
 # install puppeteer package
-RUN npm i puppeteer@24.10
+# RUN npm i puppeteer@24.10
 
 # Install system dependencies as root.
 USER root
@@ -30,8 +30,11 @@ USER node
 WORKDIR /app
 
 # copy the build output from the shared build image
-COPY --from=ghcr.io/solociti/struxt-build:build /app/node_modules ./node_modules
+# COPY --from=ghcr.io/solociti/struxt-build:build /app/node_modules ./node_modules
 COPY --from=ghcr.io/solociti/struxt-build:build /app/puppeteer-package.json ./package.json
+
+RUN npm install --omit=dev
+
 COPY --from=ghcr.io/solociti/struxt-build:build /app/client/dist ./client/dist
 COPY --from=ghcr.io/solociti/struxt-build:build /app/dist-server ./
 COPY --from=ghcr.io/solociti/struxt-build:build /app/templates ./templates/

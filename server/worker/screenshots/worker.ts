@@ -1,6 +1,10 @@
 import { setupWorker } from "server/database/setupQueue";
 import { createSiteScreenshot } from "./createSiteScreenshot";
 
+if (process.env.CONTAINER_NAME !== "puppeteer") {
+  throw new Error("This worker should only run in the puppeteer container.");
+}
+
 setupWorker(
   "projects",
   "puppeteer-screenshots",
