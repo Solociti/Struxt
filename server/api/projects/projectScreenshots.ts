@@ -64,7 +64,6 @@ export async function schedulePublishScreenshot(
  *
  * @param publishId
  * @param projectId
- * @param environment
  * @param tempScreenshot
  */
 export async function updateScreenshotUrl(
