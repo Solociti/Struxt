@@ -95,6 +95,8 @@ services:
       - mongo
       - dragonfly
       - nginx
+    cap_add:
+      - SYS_ADMIN
     networks:
       - struxt-net
 
