@@ -1,3 +1,4 @@
+import { Job } from "bullmq";
 import { setupWorker } from "server/database/setupQueue";
 import { createSiteScreenshot } from "./createSiteScreenshot";
 
@@ -8,7 +9,7 @@ if (process.env.CONTAINER_NAME !== "puppeteer") {
 setupWorker(
   "projects",
   "puppeteer-screenshots",
-  async (job) => {
+  async (job: Job) => {
     const { url, options } = job.data;
 
     if (!url) {
@@ -17,7 +18,9 @@ setupWorker(
       };
     }
 
-    const screenshotPath = await createSiteScreenshot(url, options);
+    const screenshotPath = await createSiteScreenshot(url, options, (msg) =>
+      job.log(msg)
+    );
     return { screenshotPath };
   },
   {
