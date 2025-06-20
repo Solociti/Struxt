@@ -17,6 +17,33 @@ export function getUploadDir(...paths: string[]) {
 }
 
 /**
+ * Get the backup directory
+ *
+ * @param paths
+ * @returns
+ */
+export function getBackupDir(...paths: string[]) {
+  let baseDir = env.BACKUP_DIR || "/backup";
+  if (env.IS_DOCKER === "true") {
+    baseDir = "/backup";
+  }
+
+  return path.join(baseDir, ...paths);
+}
+
+/**
+ * Get the current backup directory based on the current date
+ *
+ * @returns
+ */
+export function getCurrentBackupDir() {
+  const now = new Date();
+  return getBackupDir(
+    [now.getDate(), now.getMonth() + 1, now.getFullYear()].join("-")
+  );
+}
+
+/**
  * Get the asset directory for the given project
  *
  * @param projectId

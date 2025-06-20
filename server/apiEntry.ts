@@ -23,6 +23,7 @@ import "server/setup/startup";
 import { staticScreenshotFiles } from "./api/projects/projectScreenshots";
 import { router as apiRouter } from "./api/registerApi";
 
+import "server/core/cronQueue";
 import "server/api/register";
 import "server/utils/geoLocation";
 

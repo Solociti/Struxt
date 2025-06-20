@@ -1,13 +1,21 @@
 // @ts-check
+import chalk from "chalk";
+import { parse } from "dotenv";
 import { randomBytes } from "node:crypto";
 import { readFile, writeFile } from "node:fs/promises";
 import * as path from "node:path";
 import prompts from "prompts";
 import { readJsonFile } from "./scripts/jsonUtils.mjs";
+import { exec } from "node:child_process";
+
+function randomNumber(min, max) {
+  return Math.floor(Math.random() * (max - min + 1)) + min;
+}
 
 async function main() {
   let contents = await readFile(".env", "utf8");
   const original = contents;
+  const parsed = parse(original);
 
   // setup the default values
   if (!contents.includes("PRIMARY_DB")) {
@@ -161,20 +169,105 @@ async function main() {
     ].join("\n");
   }
 
+  if (!contents.includes("BACKUP_DIR")) {
+    const startingHour = randomNumber(0, 11);
+    const backupDir = parsed.SITE_STORAGE_DIR
+      ? path.resolve(parsed.SITE_STORAGE_DIR, "../backups")
+      : path.resolve(path.join(__dirname, "uploads/backups"));
+
+    contents += [
+      "",
+      "# Directory used to store backups",
+      `BACKUP_DIR=${backupDir}`,
+      "BACKUP_ENABLED=true",
+      `BACKUP_CRON=${randomNumber(0, 59)} ${startingHour},${
+        startingHour + 12
+      } * * *`,
+      "BACKUP_UPLOAD_TO_S3=false",
+      "BACKUP_S3_ENDPOINT=",
+      "BACKUP_S3_BUCKET=",
+      "BACKUP_S3_PORT=443",
+      "BACKUP_S3_USE_SSL=true",
+      "BACKUP_S3_ACCESS_KEY=",
+      "BACKUP_S3_SECRET_KEY=",
+    ].join("\n");
+  }
+
+  if (!contents.includes("DOCKER_GROUP_ID")) {
+    const result = await new Promise((resolve) => {
+      exec("getent group docker", (error, stdout) => {
+        if (error) {
+          resolve(null);
+          return;
+        }
+
+        const parts = stdout.trim().split(":");
+        if (parts.length < 3) {
+          resolve(null);
+          return;
+        }
+
+        const groupId = parts[2];
+        resolve(groupId);
+      });
+    });
+
+    contents += [
+      "",
+      "# The docker group is is used to run docker commands from the core container.",
+      `DOCKER_GROUP_ID=${result || "999"}`,
+    ].join("\n");
+  }
+
   if (contents !== original) {
     // allow the value to be edited
     const lines = contents.split("\n");
+    const originalKeys = Object.keys(parsed);
 
+    const newLines = lines.filter((line) => {
+      if (!line || line.startsWith("#")) {
+        return false;
+      }
+
+      const [key, _value] = line.split("=");
+      return !originalKeys.includes(key);
+    });
+
+    /**
+     * @type {{ title: string; value: number }[]}
+     */
     const choices = lines
-      .map((line, index) => ({ title: line, value: index }))
-      .filter(
-        (line) =>
-          line.title &&
-          !line.title.startsWith("#") &&
-          !line.title.startsWith("VERSION=")
-      );
+      .map((line, index) => {
+        if (!line || line.startsWith("#") || line.startsWith("VERSION=")) {
+          return null;
+        }
+
+        const [key, value] = line.split("=");
+
+        const title = [
+          newLines.includes(line) ? chalk.green("(new) ") : "",
+          chalk.bold(key),
+          chalk.grey("="),
+          chalk.grey(value || ""),
+        ]
+          .filter(Boolean)
+          .join("");
+
+        return {
+          title,
+          value: index,
+        };
+      })
+      .filter((val) => val !== null);
 
     choices.sort((a, b) => {
+      if (a.title.includes("(new)") && !b.title.includes("(new)")) {
+        return -1;
+      }
+      if (b.title.includes("(new)") && !a.title.includes("(new)")) {
+        return 1;
+      }
+
       return a.title.localeCompare(b.title);
     });
 
