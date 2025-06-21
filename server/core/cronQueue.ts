@@ -71,13 +71,6 @@ export function setupCronJobs() {
   // backup mongodb
   registerJob("backup-mongo-db", {}, pattern);
 
-  if (!process.env.KEYCLOAK_DISABLED) {
-    // backup mariadb
-    registerJob("backup-mariadb", {}, pattern);
-  } else {
-    cronQueue.queue.removeJobScheduler("backup-mariadb");
-  }
-
   // backup dragonfly
   registerJob("backup-dragonfly", {}, pattern);
 

@@ -50,7 +50,7 @@ export async function backupMongodb(
 ) {
   const [mongoService] = await getDockerServices("mongo");
   if (!mongoService) {
-    throw new Error("MongoDB service not found.");
+    throw new Error("MongoDB docker service not found.");
   }
 
   /**
@@ -79,7 +79,6 @@ export async function backupMongodb(
     (count, db) => count + db.collectionCount,
     0
   );
-  console.log(dbInfo);
 
   let collectionsCompleted = 0;
   options.onProgress?.(0, collectionCount);

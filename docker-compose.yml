@@ -87,7 +87,6 @@ services:
     volumes:
       - dragonflydata:/data
       - ./config/dragonFlyFlags.txt:/flags.txt
-      - ${BACKUP_DIR}:/backup/
     networks:
       - struxt-net
 
