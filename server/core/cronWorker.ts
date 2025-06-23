@@ -5,6 +5,7 @@ import { backupMongodb } from "./backup/mongoDb";
 import { backupDragonFly } from "./backup/dragonFly";
 import { backupVictoriaMetrics } from "./backup/victoriaMetrics";
 import { backupNginxProxyManager } from "./backup/nginxProxyManager";
+import { backupGrafana } from "./backup/grafana";
 
 if (process.env.CONTAINER_NAME !== "core") {
   throw new Error("This script should only be run in the core container.");
@@ -56,6 +57,17 @@ setupWorker(
 
       case "backup-victoriametrics":
         return await backupVictoriaMetrics({
+          log: (message) => {
+            job.log(message);
+          },
+          onProgress: (value, max) => {
+            const percent = Math.round((value / max) * 100);
+            job.updateProgress(percent);
+          },
+        });
+
+      case "backup-grafana":
+        return await backupGrafana({
           log: (message) => {
             job.log(message);
           },
