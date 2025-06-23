@@ -4,6 +4,7 @@ import { Job } from "bullmq";
 import { backupMongodb } from "./backup/mongoDb";
 import { backupDragonFly } from "./backup/dragonFly";
 import { backupVictoriaMetrics } from "./backup/victoriaMetrics";
+import { backupNginxProxyManager } from "./backup/nginxProxyManager";
 
 if (process.env.CONTAINER_NAME !== "core") {
   throw new Error("This script should only be run in the core container.");
@@ -27,6 +28,17 @@ setupWorker(
           onProgress: (value, max) => {
             const percent = Math.round((value / max) * 100);
 
+            job.updateProgress(percent);
+          },
+        });
+
+      case "backup-nginx-proxy-manager":
+        return await backupNginxProxyManager({
+          log: (message) => {
+            job.log(message);
+          },
+          onProgress: (value, max) => {
+            const percent = Math.round((value / max) * 100);
             job.updateProgress(percent);
           },
         });
