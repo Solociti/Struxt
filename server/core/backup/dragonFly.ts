@@ -3,6 +3,7 @@ import { execPromise } from "server/utils/execPromise";
 import { getCurrentBackupDir } from "server/utils/uploadDir";
 import { getDockerServices } from "../docker/getService";
 import { mkDirRecursive } from "server/utils/mkDir";
+import { backupFileResults } from "./fileResults";
 
 /**
  * Backup DragonFly data.
@@ -14,7 +15,7 @@ export async function backupDragonFly(
     log?: (message: string) => void;
     onProgress?: (value: number, max: number) => void;
   } = {}
-): Promise<void> {
+) {
   const [dragonflyService] = await getDockerServices("dragonfly");
   if (!dragonflyService) {
     throw new Error("DragonFly docker service not found.");
@@ -44,4 +45,6 @@ export async function backupDragonFly(
   });
   options.onProgress?.(100, 100);
   options.log?.("DragonFly backup completed successfully.");
+
+  return await backupFileResults(backupPath);
 }

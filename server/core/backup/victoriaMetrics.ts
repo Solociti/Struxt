@@ -4,6 +4,7 @@ import { mkDirRecursive } from "server/utils/mkDir";
 import { getCurrentBackupDir } from "server/utils/uploadDir";
 import { getDockerServices } from "../docker/getService";
 import { dockerInspectService } from "../docker/inspectService";
+import { backupFileResults } from "./fileResults";
 
 /**
  * Backup victoria metrics data.
@@ -30,6 +31,7 @@ export async function backupVictoriaMetrics(
     (bind) => `-v ${bind}`
   ).join(" ");
 
+  const now = new Date();
   // the backup directory inside the containers
   const backupDir = join(getCurrentBackupDir(), "victoria-metrics");
   await mkDirRecursive(backupDir);
@@ -47,8 +49,10 @@ export async function backupVictoriaMetrics(
   });
   options.onProgress?.(2, 4);
 
+  const backupFileName = `${now.getHours()}-victoria-metrics.tar.gz`;
+
   // Create a gzipped tarball of the backup directory, with the directory contents at the root of the tar
-  const tarCommand = `tar -czf ../victoria-metrics.gz *`;
+  const tarCommand = `tar -czf ../${backupFileName} *`;
   await execPromise(tarCommand, {
     cwd: backupDir,
     log: options.log,
@@ -63,5 +67,6 @@ export async function backupVictoriaMetrics(
   options.onProgress?.(4, 4);
 
   // Optionally, you could return the path to the tarball
-  return join(backupDir, "../victoria-metrics.gz");
+  const backupFile = join(backupDir, `../${backupFileName}`);
+  return await backupFileResults(backupFile);
 }

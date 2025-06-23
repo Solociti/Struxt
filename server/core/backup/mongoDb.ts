@@ -2,8 +2,9 @@ import { join } from "node:path";
 import { getMongoClient } from "server/database/mongodb";
 import { execPromise } from "server/utils/execPromise";
 import { mkDirRecursive } from "server/utils/mkDir";
-import { getCurrentBackupDir } from "server/utils/uploadDir";
+import { getBackupDir, getCurrentBackupDir } from "server/utils/uploadDir";
 import { getDockerServices } from "../docker/getService";
+import { backupFileResults } from "./fileResults";
 
 /**
  * Get information about the MongoDB databases.
@@ -83,6 +84,11 @@ export async function backupMongodb(
   let collectionsCompleted = 0;
   options.onProgress?.(0, collectionCount);
 
+  /**
+   * The backup file results
+   */
+  const results: any[] = [];
+
   for (const db of dbInfo) {
     options.log?.(
       `Backing up database: ${db.name} (${db.collectionCount} collections)`
@@ -110,7 +116,12 @@ export async function backupMongodb(
         }
       },
     });
+
+    const result = await backupFileResults(archivePath);
+    results.push(result);
   }
+
+  return results;
 }
 
 /**
