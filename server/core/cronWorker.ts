@@ -3,6 +3,7 @@ import { cronQueue } from "./cronQueue";
 import { Job } from "bullmq";
 import { backupMongodb } from "./backup/mongoDb";
 import { backupDragonFly } from "./backup/dragonFly";
+import { backupVictoriaMetrics } from "./backup/victoriaMetrics";
 
 if (process.env.CONTAINER_NAME !== "core") {
   throw new Error("This script should only be run in the core container.");
@@ -32,6 +33,17 @@ setupWorker(
 
       case "backup-dragonfly":
         return await backupDragonFly({
+          log: (message) => {
+            job.log(message);
+          },
+          onProgress: (value, max) => {
+            const percent = Math.round((value / max) * 100);
+            job.updateProgress(percent);
+          },
+        });
+
+      case "backup-victoriametrics":
+        return await backupVictoriaMetrics({
           log: (message) => {
             job.log(message);
           },

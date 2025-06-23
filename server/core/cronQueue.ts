@@ -29,11 +29,17 @@ export const cronQueue = setupQueue("core", "cron", {
  * Register a cron job with the given name, data, and pattern.
  *
  * @param name
+ * @param priority
  * @param data
  * @param pattern
  * @returns
  */
-async function registerJob(name: string, data: Object, pattern: string) {
+async function registerJob(
+  name: string,
+  priority: number,
+  data: Object,
+  pattern: string
+) {
   if (process.env.BACKUP_ENABLED !== "true") {
     await cronQueue.queue.removeJobScheduler(name);
     return;
@@ -47,6 +53,7 @@ async function registerJob(name: string, data: Object, pattern: string) {
       data,
       opts: {
         attempts: 1,
+        priority,
       },
     }
   );
@@ -69,17 +76,17 @@ export function setupCronJobs() {
   const pattern = process.env.BACKUP_CRON || "15 0,12 * * *";
 
   // backup mongodb
-  registerJob("backup-mongo-db", {}, pattern);
-
-  // backup dragonfly
-  registerJob("backup-dragonfly", {}, pattern);
-
-  // backup victoriametrics
-  registerJob("backup-victoriametrics", {}, pattern);
-
-  // backup grafana
-  registerJob("backup-grafana", {}, pattern);
+  registerJob("backup-mongo-db", 1, {}, pattern);
 
   // backup nginx proxy manager
-  registerJob("backup-nginx-proxy-manager", {}, pattern);
+  registerJob("backup-nginx-proxy-manager", 2, {}, pattern);
+
+  // backup victoriametrics
+  registerJob("backup-victoriametrics", 5, {}, pattern);
+
+  // backup dragonfly
+  registerJob("backup-dragonfly", 10, {}, pattern);
+
+  // backup grafana
+  registerJob("backup-grafana", 10, {}, pattern);
 }
