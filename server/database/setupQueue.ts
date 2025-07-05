@@ -65,7 +65,7 @@ export function setupQueue(
 
   return {
     name: queueName,
-    prefix: `{${prefix}}`,
+    prefix: prefix,
     defaultJobOptions: options,
     queue,
     cleanUp: () => {

@@ -64,6 +64,15 @@ export async function getDb(): Promise<Db> {
 }
 
 /**
+ * Get the MongoDB client instance.
+ *
+ * @returns
+ */
+export function getMongoClient(): MongoClient {
+  return client;
+}
+
+/**
  * Get the collection from the database
  */
 export async function getCollection<T>(

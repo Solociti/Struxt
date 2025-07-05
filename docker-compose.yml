@@ -20,7 +20,7 @@ services:
       - "127.0.0.1:27017:27017"
     volumes:
       - mongo_data:/data/db
-      - ${UPLOAD_DIR}/backup/mongo/:/backups/
+      - ${BACKUP_DIR}:/backup/
     networks:
       - struxt-net
 
@@ -33,6 +33,7 @@ services:
     volumes:
       - ./config/victoria-metrics/victoria-metrics.yml:/etc/victoria-metrics/victoria-metrics.yml:ro
       - victoria_metrics_data:/victoria-metrics-data
+      - ${BACKUP_DIR}:/backup/
     command:
       - -selfScrapeInterval=60s
       - -storageDataPath=/victoria-metrics-data
@@ -63,6 +64,7 @@ services:
     volumes:
       - "grafana_data:/var/lib/grafana"
       - "./config/grafana:/etc/grafana/provisioning:ro"
+      - ${BACKUP_DIR}:/backup/
     networks:
       - struxt-net
 
@@ -106,6 +108,7 @@ services:
     volumes:
       - nginx_data:/data
       - nginx_letsencrypt:/etc/letsencrypt
+      - ${BACKUP_DIR}:/backup/
     networks:
       - struxt-net
 
