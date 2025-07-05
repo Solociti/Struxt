@@ -2,7 +2,7 @@ import { join } from "node:path";
 import { getMongoClient } from "server/database/mongodb";
 import { execPromise } from "server/utils/execPromise";
 import { mkDirRecursive } from "server/utils/mkDir";
-import { getBackupDir, getCurrentBackupDir } from "server/utils/uploadDir";
+import { getCurrentBackupDir } from "server/utils/uploadDir";
 import { getDockerServices } from "../docker/getService";
 import { backupFileResults } from "./fileResults";
 
