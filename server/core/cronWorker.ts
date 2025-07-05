@@ -1,12 +1,13 @@
-import { setupWorker } from "server/database/setupQueue";
-import { cronQueue } from "./cronQueue";
 import { Job } from "bullmq";
-import { backupMongodb } from "./backup/mongoDb";
+import { setupWorker } from "server/database/setupQueue";
+import { cleanLocalBackups } from "./backup/cleanLocalBackups";
 import { backupDragonFly } from "./backup/dragonFly";
-import { backupVictoriaMetrics } from "./backup/victoriaMetrics";
-import { backupNginxProxyManager } from "./backup/nginxProxyManager";
 import { backupGrafana } from "./backup/grafana";
+import { backupMongodb } from "./backup/mongoDb";
+import { backupNginxProxyManager } from "./backup/nginxProxyManager";
 import { syncS3Backups, syncS3Sites, syncS3Uploads } from "./backup/syncS3";
+import { backupVictoriaMetrics } from "./backup/victoriaMetrics";
+import { cronQueue } from "./cronQueue";
 
 if (process.env.CONTAINER_NAME !== "core") {
   throw new Error("This script should only be run in the core container.");
@@ -112,8 +113,7 @@ setupWorker(
         );
 
       case "cleanup-local-backups":
-        // TODO: Implement cleanup logic
-        break;
+        return await cleanLocalBackups((msg: string) => job.log(msg));
 
       default:
         console.warn(`Unknown job name: ${job.name}`);

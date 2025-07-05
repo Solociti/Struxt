@@ -183,6 +183,7 @@ async function main() {
       `BACKUP_CRON=${randomNumber(0, 59)} ${startingHour},${
         startingHour + 12
       } * * *`,
+      "BACKUP_KEEP_LOCAL_DAYS=1",
       "BACKUP_UPLOAD_TO_S3=false",
       "BACKUP_S3_ENDPOINT=",
       "BACKUP_S3_BUCKET=",
