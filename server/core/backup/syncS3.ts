@@ -30,7 +30,12 @@ export async function syncS3Uploads(
   });
   log("Uploads synced successfully.");
 
-  return result;
+  return {
+    bucketFiles: result.bucketFiles.length,
+    localFiles: result.localFiles.length,
+    uploadedFiles: result.uploadFiles.length,
+    deleteFiles: result.deleteBucketFiles.length,
+  };
 }
 
 /**
@@ -59,7 +64,12 @@ export async function syncS3Sites(
   });
   log("Sites synced successfully.");
 
-  return result;
+  return {
+    bucketFiles: result.bucketFiles.length,
+    localFiles: result.localFiles.length,
+    uploadedFiles: result.uploadFiles.length,
+    deleteFiles: result.deleteBucketFiles.length,
+  };
 }
 
 /**
@@ -88,5 +98,10 @@ export async function syncS3Backups(
   });
   log("Backups uploaded successfully.");
 
-  return result;
+  return {
+    bucketFiles: result.bucketFiles.length,
+    localFiles: result.localFiles.length,
+    uploadedFiles: result.uploadFiles.length,
+    deleteFiles: result.deleteBucketFiles.length,
+  };
 }

@@ -105,21 +105,23 @@ export async function upSyncS3Directory(
     objectName: string;
   }[] = [];
 
-  for (const bFile of bucketFiles) {
-    const objectName = bFile.name;
-    const relativePath = relative(prefix, objectName);
+  if (options.deleteRemote) {
+    for (const bFile of bucketFiles) {
+      const objectName = bFile.name;
+      const relativePath = relative(prefix, objectName);
 
-    const fileExists = localFiles.some((localFile) => {
-      return localFile.relativePath === relativePath;
-    });
-
-    if (!fileExists) {
-      deleteBucketFiles.push({
-        objectName,
+      const fileExists = localFiles.some((localFile) => {
+        return localFile.relativePath === relativePath;
       });
+
+      if (!fileExists) {
+        deleteBucketFiles.push({
+          objectName,
+        });
+      }
     }
+    options.log?.(`Files to delete from bucket: ${deleteBucketFiles.length}`);
   }
-  options.log?.(`Files to delete from bucket: ${deleteBucketFiles.length}`);
 
   // upload the files that are not in the bucket
   const maxProgress = uploadFiles.length + deleteBucketFiles.length;
@@ -160,8 +162,9 @@ export async function upSyncS3Directory(
   }
 
   return {
-    existingFiles: bucketFiles,
+    bucketFiles,
     localFiles,
     uploadFiles,
+    deleteBucketFiles,
   };
 }
