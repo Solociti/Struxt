@@ -1,4 +1,5 @@
 import {
+  ProjectCreateApi,
   ProjectDetailsApi,
   ProjectEditorApi,
   ProjectListApi,
@@ -12,6 +13,7 @@ import { roles } from "common/models/user/Roles";
 import { registerApi } from "server/api/registerApi";
 import { validateUserId } from "server/auth/user/getUser";
 import { validateEmailAddress } from "server/utils/validateEmailAddress";
+import { createNewProject } from "./createNewProject";
 import { getProjectEditorData } from "./getProject";
 import { getProjectDetails } from "./getProjectDetails";
 import { getProjectsAdmin, getProjectsForUser } from "./getProjectList";
@@ -48,6 +50,23 @@ registerApi<ProjectListApi>("/api/projects").get([], async ({ user }) => {
 
   return response;
 });
+
+registerApi<ProjectCreateApi>("/api/projects/new").post(
+  [roles.struxt.admin],
+  async ({ user, body }) => {
+    if (typeof body.name !== "string" || body.name.trim().length < 3) {
+      throw customError(
+        400,
+        "Project name must be at least 3 characters long."
+      );
+    }
+
+    return await createNewProject(body.name.trim(), {
+      userId: user.id,
+      displayName: user.name,
+    });
+  }
+);
 
 registerApi<ProjectEditorApi>("/api/projects/:projectId/editor")
   .get([], async ({ user, params }) => {

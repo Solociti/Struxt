@@ -1,9 +1,30 @@
 import {
+  ProjectCreateApi,
   ProjectDetailsApi,
   ProjectEditorApi,
   ProjectListApi,
 } from "common/api/projects/project";
 import { getApi, postApi } from "../api/api";
+
+/**
+ * Create a new project on the server
+ *
+ * @param name
+ * @returns
+ */
+export async function createNewProject(name: string) {
+  const body: ProjectCreateApi["PostBody"] = {
+    name,
+  };
+
+  // create a new project on the server
+  const response: ProjectCreateApi["PostResponse"] = await postApi(
+    "/api/projects/new",
+    body
+  );
+
+  return response;
+}
 
 /**
  * Get the project data from server

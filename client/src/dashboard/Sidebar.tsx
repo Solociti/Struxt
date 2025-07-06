@@ -1,3 +1,8 @@
+import { useCurrentUser } from "client/auth/userCurrentUser";
+import IconButton from "client/components/IconButton";
+import { usePromptModal } from "client/components/modals/usePromptModal";
+import { useCurrentProject } from "client/projects/ProjectContext";
+import { createNewProject } from "client/projects/projects";
 import Nav from "react-bootstrap/Nav";
 import { useLocation } from "react-router";
 
@@ -12,6 +17,27 @@ const sidebarStyle = {
  */
 export function DashboardSidebar() {
   const location = useLocation();
+  const { hasPermission } = useCurrentUser();
+  const { setProject } = useCurrentProject();
+
+  // setup the modal to get the new project name
+  const newProjectModal = usePromptModal({
+    title: "Create New Project",
+    message: "Enter the name of the new project:",
+    confirmButtonText: "Create",
+    onConfirm: async (name: string) => {
+      if (name.trim().length < 3) {
+        throw new Error("Project name must be at least 3 characters long.");
+      }
+
+      const result = await createNewProject(name);
+      if (result.success) {
+        setProject(result.projectItem);
+      } else {
+        throw new Error("Unknown error creating project.");
+      }
+    },
+  });
 
   // TODO: improve the sidebar colour scheme
   return (
@@ -29,6 +55,23 @@ export function DashboardSidebar() {
 
         {/* Main Navigation */}
         <Nav variant="pills" className="flex-column">
+          {hasPermission("struxt.admin") && (
+            <Nav.Item className="mb-3">
+              <IconButton
+                variant="outline-light"
+                icon="add"
+                className="text-nowrap"
+                onClick={async () => {
+                  newProjectModal.showPrompt();
+                }}
+              >
+                New Project
+              </IconButton>
+
+              {newProjectModal.promptModal}
+            </Nav.Item>
+          )}
+
           <Nav.Item className="">
             <Nav.Link
               className={
@@ -68,6 +111,15 @@ export function DashboardSidebar() {
             >
               <i className="fas fa-cog me-2"></i>
               Settings
+            </Nav.Link>
+          </Nav.Item>
+
+          <hr />
+
+          <Nav.Item>
+            <Nav.Link className="text-light" href="/auth/logout">
+              <i className="fas fa-sign-out-alt me-2"></i>
+              Logout
             </Nav.Link>
           </Nav.Item>
         </Nav>
