@@ -1,5 +1,7 @@
 import { Job } from "bullmq";
+import { downloadPasswordLists } from "server/auth/downloadPasswordLists";
 import { setupWorker } from "server/database/setupQueue";
+import { updateGeoIP } from "server/utils/geoLocation";
 import { cleanLocalBackups } from "./backup/cleanLocalBackups";
 import { backupDragonFly } from "./backup/dragonFly";
 import { backupGrafana } from "./backup/grafana";
@@ -13,16 +15,29 @@ if (process.env.CONTAINER_NAME !== "core") {
   throw new Error("This script should only be run in the core container.");
 }
 
+const isBackupEnabled = process.env.BACKUP_ENABLED === "true";
+
 setupWorker(
   cronQueue.prefix,
   cronQueue.name,
   async (job: Job) => {
-    if (process.env.BACKUP_ENABLED !== "true") {
+    if (
+      (job.name.includes("backup") || job.name.includes("sync")) &&
+      !isBackupEnabled
+    ) {
       console.warn("Backup is disabled, skipping job:", job.name);
       return;
     }
 
     switch (job.name) {
+      case "downloadPasswordLists": {
+        await downloadPasswordLists(job);
+        break;
+      }
+
+      case "update-geoip":
+        return await updateGeoIP(job);
+
       case "backup-mongo-db":
         return await backupMongodb(job.data.dbName, {
           log: (message) => {

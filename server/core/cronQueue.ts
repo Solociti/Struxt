@@ -1,6 +1,8 @@
 import { JobSchedulerTemplateOptions } from "bullmq";
 import { setupQueue } from "server/database/setupQueue";
 
+const DAY_MS = 24 * 60 * 60 * 1000;
+
 /**
  * This queue is used to run scheduled jobs from the core container.
  *
@@ -17,11 +19,11 @@ export const cronQueue = setupQueue("core", "cron", {
     delay: 5 * 60 * 1000,
   },
   removeOnComplete: {
-    age: 7 * 24 * 60 * 60 * 1000,
+    age: 7 * DAY_MS,
     count: 250,
   },
   removeOnFail: {
-    age: 7 * 24 * 60 * 60 * 1000,
+    age: 7 * DAY_MS,
     count: 250,
   },
 });
@@ -71,6 +73,34 @@ export function setupCronJobs() {
   if (process.env.CONTAINER_NAME !== "core") {
     return;
   }
+
+  cronQueue.queue.upsertJobScheduler(
+    "downloadPasswordLists",
+    {
+      every: 30 * DAY_MS,
+    },
+    {
+      data: { cron: true },
+    }
+  );
+
+  // add the cron job to download the geoip database
+  cronQueue.queue.upsertJobScheduler(
+    "update-geoip",
+    {
+      every: 7 * DAY_MS,
+    },
+    {
+      data: { cron: true },
+      opts: {
+        attempts: 2,
+        backoff: {
+          type: "exponential",
+          delay: 10 * 60 * 1000,
+        },
+      },
+    }
+  );
 
   // setup cron jobs
   // Schedule the database backup as per the settings

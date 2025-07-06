@@ -13,8 +13,6 @@ import {
   setupAuthMiddleware,
   startAuthSetup,
 } from "server/auth/setupKeycloak";
-import "server/cron/queue";
-import "server/cron/worker";
 import { serverAdapter } from "server/database/dashboard";
 import { router as formsRouter } from "server/forms/register";
 import { registerErrorPage } from "server/setup/errorPages";
