@@ -60,3 +60,24 @@ export interface ProjectDetailsApi extends Api {
     details: ProjectDetails;
   };
 }
+
+export interface ProjectCreateApi extends Api {
+  Endpoint: "/api/projects/new";
+
+  UrlParams: {};
+
+  PostBody: {
+    name: string;
+  };
+
+  PostResponse: {
+    success: boolean;
+
+    /**
+     * The project id of the newly created project
+     */
+    projectId: string;
+
+    projectItem: ProjectListItem;
+  };
+}
