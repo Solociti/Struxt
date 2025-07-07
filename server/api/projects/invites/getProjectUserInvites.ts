@@ -5,18 +5,18 @@ import { updateProjectInviteDetails } from "./projectInvite";
 /**
  * Get the list of invites for the given user.
  *
- * @param userId
+ * @param email
  * @returns
  */
 export async function getProjectUserInvites(
-  userId: string
+  email: string
 ): Promise<ProjectRolesInviteModel[]> {
   const collection = await getCollection<ProjectRolesInviteModel>(
     "project_members_invites"
   );
 
   const cursor = collection.find({
-    "created.userId": userId,
+    email: email.toLowerCase(),
     "accepted.active": { $ne: true },
     "cancelled.active": { $ne: true },
     expirationDate: { $gt: Math.floor(Date.now() / 1000) },

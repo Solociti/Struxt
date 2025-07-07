@@ -25,7 +25,7 @@ export default function NotificationsPopover({}) {
   const popover = (
     <Popover
       id="notifications-popover"
-      style={{ maxWidth: "min(30rem, 90vw)" }}
+      style={{ maxWidth: "min(30rem, 90vw)", minWidth: "min(25rem, 85vw)" }}
     >
       <Popover.Header as="h3">Notifications</Popover.Header>
       <Popover.Body>

@@ -40,7 +40,7 @@ export async function inviteUser(
   const invite = new ProjectRolesInviteModel({
     inviteId,
     projectId,
-    email,
+    email: email.toLowerCase().trim(),
     roles,
     message,
     created: {
