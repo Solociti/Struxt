@@ -8,7 +8,7 @@ registerApi<NotificationsApi>("/api/notifications").get(
     // TODO: get the list of notifications for the user
 
     // get the list of project invites for the user
-    const invites = await getProjectUserInvites(user.id);
+    const invites = await getProjectUserInvites(user.email);
 
     return {
       list: [],
