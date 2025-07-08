@@ -35,7 +35,7 @@ export async function schedulePublishScreenshot(
   await flow.add({
     name: "save-screenshot",
     queueName: projectScreenshotQueue.name,
-    prefix: projectScreenshotQueue.prefix,
+    prefix: projectScreenshotQueue.prefixKey,
     data: {
       publishId,
       projectId,
@@ -56,7 +56,7 @@ export async function schedulePublishScreenshot(
           url: "http://localhost",
         },
         queueName: puppeteerScreenshotQueue.name,
-        prefix: puppeteerScreenshotQueue.prefix,
+        prefix: puppeteerScreenshotQueue.prefixKey,
         opts: puppeteerScreenshotQueue.defaultJobOptions,
       },
     ],
