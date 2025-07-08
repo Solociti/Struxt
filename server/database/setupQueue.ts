@@ -49,8 +49,10 @@ export function setupQueue(
     ...defaultJobOptions,
   };
 
+  const prefixKey = `{${prefix}}`;
+
   const queue = new Queue(queueName, {
-    prefix: `{${prefix}}`,
+    prefix: prefixKey,
     connection: {
       url: clientUrl,
     },
@@ -65,7 +67,8 @@ export function setupQueue(
 
   return {
     name: queueName,
-    prefix: prefix,
+    prefix,
+    prefixKey,
     defaultJobOptions: options,
     queue,
     cleanUp: () => {
