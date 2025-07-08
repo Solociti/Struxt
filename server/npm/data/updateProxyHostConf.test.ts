@@ -172,7 +172,7 @@ describe("updateProxyHostConf", () => {
     expect(result.locations[0].path).toBe("/");
     expect(result.locations[0].forward_scheme).toBe("http");
     expect(result.locations[0].forward_host).toBe(
-      "web-host/sites/project123/publish123/"
+      "web-host/sites/project123/staging/publish123/"
     );
     expect(result.locations[0].forward_port).toBe(3000);
     expect(result.locations[0].advanced_config).toBe(

@@ -1,3 +1,4 @@
+import { EnvironmentTypes } from "common/models/projects/Environment";
 import path from "node:path";
 import { env } from "node:process";
 
@@ -94,8 +95,12 @@ export function getBasePublishDir() {
  * @param publishId
  * @returns
  */
-export function getPublishDir(projectId: string, publishId: string) {
+export function getPublishDir(
+  projectId: string,
+  projectEnv: EnvironmentTypes,
+  publishId: string
+) {
   const baseDir = getBasePublishDir();
 
-  return path.join(baseDir, projectId, publishId);
+  return path.join(baseDir, projectId, projectEnv, publishId);
 }

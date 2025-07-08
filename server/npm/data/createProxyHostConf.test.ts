@@ -28,7 +28,7 @@ describe("createProxyHostConf", () => {
           advanced_config:
             '# Redirect index.html to root path while preserving query parameters\nif ($request_uri ~* "^(.*)/index\\.html(.*)$") {\nreturn 301 $1/$2;\n}\n# -- End of struxt config --',
           forward_scheme: "http",
-          forward_host: "web-host/sites/:projectId/:publishId/",
+          forward_host: "web-host/sites/:projectId/:projectEnv/:publishId/",
           forward_port: 3000,
         },
         {

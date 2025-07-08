@@ -1,3 +1,4 @@
+import { EnvironmentTypes } from "common/models/projects/Environment";
 import { ProxyHostUpdate } from "../types";
 
 /**
@@ -9,9 +10,10 @@ import { ProxyHostUpdate } from "../types";
  */
 export function getProxyForwardHostUrl(
   projectId: string,
+  projectEnv: EnvironmentTypes,
   publishId: string
 ): string {
-  return `http://web-host:3000/sites/${projectId}/${publishId}/`;
+  return `http://web-host:3000/sites/${projectId}/${projectEnv}/${publishId}/`;
 }
 
 /**
@@ -48,7 +50,7 @@ export function createDefaultProxyHostConf(): ProxyHostUpdate {
           "# -- End of struxt config --",
         ].join("\n"),
         forward_scheme: "http",
-        forward_host: "web-host/sites/:projectId/:publishId/",
+        forward_host: "web-host/sites/:projectId/:projectEnv/:publishId/",
         forward_port: 3000,
       },
       {
