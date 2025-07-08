@@ -1,3 +1,4 @@
+import { EnvironmentTypes } from "common/models/projects/Environment";
 import { PublishModel } from "common/models/projects/PublishModel";
 import express from "express";
 import { copyFile, rm as rmFile } from "node:fs/promises";
@@ -28,9 +29,10 @@ const flow = createFlowProducer();
  */
 export async function schedulePublishScreenshot(
   publishId: string,
+  projectEnv: EnvironmentTypes,
   projectId: string
 ) {
-  const url = getProxyForwardHostUrl(projectId, publishId);
+  const url = getProxyForwardHostUrl(projectId, projectEnv, publishId);
 
   await flow.add({
     name: "save-screenshot",
@@ -38,6 +40,7 @@ export async function schedulePublishScreenshot(
     prefix: projectScreenshotQueue.prefixKey,
     data: {
       publishId,
+      projectEnv,
       projectId,
     },
     opts: projectScreenshotQueue.defaultJobOptions,

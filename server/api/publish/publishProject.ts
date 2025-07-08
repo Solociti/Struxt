@@ -67,7 +67,7 @@ export async function publishProject(
   });
 
   // setup the site directory
-  const siteDir = getPublishDir(projectId, publishId);
+  const siteDir = getPublishDir(projectId, projectEnv, publishId);
 
   // if the directory exists, throw an error
   if (existsSync(siteDir)) {
@@ -155,7 +155,7 @@ export async function publishProject(
   // set the active publish
   await setActivePublish(publishId);
 
-  await schedulePublishScreenshot(publishId, projectId);
+  await schedulePublishScreenshot(publishId, projectEnv, projectId);
 
   return { publishId };
 }

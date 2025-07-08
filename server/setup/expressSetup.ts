@@ -107,6 +107,7 @@ export function setupSiteLogs(
   parsePath: (path: string) => {
     projectId?: string;
     projectEnv?: string;
+    publishId?: string;
     path: string;
   }
 ) {
@@ -114,19 +115,40 @@ export function setupSiteLogs(
   const requestCounter = new promCl.Counter({
     name: "struxt_site_requests",
     help: "Number of requests to the site",
-    labelNames: ["project_id", "project_env", "path", "method", "status"],
+    labelNames: [
+      "project_id",
+      "project_env",
+      "publish_id",
+      "path",
+      "method",
+      "status",
+    ],
   });
 
   const deviceCounter = new promCl.Counter({
     name: "struxt_site_requests_devices",
     help: "Number of requests based on device information",
-    labelNames: ["project_id", "project_env", "os", "browser", "client_type"],
+    labelNames: [
+      "project_id",
+      "project_env",
+      "publish_id",
+      "os",
+      "browser",
+      "client_type",
+    ],
   });
 
   const geolocationCounter = new promCl.Counter({
     name: "struxt_site_requests_geolocation",
     help: "Number of requests based on geolocation",
-    labelNames: ["project_id", "project_env", "country", "region", "city"],
+    labelNames: [
+      "project_id",
+      "project_env",
+      "publish_id",
+      "country",
+      "region",
+      "city",
+    ],
   });
 
   app.use((req: Request, res: Response, next: () => void) => {
@@ -158,6 +180,7 @@ export function setupSiteLogs(
       requestCounter.inc({
         project_id: parsedPath.projectId || "",
         project_env: parsedPath.projectEnv || "",
+        publish_id: parsedPath.publishId || "",
         path: parsedPath.path,
         method,
         status: status.toString(),
@@ -166,6 +189,7 @@ export function setupSiteLogs(
       deviceCounter.inc({
         project_id: parsedPath.projectId || "",
         project_env: parsedPath.projectEnv || "",
+        publish_id: parsedPath.publishId || "",
         os: ua.os.name || "unknown",
         browser: ua.browser.name || "unknown",
         client_type: clientType,
@@ -178,6 +202,7 @@ export function setupSiteLogs(
           ...geoData,
           project_id: parsedPath.projectId || "",
           project_env: parsedPath.projectEnv || "",
+          publish_id: parsedPath.publishId || "",
         });
       }
     };

@@ -22,6 +22,15 @@ async function main() {
       // remove the /sites/:projectId/:env from the path
       const parts = path.split("/");
 
+      if (parts[3] === "staging" || parts[3] === "production") {
+        return {
+          projectId: parts[2],
+          projectEnv: parts[3],
+          publishId: parts[4],
+          path: parts.slice(5).join("/"),
+        };
+      }
+
       return {
         projectId: parts[2],
         projectEnv: parts[3],
