@@ -18,7 +18,7 @@ WORKDIR /home/node
 ENV DBUS_SESSION_BUS_ADDRESS=autolaunch:
 
 # install puppeteer package
-RUN npm i puppeteer@24.12.0
+RUN npm i puppeteer@24.12.1
 
 # Install system dependencies as root.
 USER root
