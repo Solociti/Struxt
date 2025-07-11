@@ -1,7 +1,7 @@
 {
   "name": "struxt",
   "private": true,
-  "version": "0.4.4",
+  "version": "0.4.4-pre.3",
   "type": "module",
   "scripts": {
     "test": "vitest",
@@ -38,7 +38,7 @@
     "babel-plugin-module-resolver": "^5.0.2",
     "chalk": "^5.4.1",
     "chart.js": "^4.4.9",
-    "puppeteer": "^24.10.1",
+    "puppeteer": "^24.12.1",
     "react": "^19.0.0",
     "react-chartjs-2": "^5.3.0",
     "react-dom": "^19.0.0",
@@ -81,6 +81,6 @@
     "react-bootstrap": "^2.10.9",
     "redis": "^4.7.0",
     "sanitize-html": "^2.14.0",
-    "ua-parser-js": "^2.0.3"
+    "ua-parser-js": "^2.0.4"
   }
 }

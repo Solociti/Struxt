@@ -33,7 +33,7 @@ registerApi<MetricsApi>("/api/metrics/:projectId").get(
     }
 
     // get the metrics from victoria metrics
-    const query = `sum(increase(struxt_site_requests{project_id="${projectId}", project_env="production", status="200", path!~"^assets.*"}[1d])) by (path)`;
+    const query = `sum(increase(struxt_site_requests{project_id="${projectId}", project_env="production", status="200", path!~"^/{0,}assets/.*"}[1d])) by (path)`;
     const metrics = await getMetrics(query, "-30d", "1d");
 
     // convert the metrics for chart.js
