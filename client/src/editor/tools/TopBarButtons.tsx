@@ -9,6 +9,7 @@ interface CommandButton {
   options?: Record<string, any>;
 
   disabled?: () => boolean;
+  spinner?: () => boolean;
 }
 
 /**
@@ -18,6 +19,8 @@ interface CommandButton {
  */
 export function TopBarButtons() {
   const [_counter, setUpdateCounter] = useState(0);
+
+  const [isSaving, setIsSaving] = useState(false);
 
   const editor = useEditor();
   const { UndoManager, Commands } = editor;
@@ -46,6 +49,15 @@ export function TopBarButtons() {
       icon: "redo",
       disabled: () => !UndoManager.hasRedo(),
     },
+    {
+      id: "core:preview",
+      icon: "visibility",
+    },
+    {
+      id: "struxt:save",
+      icon: "save",
+      spinner: () => isSaving,
+    },
   ];
 
   useEffect(() => {
@@ -57,18 +69,31 @@ export function TopBarButtons() {
       }
     };
 
+    const onStoreStart = () => setIsSaving(true);
+    const onStoreEnd = () => setIsSaving(false);
+
     editor.on("command:run", onCommand);
     editor.on("command:stop", onCommand);
+
+    editor.on("component:update", updateCounter);
+
+    editor.on("storage:start", onStoreStart);
+    editor.on("storage:end", onStoreEnd);
 
     return () => {
       editor.off("command:run", onCommand);
       editor.off("command:stop", onCommand);
+
+      editor.off("component:update", updateCounter);
+
+      editor.off("storage:start", onStoreStart);
+      editor.off("storage:end", onStoreEnd);
     };
   }, []);
 
   return (
     <div className="d-flex align-items-center gap-1 px-2">
-      {cmdButtons.map(({ id, icon, disabled, options = {} }) => (
+      {cmdButtons.map(({ id, icon, disabled, spinner, options = {} }) => (
         <IconButton
           key={id}
           icon={icon}
@@ -80,6 +105,7 @@ export function TopBarButtons() {
               : Commands.run(id, options);
           }}
           disabled={disabled?.()}
+          spinner={spinner?.()}
         ></IconButton>
       ))}
     </div>

@@ -217,6 +217,12 @@ function GrapesJsEditor({
             addFonts(editor);
           },
           (editor) => {
+            // Add a custom save command
+            editor.Commands.add("struxt:save", async (editor) => {
+              const projectData = editor.getProjectData();
+              await editor.Storage.store(projectData);
+            });
+
             editor.onReady(() => {
               console.log("Editor is ready");
             });
@@ -230,6 +236,9 @@ function GrapesJsEditor({
           onStore: async (data: ProjectData, editor: Editor) => {
             console.log("Saving project data", { data, editor });
             // await saveProject(projectId, project);
+            await new Promise((resolve) => setTimeout(resolve, 1000));
+
+            return data;
           },
           onLoad: async () => {
             try {
