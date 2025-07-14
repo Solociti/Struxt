@@ -1,4 +1,10 @@
-import GjsEditor, { Canvas } from "@grapesjs/react";
+import GjsEditor, {
+  AssetsProvider,
+  Canvas,
+  ModalProvider,
+  WithEditor,
+} from "@grapesjs/react";
+import SimpleModal from "client/components/modals/SimpleModal";
 import { ErrorNames } from "common/custom-error/custom-error";
 import grapesjs, { Editor, ProjectData } from "grapesjs";
 import customCodePlugin from "grapesjs-custom-code";
@@ -9,6 +15,7 @@ import { addFonts } from "../fonts/addFonts";
 import { getProject } from "../projects/projects";
 import { registerElements } from "./components/htmlElements";
 import { registerImageViewer } from "./components/imageViewer";
+import { CustomAssetManager } from "./tools/CustomAssetManager";
 import { RightSideBar } from "./tools/RightSideBar";
 import { TopBar } from "./tools/TopBar";
 
@@ -260,29 +267,32 @@ function GrapesJsEditor({
     >
       <div className="d-flex h-100 overflow-hidden">
         <div className="gjs-column-m d-flex flex-column flex-grow-1">
-          <TopBar />
+          <WithEditor>
+            <TopBar />
+          </WithEditor>
           <Canvas className="flex-grow gjs-custom-editor-canvas" />
         </div>
 
-        <RightSideBar />
+        <WithEditor>
+          <RightSideBar />
+        </WithEditor>
       </div>
-      {/* <ModalProvider>
+
+      <ModalProvider>
         {({ open, title, content, close }) => (
-          <CustomModal
-            open={open}
-            title={title}
-            children={content}
-            close={close}
-          />
+          <SimpleModal show={open} onHide={close} title={title} size="lg">
+            {content}
+          </SimpleModal>
         )}
-      </ModalProvider> */}
-      {/* <AssetsProvider>
+      </ModalProvider>
+
+      <AssetsProvider>
         {({ assets, select, close, Container }) => (
           <Container>
             <CustomAssetManager assets={assets} select={select} close={close} />
           </Container>
         )}
-      </AssetsProvider> */}
+      </AssetsProvider>
     </GjsEditor>
   );
 }

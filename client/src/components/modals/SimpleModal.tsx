@@ -1,3 +1,4 @@
+import React from "react";
 import Modal from "react-bootstrap/Modal";
 
 interface SimpleModalProps {
@@ -11,7 +12,7 @@ interface SimpleModalProps {
    */
   onExit?: () => void;
 
-  title: string;
+  title: string | React.JSX.Element;
 
   children: React.ReactNode;
 

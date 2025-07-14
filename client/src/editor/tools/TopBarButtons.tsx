@@ -50,10 +50,6 @@ export function TopBarButtons() {
       disabled: () => !UndoManager.hasRedo(),
     },
     {
-      id: "core:preview",
-      icon: "visibility",
-    },
-    {
       id: "struxt:save",
       icon: "save",
       spinner: () => isSaving,

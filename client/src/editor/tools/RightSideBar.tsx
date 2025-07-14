@@ -5,24 +5,50 @@ import {
   SelectorsProvider,
   StylesProvider,
   TraitsProvider,
-  WithEditor,
+  useEditor,
 } from "@grapesjs/react";
 import MaterialIcon from "client/components/MaterialIcon";
+import { useEffect, useState } from "react";
 import Nav from "react-bootstrap/Nav";
 import Tab from "react-bootstrap/Tab";
+import { CustomAttributes } from "./CustomAttributes";
 import { CustomBlockManager } from "./CustomBlockManager";
 import { CustomLayerManager } from "./CustomLayerManager";
 import { CustomPageManager } from "./CustomPageManager";
 import { CustomSelectorManager } from "./CustomSelectorManager";
 import { CustomStyleManager } from "./CustomStyleManager";
 import { CustomTraitManager } from "./CustomTraitManager";
-import { CustomAttributes } from "./CustomAttributes";
 
 export function RightSideBar() {
+  const [hide, setHide] = useState(false);
+
+  const editor = useEditor();
+
+  useEffect(() => {
+    const handleOn = () => {
+      setHide(true);
+    };
+    const handleOff = () => {
+      setHide(false);
+    };
+
+    editor.on("command:run:core:preview", handleOn);
+    editor.on("command:stop:core:preview", handleOff);
+
+    return () => {
+      editor.off("command:run:core:preview", handleOn);
+      editor.off("command:stop:core:preview", handleOff);
+    };
+  }, []);
+
   return (
     <div
       className={"gjs-right-sidebar d-flex flex-column"}
-      style={{ width: "300px" }}
+      style={
+        hide
+          ? { width: "0px", opacity: 0, transition: "all 0.5s" }
+          : { width: "300px", opacity: 1, transition: "all 0.5s" }
+      }
     >
       <Tab.Container defaultActiveKey="layers">
         <Nav variant="tabs" fill className="flex-nowrap">
@@ -78,9 +104,7 @@ export function RightSideBar() {
               {(props) => <CustomTraitManager {...props} />}
             </TraitsProvider>
 
-            <WithEditor>
-              <CustomAttributes />
-            </WithEditor>
+            <CustomAttributes />
           </Tab.Pane>
 
           <Tab.Pane eventKey="blocks">
