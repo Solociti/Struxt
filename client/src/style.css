@@ -4,6 +4,10 @@
   cursor: pointer;
 }
 
+.cursor-default {
+  cursor: default;
+}
+
 /* customize the material symbols */
 .material-symbols-outlined {
   vertical-align: text-bottom;

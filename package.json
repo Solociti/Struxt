@@ -38,6 +38,7 @@
     "babel-plugin-module-resolver": "^5.0.2",
     "chalk": "^5.4.1",
     "chart.js": "^4.4.9",
+    "grapesjs": "^0.22.9",
     "puppeteer": "^24.12.1",
     "react": "^19.0.0",
     "react-chartjs-2": "^5.3.0",
