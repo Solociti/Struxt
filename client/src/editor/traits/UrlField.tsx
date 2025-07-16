@@ -48,12 +48,22 @@ export function UrlField({ defValue, value, trait, editor }: UrlFieldProps) {
       // https://grapesjs.com/docs/modules/Canvas.html#canvas-spots
     };
 
+    const onSelected = (child: Component) => {
+      setSelecting(false);
+      editor.select(component);
+
+      const id = child.getId();
+      trait.setValue(`#${id}`);
+    };
+
     editor.on("component:hovered", onComponentHovered);
+    editor.on("component:selected", onSelected);
 
     return () => {
       editor.Canvas.removeSpots({ id: "selection" });
 
       editor.off("component:hovered", onComponentHovered);
+      editor.off("component:selected", onSelected);
     };
   }, [selecting]);
 
@@ -199,7 +209,9 @@ function EmailInput({
   value: string;
   onUpdate: (value: string) => void;
 }) {
-  const urlValue = new URL(value || "mailto:");
+  const urlValue = new URL(
+    value && value.startsWith("mailto:") ? value : "mailto:"
+  );
   urlValue.protocol = "mailto:";
 
   const rEmail = urlValue.pathname;
