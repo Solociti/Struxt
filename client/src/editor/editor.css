@@ -5,3 +5,26 @@ body {
   margin: 0px !important;
   padding: 0px !important;
 }
+
+/* Enhanced drag and drop styles for layer manager */
+.dragging-layer-item {
+  box-shadow: 0 8px 16px rgba(0, 0, 0, 0.2);
+  background-color: rgba(255, 255, 255, 0.95) !important;
+  border-radius: 4px;
+}
+
+.drop-indicator {
+  cursor: copy;
+}
+
+.drop-indicator:hover {
+  background-color: rgba(0, 123, 255, 0.1) !important;
+}
+
+.layer-item {
+  transition: background-color 0.2s ease, border-color 0.2s ease;
+}
+
+.layer-item:hover {
+  background-color: rgba(0, 0, 0, 0.05);
+}

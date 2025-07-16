@@ -8,6 +8,10 @@
   cursor: default;
 }
 
+.cursor-grab {
+  cursor: grab;
+}
+
 /* customize the material symbols */
 .material-symbols-outlined {
   vertical-align: text-bottom;

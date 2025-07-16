@@ -14,7 +14,7 @@ import Tab from "react-bootstrap/Tab";
 import { CustomBlockManager } from "../blocks/CustomBlockManager";
 import { CustomTraitManager } from "../traits/CustomTraitManager";
 import { CustomAttributes } from "./CustomAttributes";
-import { CustomLayerManager } from "./CustomLayerManager";
+import { CustomLayerManager } from "../layers/CustomLayerManager";
 import { CustomPageManager } from "./CustomPageManager";
 import { CustomSelectorManager } from "./CustomSelectorManager";
 import { CustomStyleManager } from "./CustomStyleManager";
