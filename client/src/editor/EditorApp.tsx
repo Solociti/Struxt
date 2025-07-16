@@ -204,6 +204,8 @@ function GrapesJsEditor({
 }) {
   const onEditor = (editor: Editor) => {
     console.log("Editor loaded", { editor });
+
+    (window as any).editor = editor;
   };
 
   return (
@@ -228,10 +230,6 @@ function GrapesJsEditor({
             editor.Commands.add("struxt:save", async (editor) => {
               const projectData = editor.getProjectData();
               await editor.Storage.store(projectData);
-            });
-
-            editor.onReady(() => {
-              console.log("Editor is ready");
             });
           },
         ],

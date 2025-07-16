@@ -23,3 +23,13 @@ export function customAttributesTrait(editor: Editor) {
   const trait = traits.find((trait) => trait.name === "customAttributes");
   return trait;
 }
+
+/**
+ * setup the custom trait types
+ *
+ * @param editor
+ */
+export function setupTraitTypes(editor: Editor) {
+  editor.TraitManager.addType("asset-src", {});
+  editor.TraitManager.addType("href", {});
+}

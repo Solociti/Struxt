@@ -1,25 +1,28 @@
 import { useEditor } from "@grapesjs/react";
+import { FormInput } from "client/components/FormInput";
 import type { Trait } from "grapesjs";
 import * as React from "react";
 import Button from "react-bootstrap/Button";
 import Form from "react-bootstrap/Form";
 import InputGroup from "react-bootstrap/InputGroup";
+import { PropertyGroup } from "../tools/PropertyGroup";
+import { UrlField } from "./UrlField";
 
-interface StylePropertyFieldProps extends React.HTMLProps<HTMLDivElement> {
+interface StylePropertyFieldProps {
   trait: Trait;
 }
 
-export function TraitPropertyField({
-  trait,
-  ...rest
-}: StylePropertyFieldProps) {
+/**
+ * Render the trait property field
+ *
+ * @param param0
+ * @returns
+ */
+export function TraitPropertyField({ trait }: StylePropertyFieldProps) {
   const editor = useEditor();
-  const handleChange = (value: string) => {
-    trait.setValue(value);
-  };
 
   const onChange = (ev: any) => {
-    handleChange(ev.target.value);
+    trait.setValue(ev.target.value);
   };
 
   const handleButtonClick = () => {
@@ -37,10 +40,10 @@ export function TraitPropertyField({
   const valueWithDef = typeof value !== "undefined" ? value : defValue;
 
   let inputToRender = (
-    <Form.Control
+    <FormInput
       placeholder={defValue}
       value={value}
-      onChange={onChange}
+      onRealChange={(value) => trait.setValue(value)}
       size="sm"
     />
   );
@@ -73,10 +76,11 @@ export function TraitPropertyField({
                   type="color"
                   className="cursor-pointer opacity-0"
                   value={valueWithDef}
-                  onChange={(ev) => handleChange(ev.target.value)}
+                  onChange={(ev) => trait.setValue(ev.target.value)}
                 />
               </div>
             </InputGroup.Text>
+
             <Form.Control
               placeholder={defValue}
               value={value}
@@ -91,7 +95,7 @@ export function TraitPropertyField({
       {
         inputToRender = (
           <Form.Check
-            type="checkbox"
+            type="switch"
             checked={value}
             onChange={(ev: React.ChangeEvent<HTMLInputElement>) =>
               trait.setValue(ev.target.checked)
@@ -110,13 +114,77 @@ export function TraitPropertyField({
         );
       }
       break;
+
+    case "number":
+      {
+        inputToRender = (
+          <FormInput
+            type="number"
+            placeholder={defValue}
+            value={value}
+            onRealChange={(value) => trait.setValue(value)}
+            size="sm"
+            min={trait.get("min")}
+            max={trait.get("max")}
+            step={trait.get("step")}
+          />
+        );
+      }
+      break;
+
+    case "asset-src":
+      {
+        inputToRender = (
+          <>
+            <InputGroup size="sm">
+              <FormInput
+                placeholder={defValue}
+                value={value}
+                onRealChange={(value) => trait.setValue(value)}
+              />
+
+              <Button
+                variant="outline-secondary"
+                onClick={() => {
+                  const assetManager = editor.AssetManager;
+
+                  assetManager.open({
+                    select(asset, complete) {
+                      const selected = editor.getSelected();
+                      if (selected) {
+                        selected.addAttributes({
+                          src: asset.getSrc(),
+                        });
+
+                        complete && assetManager.close();
+                      }
+                    },
+                  });
+                }}
+              >
+                Select
+              </Button>
+            </InputGroup>
+          </>
+        );
+      }
+      break;
+
+    case "href":
+      {
+        return (
+          <UrlField
+            editor={editor}
+            trait={trait}
+            value={value}
+            defValue={defValue}
+          />
+        );
+      }
+      break;
   }
 
   return (
-    <div {...rest} className="mb-3 px-1">
-      <div className="mb-2 text-capitalize">{trait.getLabel()}</div>
-
-      {inputToRender}
-    </div>
+    <PropertyGroup label={trait.getLabel()}>{inputToRender}</PropertyGroup>
   );
 }

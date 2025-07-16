@@ -1,6 +1,12 @@
 import { TraitsResultProps } from "@grapesjs/react";
 import { TraitPropertyField } from "./TraitPropertyField";
 
+/**
+ * Component to render the traits config
+ *
+ * @param param0
+ * @returns
+ */
 export function CustomTraitManager({
   traits,
 }: Omit<TraitsResultProps, "Container">) {

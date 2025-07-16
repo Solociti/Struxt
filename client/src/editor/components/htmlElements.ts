@@ -1,16 +1,34 @@
-import { Editor } from "grapesjs";
+import { ComponentDefinition, Editor, TraitProperties } from "grapesjs";
+import { getDefaultTraits, setupTraitTypes } from "../traits/traits";
 import divIcon from "./icons/div.svg?raw";
-import { getDefaultTraits } from "./traits";
+import { updateImage } from "./imageEl";
+import { setupLinkElement } from "./linkEl";
 
 export function registerElements(editor: Editor) {
+  setupTraitTypes(editor);
+
   const defaultTraits = getDefaultTraits(editor);
 
-  const linkDefaults =
-    editor.DomComponents.getType("link")?.model.getDefaults();
-  const linkTraits = linkDefaults ? linkDefaults.traits : [];
+  updateImage(editor, defaultTraits);
+  setupLinkElement(editor, defaultTraits);
 
-  const elements = [
-    { el: "a", traits: ["id", ...linkTraits], config: {} },
+  setupHTMlElements(editor);
+}
+
+/**
+ * Setup the basic HTML elements
+ *
+ * @param editor
+ */
+function setupHTMlElements(
+  editor: Editor,
+  defaultTraits: TraitProperties[] = []
+) {
+  const elements: {
+    el: string;
+    traits: TraitProperties[];
+    config: Omit<ComponentDefinition, "traits">;
+  }[] = [
     { el: "article", traits: [...defaultTraits], config: {} },
     { el: "code", traits: [...defaultTraits], config: {} },
     { el: "div", traits: [...defaultTraits], config: {} },
@@ -67,6 +85,7 @@ export function registerElements(editor: Editor) {
       model: {
         defaults: {
           tagName: element,
+          editable: true,
           droppable: true,
           traits: traits,
           ...config,

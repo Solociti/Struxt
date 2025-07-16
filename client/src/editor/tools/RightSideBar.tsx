@@ -17,7 +17,7 @@ import { CustomLayerManager } from "./CustomLayerManager";
 import { CustomPageManager } from "./CustomPageManager";
 import { CustomSelectorManager } from "./CustomSelectorManager";
 import { CustomStyleManager } from "./CustomStyleManager";
-import { CustomTraitManager } from "./CustomTraitManager";
+import { CustomTraitManager } from "../traits/CustomTraitManager";
 
 export function RightSideBar() {
   const [hide, setHide] = useState(false);
@@ -53,18 +53,6 @@ export function RightSideBar() {
       <Tab.Container defaultActiveKey="layers">
         <Nav variant="tabs" fill className="flex-nowrap">
           <Nav.Item>
-            <Nav.Link eventKey="styles" title="Styles">
-              <MaterialIcon>brush</MaterialIcon>
-            </Nav.Link>
-          </Nav.Item>
-
-          <Nav.Item>
-            <Nav.Link eventKey="traits" title="Traits">
-              <MaterialIcon>settings</MaterialIcon>
-            </Nav.Link>
-          </Nav.Item>
-
-          <Nav.Item>
             <Nav.Link eventKey="layers" title="Layers">
               <MaterialIcon>layers</MaterialIcon>
             </Nav.Link>
@@ -73,6 +61,18 @@ export function RightSideBar() {
           <Nav.Item>
             <Nav.Link eventKey="blocks" title="Blocks">
               <MaterialIcon>add_box</MaterialIcon>
+            </Nav.Link>
+          </Nav.Item>
+
+          <Nav.Item>
+            <Nav.Link eventKey="styles" title="Styles">
+              <MaterialIcon>brush</MaterialIcon>
+            </Nav.Link>
+          </Nav.Item>
+
+          <Nav.Item>
+            <Nav.Link eventKey="traits" title="Traits">
+              <MaterialIcon>settings</MaterialIcon>
             </Nav.Link>
           </Nav.Item>
 

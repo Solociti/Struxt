@@ -4,7 +4,7 @@ import {
   Editor,
   TraitProperties,
 } from "grapesjs";
-import { customAttributesTrait, getDefaultTraits } from "./traits";
+import { customAttributesTrait, getDefaultTraits } from "../traits/traits";
 
 const imageComponent: ComponentDefinition = {
   tagName: "img",
