@@ -11,13 +11,13 @@ import MaterialIcon from "client/components/MaterialIcon";
 import { useEffect, useState } from "react";
 import Nav from "react-bootstrap/Nav";
 import Tab from "react-bootstrap/Tab";
+import { CustomBlockManager } from "../blocks/CustomBlockManager";
+import { CustomTraitManager } from "../traits/CustomTraitManager";
 import { CustomAttributes } from "./CustomAttributes";
-import { CustomBlockManager } from "./CustomBlockManager";
 import { CustomLayerManager } from "./CustomLayerManager";
 import { CustomPageManager } from "./CustomPageManager";
 import { CustomSelectorManager } from "./CustomSelectorManager";
 import { CustomStyleManager } from "./CustomStyleManager";
-import { CustomTraitManager } from "../traits/CustomTraitManager";
 
 export function RightSideBar() {
   const [hide, setHide] = useState(false);

@@ -1,36 +1,3 @@
-<?xml version="1.0" encoding="UTF-8" standalone="no"?>
-<svg
-   viewBox="0 0 24 24"
-   version="1.1"
-   id="svg1"
-   sodipodi:docname="div.svg"
-   inkscape:version="1.4 (86a8ad7, 2024-10-11)"
-   xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
-   xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
-   xmlns="http://www.w3.org/2000/svg"
-   xmlns:svg="http://www.w3.org/2000/svg">
-  <defs
-     id="defs1" />
-  <sodipodi:namedview
-     id="namedview1"
-     pagecolor="#ffffff"
-     bordercolor="#000000"
-     borderopacity="0.25"
-     inkscape:showpageshadow="2"
-     inkscape:pageopacity="0.0"
-     inkscape:pagecheckerboard="0"
-     inkscape:deskcolor="#d1d1d1"
-     inkscape:zoom="23.776466"
-     inkscape:cx="10.178132"
-     inkscape:cy="10.998271"
-     inkscape:window-width="1920"
-     inkscape:window-height="1009"
-     inkscape:window-x="1912"
-     inkscape:window-y="-8"
-     inkscape:window-maximized="1"
-     inkscape:current-layer="svg1" />
-  <path
-     id="path3"
-     style="stroke-width:0.847053;stroke-linecap:square"
-     d="M 15.031843,4.9579748 14.623207,5.6528228 7.9857524,16.957339 7.5787699,17.652187 8.9684663,18.467807 9.377103,17.772958 16.012902,6.4700965 16.421539,5.7752484 Z M 16.423546,15.888156 20.319989,11.991713 16.423546,8.0952699 17.60942,6.9093958 22.691737,11.991713 17.60942,17.07403 16.423546,15.888156 M 7.5764549,15.852531 3.6800116,11.956087 7.5764549,8.0596442 6.3905808,6.8737701 1.3082635,11.956087 6.3905808,17.038405 Z" />
+<svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+  <path fill="currentColor" d="M 15.031843,4.9579748 14.623207,5.6528228 7.9857524,16.957339 7.5787699,17.652187 8.9684663,18.467807 9.377103,17.772958 16.012902,6.4700965 16.421539,5.7752484 Z M 16.423546,15.888156 20.319989,11.991713 16.423546,8.0952699 17.60942,6.9093958 22.691737,11.991713 17.60942,17.07403 16.423546,15.888156 M 7.5764549,15.852531 3.6800116,11.956087 7.5764549,8.0596442 6.3905808,6.8737701 1.3082635,11.956087 6.3905808,17.038405 Z" />
 </svg>
