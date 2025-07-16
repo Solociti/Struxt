@@ -46,19 +46,6 @@ function DropIndicator({
     },
   });
 
-  // Add debugging
-  useEffect(() => {
-    if (isVisible) {
-      console.log("DropIndicator created:", {
-        id: `drop-${componentId}-${index}`,
-        parentId: componentId,
-        index,
-        level,
-        isOver,
-      });
-    }
-  }, [isVisible, componentId, index, level, isOver]);
-
   // Check if this is a valid drop target
   const isValidDropTarget = (() => {
     if (!active || !isVisible) return false;

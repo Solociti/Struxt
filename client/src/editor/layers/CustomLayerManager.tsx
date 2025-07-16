@@ -64,12 +64,6 @@ export function CustomLayerManager({
         onDragEnd={(ev) => {
           const { active, over } = ev;
 
-          console.log("Drag end:", {
-            active: active?.id,
-            over: over?.id,
-            overData: over?.data?.current,
-          });
-
           if (!over || !active) {
             setActiveDrag(null);
             return;
@@ -84,11 +78,6 @@ export function CustomLayerManager({
           const overData = over.data.current;
 
           if (overData?.type === "drop-indicator") {
-            console.log("Dropping between items:", {
-              parentId: overData.parentId,
-              index: overData.index,
-            });
-
             // Handle drop between items at specific index
             const parentComponent = Components.getById(overData.parentId);
             if (parentComponent && parentComponent !== dragComponent) {
@@ -99,20 +88,12 @@ export function CustomLayerManager({
                   dragComponent,
                   overData.index
                 );
-                console.log("Can move result:", canMove);
                 if (canMove.result) {
                   dragComponent.move(parentComponent, { at: overData.index });
-                  console.log("Moved component successfully");
-                } else {
-                  console.log("Cannot move component:", canMove.reason);
                 }
-              } else {
-                console.log("Cannot drop on self or descendants");
               }
             }
           } else {
-            console.log("Dropping inside component");
-
             // Handle drop inside component (existing behavior)
             const targetComponent = Components.getById(over.id as string);
             if (targetComponent && targetComponent !== dragComponent) {
