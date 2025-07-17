@@ -16,6 +16,8 @@ interface SimpleModalProps {
 
   children: React.ReactNode;
 
+  scrollable?: boolean;
+
   footer?: React.ReactNode;
 
   size?: "sm" | "lg" | "xl";
@@ -29,9 +31,16 @@ export default function SimpleModal({
   size,
   title,
   footer = null,
+  scrollable = false,
 }: SimpleModalProps) {
   return (
-    <Modal show={show} onHide={onHide} onExited={onExit} size={size}>
+    <Modal
+      show={show}
+      onHide={onHide}
+      onExited={onExit}
+      size={size}
+      scrollable={scrollable}
+    >
       <Modal.Header closeButton>
         <Modal.Title>{title}</Modal.Title>
       </Modal.Header>

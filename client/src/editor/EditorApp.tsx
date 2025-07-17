@@ -20,6 +20,7 @@ import { RightSideBar } from "./tools/RightSideBar";
 import { TopBar } from "./tools/TopBar";
 
 import "client/bootstrap/bootstrap.scss";
+import { pageCommandSetup } from "./page/commandSetup";
 
 export function EditorApp() {
   const [projectId, setProjectId] = useState<string | null>(null);
@@ -222,6 +223,8 @@ function GrapesJsEditor({
           (editor) => {
             registerElements(editor);
             registerImageViewer(editor);
+
+            pageCommandSetup(editor);
 
             addFonts(editor);
           },
