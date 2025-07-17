@@ -1,6 +1,6 @@
-import React, { useEffect, useState } from "react";
 import type { FormControlProps } from "react-bootstrap";
 import Form from "react-bootstrap/Form";
+import { useRealChange } from "./useRealChange";
 
 interface FormInputProps extends FormControlProps {
   value: string;
@@ -24,84 +24,15 @@ export function FormInput({
   onChange,
   onBlur,
   onKeyDown,
-  value: valueIn,
+  value,
   ...props
 }: FormInputProps) {
-  const [value, setValue] = useState(valueIn || "");
-  const [lastCommittedValue, setLastCommittedValue] = useState(valueIn || "");
+  const eventProps = useRealChange(value, onRealChange, {
+    onChange,
+    onBlur,
+    onKeyDown,
+    commitOnEnter: true,
+  });
 
-  const hasEdits = value !== lastCommittedValue;
-
-  useEffect(() => {
-    if (!hasEdits && valueIn !== value) {
-      setValue(valueIn);
-      setLastCommittedValue(valueIn);
-    }
-  }, [valueIn, hasEdits, value]);
-
-  /**
-   * Commit the change to the input value.
-   *
-   * @param newValue
-   */
-  const commitChange = (newValue: string) => {
-    if (newValue !== lastCommittedValue) {
-      setLastCommittedValue(newValue);
-      onRealChange(newValue);
-    }
-  };
-
-  /**
-   * Listen for value changes
-   *
-   * @param e
-   */
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const newValue = e.target.value;
-    setValue(newValue);
-
-    if (onChange) {
-      onChange(e);
-    }
-  };
-
-  /**
-   * Listen for the blur event to do a real change event.
-   *
-   * @param e
-   */
-  const handleBlur = (e: React.FocusEvent<HTMLInputElement>) => {
-    commitChange(value);
-
-    if (onBlur) {
-      onBlur(e);
-    }
-  };
-
-  /**
-   * Use the keydown event to commit the change if Enter is pressed.
-   *
-   * @param e
-   */
-  const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
-    if (onKeyDown) {
-      onKeyDown(e);
-    }
-
-    if (e.key === "Enter" && value !== lastCommittedValue) {
-      commitChange(value);
-    }
-  };
-
-  const input = (
-    <Form.Control
-      {...props}
-      value={value}
-      onChange={handleChange}
-      onBlur={handleBlur}
-      onKeyDown={handleKeyDown}
-    />
-  );
-
-  return input;
+  return <Form.Control {...props} {...eventProps} />;
 }
