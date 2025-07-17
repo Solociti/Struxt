@@ -213,6 +213,7 @@ function CustomEditor({
         customCodePlugin,
         (editor) => {
           editor.onReady(() => {
+            (window as any).editor = editor;
             // let's show the global style panel on start
             // editor.runCommand("studio:layoutToggle", {
             //   id: "gs",
