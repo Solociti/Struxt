@@ -15,12 +15,12 @@ import { addFonts } from "../fonts/addFonts";
 import { getProject } from "../projects/projects";
 import { registerElements } from "./components/htmlElements";
 import { registerImageViewer } from "./components/imageViewer";
+import { setupPageCommands, setupPageComponents } from "./page/pageSetup";
 import { CustomAssetManager } from "./tools/CustomAssetManager";
 import { RightSideBar } from "./tools/RightSideBar";
 import { TopBar } from "./tools/TopBar";
 
 import "client/bootstrap/bootstrap.scss";
-import { pageCommandSetup } from "./page/commandSetup";
 
 export function EditorApp() {
   const [projectId, setProjectId] = useState<string | null>(null);
@@ -224,7 +224,8 @@ function GrapesJsEditor({
             registerElements(editor);
             registerImageViewer(editor);
 
-            pageCommandSetup(editor);
+            setupPageCommands(editor);
+            setupPageComponents(editor);
 
             addFonts(editor);
           },

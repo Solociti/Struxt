@@ -2,7 +2,7 @@ import { useEditor } from "@grapesjs/react";
 import { FormInput } from "client/components/FormInput";
 import IconButton from "client/components/IconButton";
 import SimpleModal from "client/components/modals/SimpleModal";
-import { Page } from "grapesjs";
+import { Components, Page } from "grapesjs";
 import { useEffect, useState } from "react";
 import HtmlEditor from "../code/htmlEditor";
 import { PropertyGroup } from "../tools/PropertyGroup";
@@ -73,10 +73,15 @@ export function PageSettingsModal() {
 
     if (key === "customCodeHead") {
       const mainComponent = page.getMainComponent();
-      if (mainComponent) {
-        return mainComponent.head.toHTML();
-      }
-      return "";
+      return mainComponent.head.getInnerHTML();
+    }
+
+    if (key === "customCodeBody") {
+      const mainComponent = page.getMainComponent();
+
+      const components = mainComponent.findType("custom-html-body");
+      const html = components.map((c) => c.getInnerHTML()).join("\n");
+      return html;
     }
 
     const settings = page.get("settings") || {};
@@ -92,6 +97,12 @@ export function PageSettingsModal() {
     // TODO: implement this properly
 
     if (!page) {
+      return;
+    }
+
+    if (key === "customCodeHead") {
+      const mainComponent = page.getMainComponent();
+
       return;
     }
 
