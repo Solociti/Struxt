@@ -222,7 +222,6 @@ function publishCallback(
     });
 
     const result = await publishSite(editor, projectId, env);
-    console.log("Publish result:", result);
 
     // remove the progress layout
     editor.runCommand("studio:layoutRemove", {
