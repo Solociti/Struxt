@@ -12,6 +12,7 @@ import { rteProseMirror } from "@grapesjs/studio-sdk-plugins";
 // @ts-ignore
 import "@grapesjs/studio-sdk/style";
 import "client/bootstrap/bootstrap.scss";
+import { useTheme } from "client/bootstrap/Theme";
 
 const licenseKey = location.hostname.includes("staging.struxt")
   ? "1ec0231ce53b49dfa4d36dd2520cd5f288a40e1e231e4acca3d6c0bb59ba5f39"
@@ -198,6 +199,8 @@ function CustomEditor({
   setError: (error: Error) => void;
   setProjectId: (projectId: string | null) => void;
 }) {
+  const { theme } = useTheme();
+
   return (
     <div id="editor-app" style={{ height: "100vh" }}>
       <StudioEditor
@@ -207,6 +210,7 @@ function CustomEditor({
             type: "web",
             id: projectId,
           },
+          theme: theme,
           plugins: [
             parserPostCSS,
             customCodePlugin,
@@ -215,8 +219,6 @@ function CustomEditor({
               //   ...plugins,
               // ],
               toolbar({ items }) {
-                console.log({ items });
-
                 return items.filter((item) => item.id !== "image");
               },
             }),
