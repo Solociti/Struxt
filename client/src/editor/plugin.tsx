@@ -55,71 +55,7 @@ export function customLayout(projectId: string): LayoutConfig {
                   type: "button",
                   icon: launchIcon,
                   tooltip: "Publish website ",
-                  onClick: ({
-                    editor,
-                    event,
-                  }: {
-                    editor: Editor;
-                    event: any;
-                  }) => {
-                    const layoutId = "publishWebsiteProd";
-                    const rect = event.currentTarget.getBoundingClientRect();
-
-                    editor.runCommand("studio:layoutToggle", {
-                      id: layoutId,
-                      header: false,
-                      placer: {
-                        type: "popover",
-                        closeOnClickAway: true,
-                        x: rect.x,
-                        y: rect.y,
-                        w: rect.width,
-                        h: rect.height,
-                        options: { placement: "bottom-start" },
-                      },
-                      style: { width: 200 },
-                      layout: {
-                        type: "column",
-                        style: { padding: 10, gap: 10 },
-                        children: [
-                          {
-                            type: "button",
-                            variant: "primary",
-                            label: "Publish Staging",
-                            full: true,
-                            onClick: async (event: any) => {
-                              await publishSite(
-                                event.editor,
-                                projectId,
-                                "staging"
-                              );
-
-                              editor.runCommand("studio:layoutRemove", {
-                                id: layoutId,
-                              });
-                            },
-                          },
-                          {
-                            type: "button",
-                            variant: "primary",
-                            label: "Publish Production",
-                            full: true,
-                            onClick: async (event: any) => {
-                              await publishSite(
-                                event.editor,
-                                projectId,
-                                "production"
-                              );
-
-                              editor.runCommand("studio:layoutRemove", {
-                                id: layoutId,
-                              });
-                            },
-                          },
-                        ],
-                      },
-                    });
-                  },
+                  onClick: setupPublishOpenClick(projectId),
                 },
               ],
             },
@@ -194,5 +130,102 @@ export function customLayout(projectId: string): LayoutConfig {
         },
       ],
     },
+  };
+}
+
+function setupPublishOpenClick(projectId: string) {
+  return ({ editor, event }: { editor: Editor; event: any }) => {
+    const rect = event.currentTarget.getBoundingClientRect();
+    const placer = {
+      x: rect.x,
+      y: rect.y,
+      w: rect.width,
+      h: rect.height,
+    };
+
+    editor.runCommand("studio:layoutToggle", {
+      id: "publishWebsiteProd",
+      header: false,
+      placer: {
+        type: "popover",
+        closeOnClickAway: true,
+        ...placer,
+        options: { placement: "bottom-start" },
+      },
+      style: { width: 200 },
+      layout: {
+        type: "column",
+        style: { padding: 10, gap: 10 },
+        children: [
+          {
+            type: "button",
+            variant: "primary",
+            label: "Publish Staging",
+            full: true,
+            onClick: publishCallback(editor, placer, {
+              projectId,
+              env: "staging",
+            }),
+          },
+          {
+            type: "button",
+            variant: "primary",
+            label: "Publish Production",
+            full: true,
+            onClick: publishCallback(editor, placer, {
+              projectId,
+              env: "production",
+            }),
+          },
+        ],
+      },
+    });
+  };
+}
+
+function publishCallback(
+  editor: Editor,
+  placer: { x: number; y: number; w: number; h: number },
+  {
+    projectId,
+    env,
+  }: {
+    projectId: string;
+    env: "staging" | "production";
+  }
+) {
+  return async () => {
+    // close the publish layout
+    editor.runCommand("studio:layoutRemove", {
+      id: "publishWebsiteProd",
+    });
+
+    // show a progress layout
+    editor.runCommand("studio:layoutToggle", {
+      id: "publishWebsiteProgress",
+      header: false,
+      placer: {
+        type: "popover",
+        ...placer,
+        options: { placement: "bottom-start" },
+      },
+      layout: {
+        type: "column",
+        style: { padding: 10, gap: 10 },
+        children: [
+          {
+            type: "text",
+            content: `Publishing ${env}...`,
+          },
+        ],
+      },
+    });
+
+    await publishSite(editor, projectId, env);
+
+    // remove the progress layout
+    editor.runCommand("studio:layoutRemove", {
+      id: "publishWebsiteProgress",
+    });
   };
 }
