@@ -221,11 +221,52 @@ function publishCallback(
       },
     });
 
-    await publishSite(editor, projectId, env);
+    const result = await publishSite(editor, projectId, env);
+    console.log("Publish result:", result);
 
     // remove the progress layout
     editor.runCommand("studio:layoutRemove", {
       id: "publishWebsiteProgress",
     });
+
+    if (result) {
+      editor.runCommand("studio:layoutToggle", {
+        id: "publishWebsiteComplete",
+        header: false,
+        placer: {
+          type: "popover",
+          closeOnClickAway: true,
+          ...placer,
+          options: { placement: "bottom-start" },
+        },
+        style: { width: 200 },
+        layout: {
+          type: "column",
+          style: { padding: 10, gap: 10 },
+          children: [
+            {
+              type: "text",
+              content: `Published ${env} successfully!`,
+            },
+            {
+              type: "button",
+              variant: "primary",
+              label: result.primaryDomain,
+              full: true,
+              onClick: () => {
+                window.open(
+                  result.primaryDomain,
+                  `published-${projectId}-${env}`
+                );
+
+                editor.runCommand("studio:layoutRemove", {
+                  id: "publishWebsiteComplete",
+                });
+              },
+            },
+          ],
+        },
+      });
+    }
   };
 }

@@ -2,6 +2,7 @@ import { PublishApi } from "common/api/publish/publish";
 import { customError } from "common/custom-error/custom-error";
 import {
   EnvironmentTypes,
+  getPrimaryDomain,
   getValidDomains,
 } from "common/models/projects/Environment";
 import { FormSettingsField } from "common/models/projects/forms/FormSettingsModel";
@@ -36,7 +37,7 @@ export async function publishProject(
   projectEnv: EnvironmentTypes,
   files: PublishApi["PostBody"]["files"],
   user: { userId: string; displayName: string }
-) {
+): Promise<Omit<PublishApi["PostResponse"], "success">> {
   // load the editor data and check if the project exists
   // the get project editor data already throws an error if not found
   const project = await getProjectData(projectId);
@@ -48,7 +49,9 @@ export async function publishProject(
 
   // check if the project has domains to publish to
   const { domains } = getValidDomains(project[projectEnv]);
-  if (domains.length == 0) {
+  const primaryDomain = getPrimaryDomain(domains);
+
+  if (domains.length === 0 || !primaryDomain) {
     throw customError(400, "No domains set for the project");
   }
 
@@ -157,5 +160,9 @@ export async function publishProject(
 
   await schedulePublishScreenshot(publishId, projectEnv, projectId);
 
-  return { publishId };
+  return {
+    publishId,
+    domains: domains.map((d) => d.domain),
+    primaryDomain: primaryDomain.domain,
+  };
 }

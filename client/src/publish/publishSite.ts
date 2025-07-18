@@ -1,19 +1,20 @@
 import { postApi } from "client/api/api";
 import { addToastError } from "client/components/ErrorSnackBar";
 import { showToastTop } from "client/components/ToastTop";
+import { PublishApi } from "common/api/publish/publish";
 import { Editor } from "grapesjs";
 
 export async function publishSite(
   editor: Editor,
   projectId: string,
   type: "staging" | "production"
-) {
+): Promise<PublishApi["PostResponse"] | null> {
   try {
     const files = await editor.runCommand("studio:projectFiles", {
       skipProject: true,
     });
 
-    const body = {
+    const body: PublishApi["PostBody"] = {
       projectId,
       type,
       files,
@@ -33,4 +34,5 @@ export async function publishSite(
       addToastError(new Error("Unknown error occurred while publishing site"));
     }
   }
+  return null;
 }
