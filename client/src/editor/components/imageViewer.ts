@@ -4,6 +4,8 @@ import {
   Editor,
   TraitProperties,
 } from "grapesjs";
+import imgIcon from "./icons/img.svg?raw";
+import imgListIcon from "./icons/imgList.svg?raw";
 import { customAttributesTrait, getDefaultTraits } from "./traits";
 
 const imageComponent: ComponentDefinition = {
@@ -105,14 +107,14 @@ export function registerImageViewer(editor: Editor) {
         script: viewerScript,
       },
     },
-    block: {
-      label: "PSWP Viewer",
-      // media: "<svg>...</svg>", TODO: Add icon
-      category: "Extra",
-      attributes: {
-        class: "pswp-viewer",
-      },
-      content: viewerComponent,
+  });
+
+  editor.BlockManager.add("pswp-viewer", {
+    label: "PSWP Viewer",
+    media: imgListIcon,
+    category: "Extra",
+    content: {
+      ...viewerComponent,
     },
   });
 
@@ -254,12 +256,14 @@ export function registerImageViewer(editor: Editor) {
       },
     },
     view: {},
-    block: {
-      label: "PSWP Image",
-      // media: "<svg>...</svg>", TODO: Add icon
-      category: "Extra",
-      attributes: { class: "pswp-img-anchor" },
-      content: anchorComponent,
+  });
+
+  editor.BlockManager.add("pswp-img-anchor", {
+    label: "PSWP Image",
+    media: imgIcon,
+    category: "Extra",
+    content: {
+      ...anchorComponent,
     },
   });
 
@@ -279,6 +283,8 @@ export function registerImageViewer(editor: Editor) {
       defaults: {
         ...imageComponent,
         droppable: false,
+        layerable: false,
+        draggable: false,
         traits: imgTraits,
       },
     },

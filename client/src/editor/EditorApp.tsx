@@ -7,6 +7,7 @@ import { loadCurrentUser } from "../auth/user";
 import { deleteAssets, uploadAssets } from "../projects/assets";
 import { getProject, saveProject } from "../projects/projects";
 import { customLayout, setupStruxtPlugin } from "./plugin";
+import { rteProseMirror } from "@grapesjs/studio-sdk-plugins";
 
 // @ts-ignore
 import "@grapesjs/studio-sdk/style";
@@ -206,8 +207,23 @@ function CustomEditor({
             type: "web",
             id: projectId,
           },
-          plugins: [parserPostCSS, customCodePlugin, setupStruxtPlugin],
+          plugins: [
+            parserPostCSS,
+            customCodePlugin,
+            rteProseMirror?.init({
+              // plugins: ({ plugins }) => [
+              //   ...plugins,
+              // ],
+              toolbar({ items }) {
+                console.log({ items });
+
+                return items.filter((item) => item.id !== "image");
+              },
+            }),
+            setupStruxtPlugin,
+          ],
           layout: customLayout(projectId),
+
           assets: {
             storageType: "self",
             // Provide a custom upload handler for assets

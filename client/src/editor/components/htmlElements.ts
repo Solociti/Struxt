@@ -1,6 +1,8 @@
 import { Editor, TraitProperties } from "grapesjs";
+import { isGrapesJsComponent } from "./helpers";
 import divIcon from "./icons/div.svg?raw";
 import { updateImage } from "./imageEl";
+import { registerListElements } from "./listEl";
 import { getDefaultTraits } from "./traits";
 
 /**
@@ -11,6 +13,7 @@ import { getDefaultTraits } from "./traits";
 export function registerComponents(editor: Editor) {
   const defaultTraits = getDefaultTraits(editor);
 
+  registerListElements(editor, defaultTraits);
   registerHtmlElements(editor, defaultTraits);
 
   updateImage(editor, defaultTraits);
@@ -28,16 +31,67 @@ function registerHtmlElements(
 ) {
   const elements = [
     {
+      el: "code",
+      traits: [...defaultTraits],
+      category: "Text Elements",
+      config: {},
+      content: {
+        components: [
+          {
+            type: "textnode",
+            content: "# Hello World",
+          },
+        ],
+      },
+    },
+    {
+      el: "p",
+      traits: [...defaultTraits],
+      category: "Text Elements",
+      config: {},
+      content: {
+        style: {},
+      },
+    },
+    {
+      el: "pre",
+      traits: [...defaultTraits],
+      category: "Text Elements",
+      config: {},
+      content: {
+        style: {},
+        components: [
+          {
+            type: "textnode",
+            content: "##  ##  ##",
+          },
+        ],
+      },
+    },
+    {
+      el: "small",
+      traits: [...defaultTraits],
+      category: "Text Elements",
+      config: {},
+      content: {
+        style: {},
+      },
+    },
+    {
+      el: "span",
+      traits: [...defaultTraits],
+      category: "Text Elements",
+      config: {},
+      content: {
+        style: {},
+      },
+    },
+
+    {
       el: "article",
       traits: [...defaultTraits],
       config: {},
-      content: { content: "Content" },
-    },
-    {
-      el: "code",
-      traits: [...defaultTraits],
-      config: {},
-      content: { content: "Content" },
+      content: {},
     },
     {
       el: "div",
@@ -58,58 +112,18 @@ function registerHtmlElements(
       content: {},
     },
     {
-      el: "i",
-      traits: [...defaultTraits],
-      config: {},
-      content: { content: "Content" },
-    },
-    {
-      el: "li",
-      traits: [...defaultTraits],
-      config: {},
-      content: { content: "List Item" },
-    },
-    {
       el: "main",
       traits: [...defaultTraits],
       config: {},
-      content: { content: "Content" },
+      content: {},
     },
     {
       el: "nav",
       traits: [...defaultTraits],
-      config: {},
-      content: { content: "Nav" },
-    },
-    {
-      el: "ol",
-      traits: [...defaultTraits],
-      config: {},
-      content: { content: "" },
-    },
-    {
-      el: "p",
-      traits: [...defaultTraits],
-      config: {},
-      content: { content: "Content" },
-    },
-    {
-      el: "pre",
-      traits: [...defaultTraits],
-      config: {},
-      content: { content: "Content" },
-    },
-    {
-      el: "small",
-      traits: [...defaultTraits],
-      config: {},
-      content: { content: "Content" },
-    },
-    {
-      el: "span",
-      traits: [...defaultTraits],
-      config: {},
-      content: { content: "Content" },
+      config: {
+        type: "nav",
+      },
+      content: {},
     },
     {
       el: "template",
@@ -117,19 +131,13 @@ function registerHtmlElements(
       config: {},
       content: {},
     },
-    {
-      el: "ul",
-      traits: [...defaultTraits],
-      config: {},
-      content: { content: "List" },
-    },
   ];
 
-  for (const { el: element, config, traits, content } of elements) {
+  for (const { el: element, config, traits, content, category } of elements) {
     editor.BlockManager.add(element, {
       label: element,
       media: divIcon,
-      category: "HTML Elements",
+      category: category || "HTML Elements",
       content: {
         type: element,
         style: {
@@ -145,12 +153,11 @@ function registerHtmlElements(
           return;
         }
 
-        const classString = (el.getAttribute && el.getAttribute("class")) || "";
-        const isGrapesJsComponent = classString.includes("gjs-");
-        if (isGrapesJsComponent) {
+        if (isGrapesJsComponent(el)) {
           return;
         }
 
+        const classString = (el.getAttribute && el.getAttribute("class")) || "";
         const isCustomComponent = classString.includes("pswp-");
         if (isCustomComponent) {
           return;
@@ -160,6 +167,7 @@ function registerHtmlElements(
           return { type: element };
         }
       },
+      extend: category === "Text Elements" ? "text" : undefined,
       model: {
         defaults: {
           tagName: element,
