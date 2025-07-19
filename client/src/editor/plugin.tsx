@@ -6,6 +6,7 @@ import { registerComponents } from "./components/htmlElements";
 import launchIcon from "./components/icons/launch.svg?raw";
 import { registerImageViewer } from "./components/imageViewer";
 import MaterialIcon from "client/components/MaterialIcon";
+import { setupURL } from "common/format/url";
 
 /**
  * Setup the struxt customizations for the editor.
@@ -70,9 +71,10 @@ export function customLayout(projectId: string): LayoutConfig {
               tabs: [
                 {
                   id: "add",
+                  // it seems that react components work just fine here. The type just doesn't match
                   label: (
                     <MaterialIcon title="New Components">add</MaterialIcon>
-                  ) as any as string,
+                  ) as any,
                   children: {
                     type: "panelBlocks",
                     style: {
@@ -83,9 +85,10 @@ export function customLayout(projectId: string): LayoutConfig {
                 },
                 {
                   id: "styles",
+                  // it seems that react components work just fine here. The type just doesn't match
                   label: (
                     <MaterialIcon title="Styles">format_shapes</MaterialIcon>
-                  ) as any as string,
+                  ) as any,
                   children: {
                     type: "column",
                     style: { height: "100%" },
@@ -102,11 +105,12 @@ export function customLayout(projectId: string): LayoutConfig {
                 },
                 {
                   id: "props",
+                  // it seems that react components work just fine here. The type just doesn't match
                   label: (
                     <MaterialIcon title="Properties">
                       settings_applications
                     </MaterialIcon>
-                  ) as any as string,
+                  ) as any,
                   children: {
                     type: "panelProperties",
                     style: { padding: 5, height: "100%" },
@@ -114,9 +118,10 @@ export function customLayout(projectId: string): LayoutConfig {
                 },
                 {
                   id: "global-styles",
+                  // it seems that react components work just fine here. The type just doesn't match
                   label: (
                     <MaterialIcon title="Global Styles">css</MaterialIcon>
-                  ) as any as string,
+                  ) as any,
                   children: {
                     type: "panelGlobalStyles",
                     style: {
@@ -253,10 +258,8 @@ function publishCallback(
               label: result.primaryDomain,
               full: true,
               onClick: () => {
-                window.open(
-                  result.primaryDomain,
-                  `published-${projectId}-${env}`
-                );
+                const url = setupURL(result.primaryDomain);
+                window.open(url.toString(), `published-${projectId}-${env}`);
 
                 editor.runCommand("studio:layoutRemove", {
                   id: "publishWebsiteComplete",

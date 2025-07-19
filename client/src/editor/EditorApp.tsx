@@ -1,4 +1,6 @@
+import { rteProseMirror } from "@grapesjs/studio-sdk-plugins";
 import StudioEditor from "@grapesjs/studio-sdk/react";
+import { useTheme } from "client/bootstrap/Theme";
 import { ErrorNames } from "common/custom-error/custom-error";
 import customCodePlugin from "grapesjs-custom-code";
 import parserPostCSS from "grapesjs-parser-postcss";
@@ -7,12 +9,10 @@ import { loadCurrentUser } from "../auth/user";
 import { deleteAssets, uploadAssets } from "../projects/assets";
 import { getProject, saveProject } from "../projects/projects";
 import { customLayout, setupStruxtPlugin } from "./plugin";
-import { rteProseMirror } from "@grapesjs/studio-sdk-plugins";
 
 // @ts-ignore
 import "@grapesjs/studio-sdk/style";
 import "client/bootstrap/bootstrap.scss";
-import { useTheme } from "client/bootstrap/Theme";
 
 const licenseKey = location.hostname.includes("staging.struxt")
   ? "1ec0231ce53b49dfa4d36dd2520cd5f288a40e1e231e4acca3d6c0bb59ba5f39"
