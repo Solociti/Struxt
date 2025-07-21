@@ -89,20 +89,7 @@ export function registerListElements(
         tagName: "ul",
         droppable: true,
         editable: true,
-        traits: [
-          ...primaryTraits,
-          {
-            type: "select",
-            name: "type",
-            label: "List Type",
-            options: [
-              { id: "disc", name: "Disc" },
-              { id: "circle", name: "Circle" },
-              { id: "square", name: "Square" },
-            ],
-          },
-          ...customTraits,
-        ],
+        traits: [...primaryTraits, ...customTraits],
       },
     },
   });
@@ -136,22 +123,7 @@ export function registerListElements(
         tagName: "ol",
         droppable: true,
         editable: true,
-        traits: [
-          ...primaryTraits,
-          {
-            type: "select",
-            name: "type",
-            label: "List Type",
-            options: [
-              { id: "1", name: "Integer" },
-              { id: "a", name: "Lower Alpha" },
-              { id: "A", name: "Upper Alpha" },
-              { id: "i", name: "Lower Roman" },
-              { id: "I", name: "Upper Roman" },
-            ],
-          },
-          ...customTraits,
-        ],
+        traits: [...primaryTraits, ...customTraits],
       },
     },
   });

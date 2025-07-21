@@ -22,6 +22,8 @@ export function setupStruxtPlugin(editor: Editor) {
     console.log("Editor Ready.");
   });
 
+  addCustomStyles(editor);
+
   // Register custom components
   registerComponents(editor);
   registerImageViewer(editor);
@@ -30,6 +32,74 @@ export function setupStruxtPlugin(editor: Editor) {
   addFonts(editor);
 
   console.log("Struxt plugin initialized");
+}
+
+function addCustomStyles(editor: Editor) {
+  // add the bullet styles for lists (ol, ul)
+  editor.onReady(() => {
+    // editor.StyleManager.addProperty("gs-typography", {
+    //   label: "List Style",
+    //   property: "list-style",
+    //   type: "select",
+    //   default: "",
+    //   options: [
+    //     { id: "", label: "Default" },
+    //     { id: "none", label: "None" },
+    //     { id: "disc", label: "Disc" },
+    //     { id: "circle", label: "Circle" },
+    //     { id: "square", label: "Square" },
+    //   ],
+    // });
+
+    // Create a custom sector for lists
+    const sector = editor.StyleManager.addSector("custom-lists", {
+      name: "List Styles",
+      visible: false,
+    });
+    sector.on("change:visible", (sector) => {
+      // get the current selected component
+      const selected = editor.getSelected();
+
+      if (selected && ["ul", "ol", "li"].includes(selected.getType())) {
+        sector.set("visible", true);
+      } else {
+        sector.set("visible", false);
+      }
+    });
+
+    editor.StyleManager.addProperty("custom-lists", {
+      label: "Type",
+      property: "list-style-type",
+      type: "select",
+      default: "",
+      full: true,
+      options: [
+        { id: "", label: "Default" },
+        { id: "none", label: "None" },
+        { id: "disc", label: "Disc" },
+        { id: "circle", label: "Circle" },
+        { id: "square", label: "Square" },
+        { id: "decimal", label: "Number" },
+        { id: "lower-roman", label: "Lower Roman" },
+        { id: "upper-roman", label: "Upper Roman" },
+        { id: "lower-alpha", label: "Lower Alpha" },
+        { id: "upper-alpha", label: "Upper Alpha" },
+      ],
+    });
+
+    editor.StyleManager.addProperty("custom-lists", {
+      label: "Position",
+      property: "list-style-position",
+      type: "select",
+      default: "",
+      full: true,
+      options: [
+        { id: "", label: "Default" },
+        { id: "inside", label: "Inside" },
+        { id: "outside", label: "Outside" },
+      ],
+    });
+  });
 }
 
 /**
