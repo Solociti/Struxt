@@ -13,7 +13,7 @@ RUN usermod -a -G audio,video node
 
 USER node
 
-WORKDIR /home/node
+WORKDIR /
 
 ENV DBUS_SESSION_BUS_ADDRESS=autolaunch:
 
@@ -32,8 +32,6 @@ WORKDIR /app
 # copy the build output from the shared build image
 COPY --from=ghcr.io/solociti/struxt-build:build /app/node_modules ./node_modules
 COPY --from=ghcr.io/solociti/struxt-build:build /app/puppeteer-package.json ./package.json
-
-RUN npm i puppeteer@24
 
 COPY --from=ghcr.io/solociti/struxt-build:build /app/client/dist ./client/dist
 COPY --from=ghcr.io/solociti/struxt-build:build /app/dist-server ./
