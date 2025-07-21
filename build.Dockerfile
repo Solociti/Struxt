@@ -4,7 +4,7 @@ WORKDIR /app
 
 # setup the build
 COPY package.json /app
-RUN npm install --omit=dev
+RUN npm install
 
 # copy the source code
 COPY . /app/
@@ -18,3 +18,6 @@ RUN npx tsc -p server/tsconfig.json
 # build the server and common directories
 RUN npx babel server --out-dir dist-server/server --extensions '.ts,.js'
 RUN npx babel common --out-dir dist-server/common --extensions '.ts,.js'
+
+# rerun the npm install to only include production dependencies
+RUN npm install --omit=dev
