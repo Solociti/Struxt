@@ -72,19 +72,14 @@ registerApi<PublishApi>("/api/publish/:projectId", {
     }
 
     // publish the project
-    const { publishId } = await publishProject(
-      projectId,
-      publishEnv,
-      body.files,
-      {
-        userId: user.id,
-        displayName: user.name,
-      }
-    );
+    const result = await publishProject(projectId, publishEnv, body.files, {
+      userId: user.id,
+      displayName: user.name,
+    });
 
     return {
       success: true,
-      publishId,
+      ...result,
     };
   }
 );

@@ -18,5 +18,17 @@ export interface PublishApi extends Api {
 
   PostResponse: {
     success: boolean;
+
+    publishId: string;
+
+    /**
+     * The list of domains that were published to.
+     */
+    domains: string[];
+
+    /**
+     * The primary domain that was published to.
+     */
+    primaryDomain: string;
   };
 }

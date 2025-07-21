@@ -68,7 +68,13 @@ registerApi<ProjectCreateApi>("/api/projects/new").post(
   }
 );
 
-registerApi<ProjectEditorApi>("/api/projects/:projectId/editor")
+registerApi<ProjectEditorApi>("/api/projects/:projectId/editor", {
+  bodySanitization: {
+    editorData: {
+      skipSanitize: true,
+    },
+  },
+})
   .get([], async ({ user, params }) => {
     const projectId = params.projectId;
 
