@@ -10,6 +10,14 @@
       "matchPackageNames": ["grapesjs"],
       "packagePatterns": ["grapesjs-*"],
       "groupName": "GrapesJS"
+    },
+    {
+      "matchPackageNames": ["bootstrap", "react-bootstrap"],
+      "groupName": "Bootstrap"
+    },
+    {
+      "matchPackageNames": ["sass", "sass-embedded"],
+      "groupName": "Sass"
     }
   ]
 }
