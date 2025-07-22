@@ -13,19 +13,7 @@ RUN usermod -a -G audio,video node
 
 USER node
 
-WORKDIR /home/node
-
 ENV DBUS_SESSION_BUS_ADDRESS=autolaunch:
-
-# install puppeteer package
-RUN npm i puppeteer@24.12.1
-
-# Install system dependencies as root.
-USER root
-RUN PUPPETEER_CACHE_DIR=/home/node/.cache/puppeteer \
-  npx puppeteer browsers install chrome --install-deps
-
-USER node
 
 WORKDIR /app
 
@@ -36,6 +24,13 @@ COPY --from=ghcr.io/solociti/struxt-build:build /app/client/dist ./client/dist
 COPY --from=ghcr.io/solociti/struxt-build:build /app/dist-server ./
 COPY --from=ghcr.io/solociti/struxt-build:build /app/templates ./templates/
 
+# Install system dependencies as root.
+USER root
+RUN PUPPETEER_CACHE_DIR=/home/node/.cache/puppeteer \
+  npx puppeteer browsers install chrome --install-deps
+
+# switch back to node user
+USER node
 
 EXPOSE 3000
 
