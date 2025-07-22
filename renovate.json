@@ -1,6 +1,8 @@
 {
   "$schema": "https://docs.renovatebot.com/renovate-schema.json",
   "extends": ["config:recommended"],
+  "timezone": "America/Halifax",
+  "schedule": ["before 8am on Monday"],
   "packageRules": [
     {
       "matchPackageNames": ["@types/bull", "bullmq", "@bull-board/express"],
@@ -18,6 +20,11 @@
     {
       "matchPackageNames": ["sass", "sass-embedded"],
       "groupName": "Sass"
+    },
+    {
+      "matchPackageNames": ["react", "@types/react"],
+      "packagePatterns": ["react-*", "@types/react-*"],
+      "groupName": "React"
     }
   ]
 }
