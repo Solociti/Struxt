@@ -5,12 +5,17 @@
   "type": "module",
   "scripts": {
     "test": "vitest",
+    "posttest": "npm run check-node-version",
+    "predev": "npm run check-node-version",
     "dev": "cd client && vite",
     "build": "tsc && cd client && vite build",
     "preview": "cd client && vite preview",
     "docker": "./docker.sh up",
     "migrate": "docker exec -it struxt-editor-api-1 node server/migrationEntry.js",
-    "release": "node scripts/release/createRelease.mjs"
+    "prerelease": "npm run check-node-version",
+    "release": "node scripts/release/createRelease.mjs",
+    "check-node-version": "node scripts/checkNodeVersion.mjs",
+    "postinstall": "npm run check-node-version"
   },
   "devDependencies": {
     "@babel/cli": "^7.28.0",
