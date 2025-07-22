@@ -71,7 +71,7 @@ async function checkNodeVersion() {
       return 0;
     } else {
       logMessage("error", `Minor versions mismatch.`);
-      return 1;
+      return 0;
     }
   }
 
@@ -87,17 +87,16 @@ async function getDockerNodeVersion() {
   try {
     const dockerfileContent = await readFile(dockerfilePath, "utf-8");
     const versionMatch = dockerfileContent.match(/FROM\snode:([\d\.]{0,})/);
-    const [major, minor, patch] = versionMatch[1].split(".").map(Number);
-
-    if (versionMatch) {
-      return {
-        major,
-        minor,
-        patch,
-      };
-    } else {
+    if (!versionMatch) {
       throw new Error("Node version not found in Dockerfile");
     }
+    const [major, minor, patch] = versionMatch[1].split(".").map(Number);
+
+    return {
+      major,
+      minor,
+      patch,
+    };
   } catch (error) {
     console.error("Error reading Dockerfile:", error);
     throw error;
