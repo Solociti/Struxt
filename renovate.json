@@ -1,40 +1,24 @@
 {
   "$schema": "https://docs.renovatebot.com/renovate-schema.json",
-  "extends": [
-    "config:recommended"
-  ],
+  "extends": ["config:recommended"],
   "timezone": "America/Halifax",
-  "schedule": [
-    "before 8am on Monday"
-  ],
+  "schedule": ["before 8am on Monday"],
+  "rangeStrategy": "bump",
   "packageRules": [
     {
-      "matchPackageNames": [
-        "@types/bull",
-        "bullmq",
-        "@bull-board/express"
-      ],
+      "matchPackageNames": ["@types/bull", "bullmq", "@bull-board/express"],
       "groupName": "BullMQ"
     },
     {
-      "matchPackageNames": [
-        "grapesjs",
-        "/grapesjs-*/"
-      ],
+      "matchPackageNames": ["grapesjs", "/grapesjs-*/"],
       "groupName": "GrapesJS"
     },
     {
-      "matchPackageNames": [
-        "bootstrap",
-        "react-bootstrap"
-      ],
+      "matchPackageNames": ["bootstrap", "react-bootstrap"],
       "groupName": "Bootstrap"
     },
     {
-      "matchPackageNames": [
-        "sass",
-        "sass-embedded"
-      ],
+      "matchPackageNames": ["sass", "sass-embedded"],
       "groupName": "Sass"
     },
     {
