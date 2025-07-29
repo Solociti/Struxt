@@ -5,6 +5,7 @@ export const ErrorNames = {
   Forbidden: "Access Denied",
   InternalServerError: "Internal Server Error",
   NotFound: "Not Found",
+  ObserverError: "Observer Error",
   ProjectNotFound: "Project Not Found",
   Unauthorized: "Unauthorized",
 };
