@@ -1,10 +1,10 @@
 import { customError } from "common/custom-error/custom-error";
 import { ProjectRolesInviteModel } from "common/models/projects/ProjectRolesInviteModel";
 import { ProjectRoleList, ProjectRoleTypes } from "common/models/user/Roles";
+import { publishMessage } from "server/database/dragonFly";
 import { getCollection } from "server/database/mongodb";
 import { createSimpleId } from "server/utils/createId";
 import { scheduleInviteEmail } from "../queues/setupQueue";
-import { publishMessage } from "server/database/dragonFly";
 
 /**
  * Creates a new invite for the given user email.

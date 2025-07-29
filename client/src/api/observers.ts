@@ -26,7 +26,6 @@ export function createObserver<K extends keyof ServerToClientEvents>(
 
   socket.on(event, listener as any);
   socket.emit("subscribe:init", event, id, query, (result) => {
-    console.log("Register:", { result, id });
     subscription(result);
   });
 

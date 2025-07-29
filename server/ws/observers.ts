@@ -53,7 +53,6 @@ type ObserverCallback<Q> = (
 const observers: {
   [K in keyof ServerToClientEvents]?: ObserverCallback<ServerEventsQuery[K]>;
 } = {};
-export { observers };
 
 /**
  * Setup the events required for the observers.
@@ -128,13 +127,16 @@ export async function onConnection(socket: SocketWithEvents) {
     }
   });
 
-  socket.on("subscribe:stop", (event: string, id: number) => {
-    // remove the ID from the active IDs set
-    if (activeObservers[id]) {
-      activeObservers[id].onUnregister();
-      delete activeObservers[id];
+  socket.on(
+    "subscribe:stop",
+    (_event: keyof ServerToClientEvents, id: number) => {
+      // remove the ID from the active IDs set
+      if (activeObservers[id]) {
+        activeObservers[id].onUnregister();
+        delete activeObservers[id];
+      }
     }
-  });
+  );
 
   socket.on("disconnect", () => {
     // Clean up all active observers on disconnect
