@@ -15,11 +15,7 @@ export async function getNotifications() {
     params
   );
 
-  response.invites = response.invites.map(
-    (invite) => new ProjectRolesInviteModel(invite)
-  );
-
-  return response;
+  return notificationResponseHandler(response);
 }
 
 /**
@@ -50,6 +46,23 @@ export async function declineProjectInvite(inviteId: string) {
     "/api/projects/invites",
     inviteId,
   ]);
+
+  return response;
+}
+
+/**
+ * Process the response from the notifications API to convert the invites to models.
+ *
+ * @param response
+ * @returns
+ */
+export function notificationResponseHandler(
+  response: NotificationsApi["GetResponse"]
+) {
+  // convert the invites to models
+  response.invites = response.invites.map(
+    (invite) => new ProjectRolesInviteModel(invite)
+  );
 
   return response;
 }

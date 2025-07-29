@@ -5,6 +5,8 @@ import session from "express-session";
 import * as openid from "openid-client";
 import passport from "passport";
 import { dbName, mongoConnectionUrl } from "server/database/mongodb";
+import { onlyForHandshake } from "server/ws/middleware";
+import { Server as ioServer } from "socket.io";
 import {
   Strategy,
   type StrategyOptions,
@@ -74,9 +76,10 @@ export async function startAuthSetup() {
  */
 export async function setupAuthMiddleware(
   app: express.Express,
+  io: ioServer,
   config: openid.Configuration
 ) {
-  app.use(
+  const createSession = () =>
     session({
       secret: process.env.PASSPORT_SESSION_SECRET || "temp",
       resave: false,
@@ -87,11 +90,26 @@ export async function setupAuthMiddleware(
         secure: process.env.NODE_ENV === "production" ? true : "auto",
         maxAge: 1000 * 60 * 60 * 24 * 7,
       },
-    })
-  );
+    });
+
+  app.use(createSession());
+  io.engine.use(onlyForHandshake(createSession()));
 
   app.use(passport.initialize());
   app.use(passport.authenticate("session"));
+
+  io.engine.use(onlyForHandshake(passport.initialize()));
+  io.engine.use(onlyForHandshake(passport.authenticate("session")));
+  io.engine.use(
+    onlyForHandshake((req, res, next) => {
+      if (req.user) {
+        next();
+      } else {
+        res.writeHead(401);
+        res.end();
+      }
+    })
+  );
 
   for (const host of validHosts) {
     const url = new URL("/auth/login/callback", host);
