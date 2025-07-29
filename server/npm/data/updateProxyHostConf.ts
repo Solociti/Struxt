@@ -55,6 +55,9 @@ export function updateProxyHostConf(
   if (isEditorSite) {
     // add the editor proxy paths
     newProxy.locations.push(...createEditorProxyPaths());
+
+    // allow web sockets for socket.io connections
+    proxy.allow_websocket_upgrade = true;
   }
 
   // set the ssl settings

@@ -1,4 +1,4 @@
-import { useLoadAsync } from "client/api/useLoadAsync";
+import { useObserver } from "client/api/useObserver";
 import MaterialIcon from "client/components/MaterialIcon";
 import { ShowError } from "client/components/ShowError";
 import { useState } from "react";
@@ -6,20 +6,21 @@ import Button from "react-bootstrap/Button";
 import OverlayTrigger from "react-bootstrap/OverlayTrigger";
 import Popover from "react-bootstrap/Popover";
 import Spinner from "react-bootstrap/Spinner";
-import { getNotifications } from "./notifications";
+import { notificationResponseHandler } from "./notifications";
 import ProjectInviteCard from "./ProjectInviteCard";
 
 export default function NotificationsPopover({}) {
   const [reload, setReload] = useState(0);
 
-  const { response, isLoading, error } = useLoadAsync(async () => {
-    // load the notifications from the server
-    const response = await getNotifications();
+  const { error, isLoading, result } = useObserver(
+    {
+      event: "notifications",
+      callback: notificationResponseHandler,
+    },
+    [reload]
+  );
 
-    return response;
-  }, [reload]);
-
-  const invites = response?.invites || [];
+  const invites = result ? result.invites : [];
   const hasNotifications = invites.length > 0;
 
   const popover = (
@@ -58,7 +59,6 @@ export default function NotificationsPopover({}) {
       trigger="click"
       placement="bottom"
       overlay={popover}
-      onEnter={() => setReload((r) => r + 1)}
       popperConfig={{
         strategy: "fixed",
       }}

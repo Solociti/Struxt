@@ -5,6 +5,7 @@ import {
 } from "common/models/projects/ProjectRoles";
 import { ProjectRolesInviteModel } from "common/models/projects/ProjectRolesInviteModel";
 import { UserModel } from "common/models/user/UserModel";
+import { publishMessage } from "server/database/dragonFly";
 import { getCollection } from "server/database/mongodb";
 
 /**
@@ -69,6 +70,10 @@ export async function acceptUserInvite(
         accepted: invite.accepted,
       },
     }
+  );
+
+  publishMessage("notifications", invite.email.toLowerCase()).catch((err) =>
+    console.error("Notification publish failed:", err)
   );
 
   return true;

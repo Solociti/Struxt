@@ -4,6 +4,7 @@ import { ProjectRoleList, ProjectRoleTypes } from "common/models/user/Roles";
 import { getCollection } from "server/database/mongodb";
 import { createSimpleId } from "server/utils/createId";
 import { scheduleInviteEmail } from "../queues/setupQueue";
+import { publishMessage } from "server/database/dragonFly";
 
 /**
  * Creates a new invite for the given user email.
@@ -50,6 +51,10 @@ export async function inviteUser(
   });
 
   await collection.insertOne(invite);
+
+  publishMessage("notifications", invite.email.toLowerCase()).catch((err) =>
+    console.error("Notification publish failed:", err)
+  );
 
   // schedule the invite email to be sent
   await scheduleInviteEmail(inviteId);

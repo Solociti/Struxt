@@ -1,5 +1,6 @@
 import { CurrentUserModel } from "common/models/user/CurrentUserModel";
 import express from "express";
+import { IncomingMessage } from "node:http";
 import { getUserRoles } from "server/auth/user/getUser";
 import { realms } from "../../auth/keycloak";
 import { updateLocalUser } from "../../auth/updateLocalUser";
@@ -15,6 +16,17 @@ declare global {
   }
 }
 
+declare module "http" {
+  interface IncomingMessage {
+    loadedUser?: CurrentUserModel;
+    user?: {
+      sub?: string;
+      name?: string;
+      email?: string;
+    };
+  }
+}
+
 /**
  * Get the user from the request, or load it from the database.
  *
@@ -23,7 +35,7 @@ declare global {
  * @param req
  * @returns
  */
-export async function userFromReq(req: express.Request) {
+export async function userFromReq(req: express.Request | IncomingMessage) {
   if (req.loadedUser) {
     return req.loadedUser;
   }

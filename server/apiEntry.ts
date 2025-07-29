@@ -2,6 +2,7 @@ import "dotenv/config";
 
 import { roles } from "common/models/user/Roles";
 import express, { NextFunction, Request, Response } from "express";
+import { createServer } from "node:http";
 import {
   router as assetsRouter,
   staticFiles as assetStaticFiles,
@@ -20,9 +21,10 @@ import { expressSetup } from "server/setup/expressSetup";
 import "server/setup/startup";
 import { staticScreenshotFiles } from "./api/projects/projectScreenshots";
 import { router as apiRouter } from "./api/registerApi";
+import { setupWsServer } from "./ws/setupWs";
 
-import "server/core/cronQueue";
 import "server/api/register";
+import "server/core/cronQueue";
 import "server/utils/geoLocation";
 
 // imports for workers
@@ -34,12 +36,16 @@ main();
 async function main() {
   console.log("Starting server...");
   const app = express();
+  const server = createServer(app);
   const port = 3000;
 
   await expressSetup(app);
 
+  // setup socket.io endpoints
+  const io = await setupWsServer(server);
+
   const authConfig = await startAuthSetup();
-  await setupAuthMiddleware(app, authConfig);
+  await setupAuthMiddleware(app, io, authConfig);
 
   app.use(
     express.json({
@@ -99,7 +105,7 @@ async function main() {
   // register the last middleware for the app
   registerErrorPage(app);
 
-  const server = app.listen(port, () => {
+  server.listen(port, () => {
     console.log(`Server listening at http://localhost:${port}`);
   });
 
