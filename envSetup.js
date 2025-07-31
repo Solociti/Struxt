@@ -194,6 +194,19 @@ async function main() {
     ].join("\n");
   }
 
+  const aiKeys = [
+    "OPENAI_API_KEY",
+    "ANTHROPIC_API_KEY",
+    "GOOGLE_GEN_AI_API_KEY",
+  ];
+  for (const key of aiKeys) {
+    if (!contents.includes(key)) {
+      contents += ["", `# ${key} is used for AI services`, `${key}=`].join(
+        "\n"
+      );
+    }
+  }
+
   if (!contents.includes("DOCKER_GROUP_ID")) {
     const result = await new Promise((resolve) => {
       exec("getent group docker", (error, stdout) => {

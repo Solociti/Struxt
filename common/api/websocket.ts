@@ -12,6 +12,12 @@ export interface ServerToClientEvents {
    * @returns
    */
   notifications: (data: NotificationsApi["GetResponse"]) => void;
+
+  "aiPilot:chat:open": (data: {
+    projectId: string;
+    chatId: string;
+    chunk: any;
+  }) => void;
 }
 
 /**
@@ -20,6 +26,11 @@ export interface ServerToClientEvents {
 export interface ServerEventsQuery
   extends Record<keyof ServerToClientEvents, any> {
   notifications: NotificationsApi["GetQuery"];
+
+  "aiPilot:chat:open": {
+    projectId: string;
+    chatId: string;
+  };
 }
 
 export type SubscriptionCallback = (
@@ -42,6 +53,12 @@ export interface ClientToServerEvents {
     callback: SubscriptionCallback
   ) => void;
   "subscribe:stop": (event: keyof ServerToClientEvents, id: number) => void;
+
+  "aiPilot:chat:message": (data: {
+    chatId: string;
+    projectId: string;
+    message: string;
+  }) => void;
 }
 
 /**

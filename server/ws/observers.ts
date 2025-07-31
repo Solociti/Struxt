@@ -15,6 +15,8 @@ interface ObserverEvent {
    */
   event: keyof ServerToClientEvents;
 
+  socket: SocketWithEvents;
+
   /**
    * The client ID that is registered for this event.
    *
@@ -84,6 +86,7 @@ export async function onConnection(socket: SocketWithEvents) {
             event: eventName,
             id,
             user,
+            socket,
             send: (
               ...args: Parameters<ServerToClientEvents[typeof eventName]>
             ) => {
