@@ -1,10 +1,15 @@
+import { ObserverSetup } from "common/api/observer";
 import { ServerEventsQuery, ServerToClientEvents } from "common/api/websocket";
-import { ErrorNames, HTTPStatus } from "common/custom-error/custom-error";
+import {
+  deStructureError,
+  ErrorNames,
+  HTTPStatus,
+} from "common/custom-error/custom-error";
 import { CurrentUserModel } from "common/models/user/CurrentUserModel";
 import { userFromReq } from "server/api/auth/userFromReq";
 import { SocketWithEvents } from "./setupWs";
 
-interface ObserverEvent {
+interface ObserverEvent<Setup extends ObserverSetup> {
   /**
    * The current logged in user.
    */
@@ -32,28 +37,52 @@ interface ObserverEvent {
   send: (
     ...args: Parameters<ServerToClientEvents[keyof ServerToClientEvents]>
   ) => void;
+
+  /**
+   * Send a request to the client on a specific channel.
+   *
+   * The client should respond to this request with a callback.
+   *
+   * @param channel
+   * @param args
+   * @returns
+   */
+  sendRequest: <C extends keyof Setup["serverRequests"]>(
+    channel: C,
+    ...args: Parameters<Setup["serverRequests"][C]>
+  ) => ReturnType<Setup["serverRequests"][C]>;
 }
 
 /**
  * The return value of the observer callback.
  */
-interface ObserverCallbackResult {
+interface ObserverCallbackResult<
+  cRequests extends ObserverSetup["clientRequests"]
+> {
   onUnregister: () => void;
+
+  /**
+   * A request sent from the client to the server.
+   */
+  onClientRequests?: cRequests;
 }
 
 /**
  * Callback for the observer.
  */
-type ObserverCallback<Q> = (
-  event: ObserverEvent,
+type ObserverCallback<Q, Setup extends ObserverSetup> = (
+  event: ObserverEvent<Setup>,
   query: Q
-) => Promise<ObserverCallbackResult>;
+) => Promise<ObserverCallbackResult<Setup["clientRequests"]>>;
 
 /**
  * Keeps track of observers for different events.
  */
 const observers: {
-  [K in keyof ServerToClientEvents]?: ObserverCallback<ServerEventsQuery[K]>;
+  [K in keyof ServerToClientEvents]?: ObserverCallback<
+    ServerEventsQuery[K],
+    any
+  >;
 } = {};
 
 /**
@@ -69,7 +98,10 @@ export async function onConnection(socket: SocketWithEvents) {
     return;
   }
 
-  const activeObservers: Record<number, ObserverCallbackResult> = {};
+  const activeObservers: Record<
+    number,
+    { cleanup: Function[]; result: ObserverCallbackResult<{}> }
+  > = {};
 
   socket.on("subscribe:init", async (eventName, id, query, callback) => {
     if (activeObservers[id]) {
@@ -77,11 +109,16 @@ export async function onConnection(socket: SocketWithEvents) {
       return;
     }
 
+    activeObservers[id] = {
+      cleanup: [],
+      result: null as any,
+    };
+
     if (observers[eventName]) {
       const observerCb = observers[eventName];
 
       try {
-        activeObservers[id] = await observerCb(
+        const observerResult = await observerCb(
           {
             event: eventName,
             id,
@@ -96,9 +133,69 @@ export async function onConnection(socket: SocketWithEvents) {
 
               socket.emit(eventName, ...args);
             },
+            sendRequest: (channel, data) => {
+              return new Promise((resolve, reject) => {
+                if (!activeObservers[id]) {
+                  reject(new Error("Observer is not active"));
+                  return;
+                }
+
+                socket.emit(
+                  `${eventName}:req:${String(channel)}` as any,
+                  data,
+                  (response: any) => {
+                    if (!response || response.error) {
+                      reject(
+                        deStructureError(
+                          response.error,
+                          "Unknown error from server"
+                        )
+                      );
+                      return;
+                    }
+
+                    resolve(response);
+                  }
+                );
+              });
+            },
           },
           query
         );
+
+        activeObservers[id].result = observerResult;
+        activeObservers[id].cleanup.push(observerResult.onUnregister);
+
+        // register any client request channels
+        if (observerResult.onClientRequests) {
+          for (const channel in observerResult.onClientRequests) {
+            const callback = observerResult.onClientRequests[channel];
+
+            const cb = async (
+              request: any,
+              responseCb: (...args: any[]) => void
+            ) => {
+              try {
+                const response = await callback(request);
+                responseCb(response);
+              } catch (error: any) {
+                responseCb({
+                  success: false,
+                  error: {
+                    name: error.name,
+                    message: error.message,
+                    status: error.status || 500,
+                  },
+                });
+              }
+            };
+
+            socket.on(`${eventName}:req:${channel}` as any, cb);
+            activeObservers[id].cleanup.push(() => {
+              socket.off(`${eventName}:req:${channel}` as any, cb);
+            });
+          }
+        }
 
         callback({
           success: true,
@@ -135,7 +232,7 @@ export async function onConnection(socket: SocketWithEvents) {
     (_event: keyof ServerToClientEvents, id: number) => {
       // remove the ID from the active IDs set
       if (activeObservers[id]) {
-        activeObservers[id].onUnregister();
+        activeObservers[id].cleanup.forEach((cleanupFn) => cleanupFn());
         delete activeObservers[id];
       }
     }
@@ -144,7 +241,7 @@ export async function onConnection(socket: SocketWithEvents) {
   socket.on("disconnect", () => {
     // Clean up all active observers on disconnect
     for (const id in activeObservers) {
-      activeObservers[id].onUnregister();
+      activeObservers[id].cleanup.forEach((cleanupFn) => cleanupFn());
       delete activeObservers[id];
     }
   });
@@ -158,12 +255,15 @@ export async function onConnection(socket: SocketWithEvents) {
  * @param eventName
  * @param setupCallback If a error is thrown, the observer will not be registered.
  */
-export function registerObserver(
+export function registerObserver<Setup extends ObserverSetup>(
   eventName: keyof ServerToClientEvents,
-  setupCallback: ObserverCallback<ServerEventsQuery[typeof eventName]>
+  setupCallback: ObserverCallback<ServerEventsQuery[typeof eventName], Setup>
 ) {
   if (!observers[eventName]) {
-    observers[eventName] = setupCallback;
+    observers[eventName] = setupCallback as ObserverCallback<
+      ServerEventsQuery[typeof eventName],
+      any
+    >;
   } else {
     console.warn(`Observer for event ${eventName} already exists.`);
   }

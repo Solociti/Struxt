@@ -13,11 +13,7 @@ export interface ServerToClientEvents {
    */
   notifications: (data: NotificationsApi["GetResponse"]) => void;
 
-  "aiPilot:chat:open": (data: {
-    projectId: string;
-    chatId: string;
-    chunk: any;
-  }) => void;
+  "aiPilot:chat:open": (data: { chatId: string; projectId: string }) => void;
 }
 
 /**
@@ -53,12 +49,6 @@ export interface ClientToServerEvents {
     callback: SubscriptionCallback
   ) => void;
   "subscribe:stop": (event: keyof ServerToClientEvents, id: number) => void;
-
-  "aiPilot:chat:message": (data: {
-    chatId: string;
-    projectId: string;
-    message: string;
-  }) => void;
 }
 
 /**

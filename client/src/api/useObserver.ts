@@ -31,7 +31,7 @@ export function useObserver<R, K extends keyof ServerToClientEvents>(
   const [result, setResult] = useState<R | null>(null);
 
   useEffect(() => {
-    return createObserver(
+    const { unSubscribe } = createObserver(
       event,
       query || null,
       (result) => {
@@ -62,7 +62,9 @@ export function useObserver<R, K extends keyof ServerToClientEvents>(
         setIsLoading(false);
       }
     );
-  }, [event, query, ...deps]);
+
+    return unSubscribe;
+  }, [event, ...deps]);
 
   return {
     result,
