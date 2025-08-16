@@ -64,3 +64,46 @@ export function customError(
 
   return err;
 }
+
+export interface StructuredError {
+  name: string;
+  message: string;
+  status: HTTPStatus | 0;
+}
+
+/**
+ * Structure an error to a standardized format to send over the network.
+ *
+ * @param error
+ * @returns
+ */
+export function structureError(error: Error): StructuredError {
+  return {
+    name: error.name || ErrorNames.Error,
+    message: error.message || "An error occurred",
+    status: (error.status as HTTPStatus) || 0,
+  };
+}
+
+/**
+ * De-structure an error from the standardized format received over the network.
+ *
+ * @param error
+ * @returns
+ */
+export function deStructureError(
+  error: StructuredError,
+  fallbackMessage?: string
+): Error {
+  const err = new Error(
+    error.message || fallbackMessage || "An error occurred."
+  );
+  err.name = error.name;
+  err.status = error.status;
+
+  if (error.status) {
+    err.statusCode = error.status;
+  }
+
+  return err;
+}
