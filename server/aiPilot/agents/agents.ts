@@ -1,46 +1,54 @@
 import { HumanMessage } from "@langchain/core/messages";
 import { tool } from "@langchain/core/tools";
-import { createSupervisor } from "@langchain/langgraph-supervisor";
 import { createReactAgent } from "@langchain/langgraph/prebuilt";
 import { z } from "zod";
 import { setupLLM } from "./setupLLM";
 
 /**
- * Setup the AI Pilot agents with all of the required tools.
+ * Setup the AI Pilot agent with all of the required tools.
  *
  * @param chatId
  * @param projectId
+ * @param llmModel - The LLM model to use (e.g., "openai:gpt-4o", "anthropic:claude-3-5-sonnet-20240620")
+ * @param temperature - The temperature setting for the LLM (0-1)
  * @returns
  */
-export async function setupAiPilot(chatId: string, projectId: string) {
+export async function setupAiPilot(
+  { chatId, projectId }: { chatId: string; projectId: string },
+  { llmModel, temperature }: { llmModel: string; temperature?: number }
+) {
   // TODO: load the project and chat context
 
-  // setup the LLMs
-  const gptStrict = await setupLLM("openai:gpt-4o", {
-    temperature: 0.1,
-  });
+  const langSmithConfig = {
+    projectName: `ai-pilot-${projectId}`,
+    sessionId: chatId,
+    metadata: {
+      chatId,
+      projectId,
+      environment: process.env.NODE_ENV || "development",
+    },
+  };
 
-  const gptLoose = await setupLLM("openai:gpt-4o", {
-    temperature: 0.8,
-  });
-
-  const claudeStrict = await setupLLM("anthropic:claude-3-5-sonnet-20240620", {
-    temperature: 0.3,
+  // Setup the LLM based on user selection
+  const llm = await setupLLM(llmModel, {
+    temperature: temperature || 0.5,
   });
 
   /**
-   * Setup the code agent.
+   * Setup the main agent that handles all tasks.
    */
-  const codeAgent = createReactAgent({
-    name: "code_agent",
-    prompt:
-      "You are a code assistant that generates html, css and in some cases javascript for websites.",
+  const agent = createReactAgent({
+    name: "ai_pilot_agent",
+    prompt: [
+      "You are an AI assistant specializing in web development and digital marketing for a drag-and-drop website builder.",
+      "Help users create and optimize websites through code generation, SEO, marketing, UX design, and content strategy.",
+      "You're open to discussing any concept that might inspire web projects.",
+    ].join("\n"),
     tools: [
       tool(
         async (input: any) => {
           console.log("Generating code for:", input);
-
-          return `Generated code: ${input}`;
+          return `Generated code: ${input.code}`;
         },
         {
           name: "generate_code",
@@ -51,58 +59,31 @@ export async function setupAiPilot(chatId: string, projectId: string) {
         }
       ),
     ],
-    llm: claudeStrict,
+    llm,
   });
-
-  /**
-   * Setup the general chat agent.
-   */
-  const chatAgent = createReactAgent({
-    name: "chat_agent",
-    prompt:
-      "You are a helpful assistant that specializes in generating text, answers, and explanations.",
-    tools: [
-      tool(
-        async (input: any) => {
-          console.log("Generating response for:", input);
-
-          return `Response: ${input}`;
-        },
-        {
-          name: "generate_response",
-          description: "Generate a response based on the input.",
-          schema: z.object({
-            response: z.string().describe("The generated response"),
-          }),
-        }
-      ),
-    ],
-    llm: gptLoose,
-  });
-
-  /**
-   * Supervisor that manages all of the agents.
-   */
-  const supervisor = createSupervisor({
-    agents: [codeAgent, chatAgent],
-    llm: gptStrict,
-    prompt: [
-      "You are a supervisor that manages multiple agents to handle different tasks.",
-      "- A code_agent that specializes in writing code.",
-      "- A chat_agent that can help generating text tasks.",
-      "- For knowledge tasks, just respond with the answer.",
-    ].join("\n"),
-  }).compile();
 
   return {
+    getAgent() {
+      return agent;
+    },
+
     async streamResponse(message: string) {
-      return await supervisor.stream({
-        messages: [
-          new HumanMessage({
-            content: message,
-          }),
-        ],
-      });
+      return await agent.stream(
+        {
+          messages: [
+            new HumanMessage({
+              content: message,
+            }),
+          ],
+        },
+        {
+          streamMode: "messages",
+          configurable: {
+            ...langSmithConfig,
+            runName: `chat-${chatId.substring(0, 10)}`,
+          },
+        }
+      );
     },
   };
 }

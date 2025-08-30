@@ -45,7 +45,24 @@ export function createObserver<
   const id = idCounter++;
 
   socket.on(event, listener as any);
+
+  /**
+   * Remove any socket listeners and cleanup functions.
+   */
+  const unSubscribe = () => {
+    socket.off(event, listener as any);
+    socket.emit("subscribe:stop", event, id);
+
+    cleanup.forEach((fn) => fn());
+    cleanup.length = 0;
+  };
+
   socket.emit("subscribe:init", event, id, query, (result) => {
+    if (result.error) {
+      // clean up any listeners if the subscription failed
+      unSubscribe();
+    }
+
     subscription(result);
   });
 
@@ -104,11 +121,6 @@ export function createObserver<
     /**
      * Closes the observer and removes the listener.
      */
-    unSubscribe: () => {
-      socket.off(event, listener as any);
-      socket.emit("subscribe:stop", event, id);
-
-      cleanup.forEach((fn) => fn());
-    },
+    unSubscribe,
   };
 }

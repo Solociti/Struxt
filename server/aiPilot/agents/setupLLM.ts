@@ -29,7 +29,7 @@ export async function setupLLM(
     temperature: 0,
   };
 
-  return await initChatModel("openai:gpt-4o", {
+  return await initChatModel(modelName, {
     ...defaultOptions,
     ...options,
     apiKey,

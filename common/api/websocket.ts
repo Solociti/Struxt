@@ -1,5 +1,10 @@
 import { HTTPStatus } from "common/custom-error/custom-error";
 import { NotificationsApi } from "./notifications/notifications";
+import {
+  AiChatContents,
+  AiChatMessage,
+  UserChatMessage,
+} from "common/models/aiPilot/ChatMessage";
 
 /**
  * Events that the server can emit to the client
@@ -13,7 +18,17 @@ export interface ServerToClientEvents {
    */
   notifications: (data: NotificationsApi["GetResponse"]) => void;
 
-  "aiPilot:chat:open": (data: { chatId: string; projectId: string }) => void;
+  "aiPilot:chat:open": (
+    data:
+      | { chatId: string; messageId: string; message: UserChatMessage }
+      | { chatId: string; messageId: string; message: AiChatMessage }
+      | {
+          chatId: string;
+          messageId: string;
+          content: AiChatContents;
+          chunks: any[];
+        }
+  ) => void;
 }
 
 /**
