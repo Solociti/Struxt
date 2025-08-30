@@ -98,10 +98,11 @@ export function deStructureError(
   const err = new Error(
     error.message || fallbackMessage || "An error occurred."
   );
-  err.name = error.name;
-  err.status = error.status;
-
+  if (error.name) {
+    err.name = error.name;
+  }
   if (error.status) {
+    err.status = error.status;
     err.statusCode = error.status;
   }
 
