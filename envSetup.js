@@ -207,6 +207,17 @@ async function main() {
     }
   }
 
+  if (!contents.includes("LANGCHAIN_TRACING_V2")) {
+    contents += [
+      "",
+      "# Langchain Tracing settings",
+      "LANGCHAIN_TRACING_V2=false",
+      "LANGCHAIN_API_KEY=",
+      "LANGCHAIN_PROJECT=struxt-ai-pilot",
+      "LANGCHAIN_ENDPOINT=https://api.smith.langchain.com",
+    ].join("\n");
+  }
+
   if (!contents.includes("DOCKER_GROUP_ID")) {
     const result = await new Promise((resolve) => {
       exec("getent group docker", (error, stdout) => {
