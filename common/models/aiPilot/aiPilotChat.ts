@@ -1,4 +1,5 @@
 import { Model, UserModelAction } from "../Model";
+import { DeepPartial, mergeDeep } from "../utils";
 import { AiChatMessage, UserChatMessage } from "./ChatMessage";
 
 export class AiPilotChat extends Model {
@@ -34,4 +35,29 @@ export class AiPilotChat extends Model {
   };
 
   public messages: (UserChatMessage | AiChatMessage)[] = [];
+
+  constructor(data?: DeepPartial<AiPilotChat>) {
+    super();
+
+    if (data) {
+      this.update(data);
+    }
+  }
+
+  update(data: DeepPartial<AiPilotChat>) {
+    mergeDeep(this, data);
+  }
+
+  clone(): AiPilotChat {
+    const data = JSON.parse(JSON.stringify(this));
+    return new AiPilotChat(data);
+  }
+}
+
+export interface AiPilotChatListItem {
+  uuid: string;
+
+  projectId: string;
+
+  created: Omit<UserModelAction, "active">;
 }

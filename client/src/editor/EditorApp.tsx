@@ -1,5 +1,6 @@
 import { rteProseMirror } from "@grapesjs/studio-sdk-plugins";
 import StudioEditor from "@grapesjs/studio-sdk/react";
+import { useCurrentUser } from "client/auth/userCurrentUser";
 import { useTheme } from "client/bootstrap/Theme";
 import { ErrorNames } from "common/custom-error/custom-error";
 import customCodePlugin from "grapesjs-custom-code";
@@ -201,6 +202,8 @@ function CustomEditor({
 }) {
   const { theme } = useTheme();
 
+  const { hasPermission } = useCurrentUser();
+
   return (
     <div id="editor-app" style={{ height: "100vh" }}>
       <StudioEditor
@@ -224,7 +227,7 @@ function CustomEditor({
             }),
             setupStruxtPlugin,
           ],
-          layout: customLayout(projectId),
+          layout: customLayout(projectId, hasPermission),
 
           assets: {
             storageType: "self",

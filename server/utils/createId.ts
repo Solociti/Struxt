@@ -1,6 +1,7 @@
 import { getCollection } from "server/database/mongodb";
 
 export type IdCounterName =
+  | "ai_pilot_chat"
   | "submission"
   | "project"
   | "publish"

@@ -1,19 +1,23 @@
 import { Editor as GrapesEditor } from "@grapesjs/studio-sdk-plugins/dist/types.js";
 import { createObserver } from "client/api/observers";
 import { useLoadAsync } from "client/api/useLoadAsync";
-import { FormInput } from "client/components/FormInput";
 import IconButton from "client/components/IconButton";
 import { ShowError } from "client/components/ShowError";
+import { useAsyncCallback } from "client/components/useAsyncCallback";
 import { AiPilotChatEvents } from "common/api/aiPilot/aiPilotEvents";
 import { deStructureError } from "common/custom-error/custom-error";
+import { formatDate } from "common/format/date";
 import {
   AiChatMessage,
   ChatMessage,
   UserChatMessage,
 } from "common/models/aiPilot/ChatMessage";
 import { useEffect, useMemo, useState } from "react";
+import Form from "react-bootstrap/Form";
 import InputGroup from "react-bootstrap/InputGroup";
+import ListGroup from "react-bootstrap/ListGroup";
 import Spinner from "react-bootstrap/Spinner";
+import { createNewChat, loadChatList } from "./aiPilotChats";
 
 interface AiChatProps {
   projectId: string;
@@ -22,18 +26,36 @@ interface AiChatProps {
 }
 
 export default function AiChat({ projectId, editor }: AiChatProps) {
-  const [selectedChat, setSelectedChat] = useState("test-test");
+  const [selectedChat, setSelectedChat] = useState("");
 
+  // load the list of chats
   const { isLoading, error, response } = useLoadAsync(async () => {
-    // get the list of chats for the project
+    if (!projectId) {
+      return null;
+    }
 
-    return [];
+    // get the list of chats for the project
+    return await loadChatList(projectId);
   }, [projectId]);
 
   const list = response || [];
 
-  // load the list of chats
-  //
+  // setup the method to create a new chat
+  const newChatCb = useAsyncCallback(
+    async () => {
+      if (!projectId) {
+        return;
+      }
+
+      const newChat = await createNewChat(projectId);
+      setSelectedChat(newChat.uuid);
+
+      return newChat;
+    },
+    {
+      toastError: true,
+    }
+  );
 
   return (
     <div className="border-top h-100 d-flex flex-column">
@@ -46,7 +68,40 @@ export default function AiChat({ projectId, editor }: AiChatProps) {
         <OpenChat projectId={projectId} chatId={selectedChat} editor={editor} />
       ) : (
         <div>
-          <small className="text-muted">Select a chat to start</small>
+          <div className="d-flex justify-content-end p-2">
+            <IconButton
+              icon="add"
+              variant="primary"
+              size="sm"
+              spinner={newChatCb.isLoading}
+              onClick={newChatCb.callback}
+            >
+              New Chat
+            </IconButton>
+          </div>
+
+          <hr className="my-1" />
+
+          <small className="p-2 text-muted">Or select a chat to continue</small>
+
+          <ListGroup className="p-2">
+            {list.map((chat) => {
+              return (
+                <ListGroup.Item
+                  key={chat.uuid}
+                  action
+                  onClick={() => setSelectedChat(chat.uuid)}
+                >
+                  <h5 className="mb-1">{formatDate(chat.created.date)}</h5>
+                  <div className="d-flex justify-content-end">
+                    <small className="text-muted">
+                      {chat.created.displayName}
+                    </small>
+                  </div>
+                </ListGroup.Item>
+              );
+            })}
+          </ListGroup>
         </div>
       )}
     </div>
@@ -90,6 +145,11 @@ function OpenChat({
         if (result.chatId !== chatId) {
           // not for this chat
           return;
+        }
+
+        if ("chat" in result && result.chat) {
+          // initial chat load
+          setMessages(result.chat.messages);
         }
 
         if ("message" in result && result.message) {
@@ -140,6 +200,27 @@ function OpenChat({
     };
   }, [observer]);
 
+  // setup the message states
+  const [inputValue, setInputValue] = useState("");
+
+  const sendMessage = useAsyncCallback(
+    async () => {
+      if (!inputValue.trim()) {
+        return;
+      }
+
+      await observer.sendRequest("user-message", {
+        message: inputValue,
+        context: {},
+      });
+
+      setInputValue("");
+    },
+    {
+      toastError: true,
+    }
+  );
+
   return (
     <div
       className="d-flex flex-column flex-grow-1 overflow-auto"
@@ -187,14 +268,17 @@ function OpenChat({
 
       <div className="p-1">
         <InputGroup>
-          <FormInput
-            value=""
+          <Form.Control
             placeholder="Message..."
             type="text"
             as="textarea"
-            onRealChange={(value) => {
-              console.log("Input changed:", value);
-              observer.sendRequest("user-message", { message: value });
+            value={inputValue}
+            onChange={(e) => setInputValue(e.target.value)}
+            onKeyDown={(e) => {
+              if (e.key === "Enter" && !e.shiftKey) {
+                e.preventDefault();
+                sendMessage.callback();
+              }
             }}
           />
           <IconButton icon="check" variant="outline-primary" />

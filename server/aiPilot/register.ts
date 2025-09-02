@@ -11,6 +11,8 @@ import { randomUUID } from "node:crypto";
 import { registerObserver } from "server/ws/observers";
 import z from "zod";
 import { setupAiPilot } from "./agents/agents";
+import { loadChat } from "./chat/loadChat";
+import { appendChatMessage, updateChatMessage } from "./chat/saveChat";
 
 function sleep(ms: number) {
   return new Promise((resolve) => setTimeout(resolve, ms));
@@ -37,17 +39,15 @@ registerObserver<AiPilotChatEvents>(
       throw customError(403, "You do not have access to this project");
     }
 
-    const chat = await setupAiPilot(
-      { chatId, projectId },
-      {
-        llmModel: "openai:gpt-4o",
-        temperature: 0.5,
-      }
-    );
-
     // get the chat details from database
+    // if the chat isn't found, it'll throw a 404 error
+    const chat = await loadChat(projectId, chatId);
 
-    // register a listener in redis pub/sub for chat changes
+    // send the chat details to the user
+    event.send({
+      chatId,
+      chat,
+    });
 
     return {
       onUnregister() {
@@ -56,11 +56,25 @@ registerObserver<AiPilotChatEvents>(
 
       onClientRequests: {
         "user-message": async (request) => {
-          const { message } = z
+          const { message, llmModel, temperature } = z
             .object({
               message: z.string().min(1, "Message cannot be empty"),
+              llmModel: z.string().min(3).optional(),
+              temperature: z.number().min(0).max(1).optional(),
             })
             .parse(request);
+
+          // TODO: validate the llm model against allowed models
+          const currentModel = llmModel || "openai:gpt-4o";
+          const modelTemperature = temperature || 0.5;
+
+          const chat = await setupAiPilot(
+            { chatId, projectId },
+            {
+              llmModel: currentModel,
+              temperature: modelTemperature,
+            }
+          );
 
           // Handle the user message
           const msgId = await randomUUID();
@@ -74,6 +88,9 @@ registerObserver<AiPilotChatEvents>(
               displayName: user.name,
             },
           });
+
+          await appendChatMessage(chatId, userMessage);
+
           event.send({
             chatId,
             messageId: msgId,
@@ -82,21 +99,24 @@ registerObserver<AiPilotChatEvents>(
 
           await sleep(25);
 
+          // create the ai message
           const responseId: string = await randomUUID();
           const responseMessage = new AiChatMessage({
             uuid: responseId,
             chatId,
-            metadata: {},
+            metadata: {
+              model: currentModel,
+              temperature: modelTemperature,
+            },
           });
 
-          // TODO: Save the user message to the database
+          await appendChatMessage(chatId, responseMessage);
 
           event.send({
             chatId,
             messageId: responseId,
             message: responseMessage,
           });
-          await sleep(25);
 
           const chunks = [];
 
@@ -115,6 +135,11 @@ registerObserver<AiPilotChatEvents>(
 
             if (shouldSend) {
               responseMessage.contents.push(content);
+              await updateChatMessage(
+                chatId,
+                responseMessage.uuid,
+                responseMessage
+              );
 
               event.send({
                 chatId,
@@ -122,7 +147,6 @@ registerObserver<AiPilotChatEvents>(
                 content,
                 chunks,
               });
-              await sleep(10);
             }
 
             // TODO: Save the AI message chunk to the database

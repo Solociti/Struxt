@@ -46,12 +46,15 @@ export const dbName = process.env.MONGODB_PREFIX || "struxt";
  * The primary collection names.
  */
 export type CollectionNames =
+  | "ai_pilot_chats"
+  | "ai_pilot_checkpoint_writes"
+  | "ai_pilot_checkpoints"
   | "form_settings"
   | "form_submissions"
   | "id_counters"
   | "migrations"
-  | "project_members"
   | "project_members_invites"
+  | "project_members"
   | "projects_published"
   | "projects"
   | "users";

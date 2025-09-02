@@ -10,6 +10,7 @@ import { createRoot } from "react-dom/client";
 import { registerComponents } from "./components/htmlElements";
 import launchIcon from "./components/icons/launch.svg?raw";
 import { registerImageViewer } from "./components/imageViewer";
+import { PermType, roles } from "common/models/user/Roles";
 
 /**
  * Setup the struxt customizations for the editor.
@@ -111,7 +112,10 @@ function addCustomStyles(editor: Editor) {
  * @param projectId
  * @returns
  */
-export function customLayout(projectId: string): LayoutConfig {
+export function customLayout(
+  projectId: string,
+  hasPermission: (permission: PermType) => boolean
+): LayoutConfig {
   /**
    * Callback for when the left tab changes.
    * This is used to clean up the AI chat component when the tab is closed.
@@ -179,11 +183,29 @@ export function customLayout(projectId: string): LayoutConfig {
                       if (editor) {
                         // setup the ai chat react component
                         aiChatRoot = createRoot(div);
-                        aiChatRoot.render(
-                          <ErrorBoundary>
-                            <AiChat editor={editor} projectId={projectId} />
-                          </ErrorBoundary>
-                        );
+
+                        // TODO: check the project features to see if ai pilot is enabled
+                        if (
+                          hasPermission({
+                            or: [roles.struxt.aiPilot, roles.struxt.admin],
+                          })
+                        ) {
+                          aiChatRoot.render(
+                            <ErrorBoundary>
+                              <AiChat editor={editor} projectId={projectId} />
+                            </ErrorBoundary>
+                          );
+                        } else {
+                          aiChatRoot.render(
+                            <div className="p-2">
+                              <h5>Upgrade Required</h5>
+                              <p>
+                                Please upgrade your plan to use the AI Chat
+                                feature
+                              </p>
+                            </div>
+                          );
+                        }
                       }
 
                       onLeftTabChange.push(() => {

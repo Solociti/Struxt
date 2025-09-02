@@ -1,6 +1,8 @@
 import { HumanMessage } from "@langchain/core/messages";
 import { tool } from "@langchain/core/tools";
+import { MongoDBSaver } from "@langchain/langgraph-checkpoint-mongodb";
 import { createReactAgent } from "@langchain/langgraph/prebuilt";
+import { getMongoClient, dbName as mongoDbName } from "server/database/mongodb";
 import { z } from "zod";
 import { setupLLM } from "./setupLLM";
 
@@ -22,6 +24,7 @@ export async function setupAiPilot(
   const langSmithConfig = {
     projectName: `ai-pilot-${projectId}`,
     sessionId: chatId,
+    thread_id: chatId,
     metadata: {
       chatId,
       projectId,
@@ -32,6 +35,16 @@ export async function setupAiPilot(
   // Setup the LLM based on user selection
   const llm = await setupLLM(llmModel, {
     temperature: temperature || 0.5,
+  });
+
+  const mongoClient = await getMongoClient();
+
+  // Setup MongoDB checkpoint saver for conversation history
+  const checkPointer = new MongoDBSaver({
+    client: mongoClient,
+    dbName: mongoDbName,
+    checkpointCollectionName: "ai_pilot_checkpoints",
+    checkpointWritesCollectionName: "ai_pilot_checkpoint_writes",
   });
 
   /**
@@ -60,6 +73,7 @@ export async function setupAiPilot(
       ),
     ],
     llm,
+    checkpointSaver: checkPointer,
   });
 
   return {

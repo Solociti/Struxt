@@ -102,7 +102,13 @@ export class AiChatMessage extends ChatMessage {
    * Additional metadata about the AI response,
    * such as processing time or model used.
    */
-  public metadata: {} = {};
+  public metadata: {
+    model: string;
+    temperature: number;
+  } = {
+    model: "",
+    temperature: 0,
+  };
 
   constructor(data?: DeepPartial<AiChatMessage>) {
     super(data);
