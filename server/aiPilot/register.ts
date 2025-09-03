@@ -191,8 +191,7 @@ function processStreamChunk(
   shouldSend: boolean;
 } {
   const msgType = msg.getType();
-  const hasContent =
-    typeof msg.content === "string" && msg.content.trim().length > 0;
+  const hasContent = typeof msg.content === "string" && msg.content.length > 0;
 
   const shouldSend = Boolean(hasContent || msgType === "tool");
 

@@ -11,6 +11,7 @@ import { registerComponents } from "./components/htmlElements";
 import launchIcon from "./components/icons/launch.svg?raw";
 import { registerImageViewer } from "./components/imageViewer";
 import { PermType, roles } from "common/models/user/Roles";
+import { ThemeProvider } from "client/bootstrap/Theme";
 
 /**
  * Setup the struxt customizations for the editor.
@@ -192,7 +193,9 @@ export function customLayout(
                         ) {
                           aiChatRoot.render(
                             <ErrorBoundary>
-                              <AiChat editor={editor} projectId={projectId} />
+                              <ThemeProvider>
+                                <AiChat editor={editor} projectId={projectId} />
+                              </ThemeProvider>
                             </ErrorBoundary>
                           );
                         } else {

@@ -17,7 +17,9 @@ import Form from "react-bootstrap/Form";
 import InputGroup from "react-bootstrap/InputGroup";
 import ListGroup from "react-bootstrap/ListGroup";
 import Spinner from "react-bootstrap/Spinner";
+import ReactMarkdown from "react-markdown";
 import { createNewChat, loadChatList } from "./aiPilotChats";
+import { RenderAiMessage } from "./RenderAiMessage";
 
 interface AiChatProps {
   projectId: string;
@@ -108,6 +110,23 @@ export default function AiChat({ projectId, editor }: AiChatProps) {
   );
 }
 
+function updateMessages(
+  msgs: (
+    | AiChatMessage
+    | UserChatMessage
+    | Partial<AiChatMessage>
+    | Partial<UserChatMessage>
+  )[]
+) {
+  return msgs.map((m) => {
+    if (m instanceof ChatMessage) {
+      return m;
+    }
+
+    return ChatMessage.fromData(m);
+  });
+}
+
 function OpenChat({
   projectId,
   chatId,
@@ -123,6 +142,7 @@ function OpenChat({
   const [messages, setMessages] = useState<(AiChatMessage | UserChatMessage)[]>(
     []
   );
+
   console.log({ messages });
 
   // setup a chat observer
@@ -149,15 +169,14 @@ function OpenChat({
 
         if ("chat" in result && result.chat) {
           // initial chat load
-          setMessages(result.chat.messages);
+          setMessages(updateMessages(result.chat.messages));
         }
 
         if ("message" in result && result.message) {
           // append a new message
-          setMessages((prev) => [
-            ...prev,
-            ChatMessage.fromData(result.message),
-          ]);
+          setMessages((prev) =>
+            updateMessages([...prev, ChatMessage.fromData(result.message)])
+          );
         }
 
         if ("content" in result && result.content) {
@@ -173,17 +192,17 @@ function OpenChat({
               // since we are cloning it yet, we don't need to validate the shape here
               message.contents.push(result.content);
 
-              return [
+              return updateMessages([
                 ...prev.filter((m) => m.uuid !== messageId),
                 message.clone(),
-              ];
+              ]);
             } else {
               console.warn("Could not find message to append content to", {
                 messageId,
                 messages: prev.map((m) => m.uuid),
               });
             }
-            return prev;
+            return updateMessages(prev);
           });
         }
       },
@@ -248,21 +267,7 @@ function OpenChat({
             );
           }
 
-          return (
-            <div key={index} className="m-1 my-3">
-              {(msg as AiChatMessage).contents.map((m, i: number) => {
-                if (m.category === "tool_call") {
-                  return (
-                    <div className="p-2 text-muted" key={i}>
-                      <strong>Tool Call:</strong> {m.content}
-                    </div>
-                  );
-                }
-
-                return <span key={i}>{m.content}</span>;
-              })}
-            </div>
-          );
+          return <RenderAiMessage key={index} message={msg as AiChatMessage} />;
         })}
       </div>
 
@@ -270,6 +275,7 @@ function OpenChat({
         <InputGroup>
           <Form.Control
             placeholder="Message..."
+            disabled={sendMessage.isLoading}
             type="text"
             as="textarea"
             value={inputValue}

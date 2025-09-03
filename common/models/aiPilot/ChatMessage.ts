@@ -142,6 +142,29 @@ export class AiChatMessage extends ChatMessage {
     const data = JSON.parse(JSON.stringify(this));
     return new AiChatMessage(data);
   }
+
+  getMergedContent(): AiChatContents[] {
+    const list: AiChatContents[] = [];
+    let current: AiChatContents | null = null;
+
+    for (const content of this.contents) {
+      if (content.category === "message") {
+        if (current) {
+          // merge message contents
+          current.content = [current.content, content.content].join("");
+          current.totalTokens += content.totalTokens;
+        } else {
+          current = { ...content };
+          list.push(current);
+        }
+      } else {
+        current = null;
+        list.push(content);
+      }
+    }
+
+    return list;
+  }
 }
 
 /**
