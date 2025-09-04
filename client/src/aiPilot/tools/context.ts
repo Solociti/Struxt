@@ -1,4 +1,7 @@
-import { Editor as GrapesEditor } from "@grapesjs/studio-sdk-plugins/dist/types.js";
+import {
+  Editor,
+  Editor as GrapesEditor,
+} from "@grapesjs/studio-sdk-plugins/dist/types.js";
 import { AiMessageContext } from "common/models/aiPilot/tools/Context";
 
 /**
@@ -11,15 +14,6 @@ export function getEditorContext(editor: GrapesEditor): AiMessageContext {
   const selected = editor.getSelectedAll();
 
   const page = editor.Pages.getSelected();
-  const pageSettings = page?.get("settings") as
-    | Record<string, string | number>
-    | undefined;
-
-  const pageName = page?.getName() || "";
-  const slug =
-    (pageSettings?.slug as string) ||
-    pageName.replace(/\s+/g, "-").toLowerCase() ||
-    "";
 
   return {
     selected: selected.map((s) => ({
@@ -31,11 +25,33 @@ export function getEditorContext(editor: GrapesEditor): AiMessageContext {
         }) || "",
       parentId: s.parent()?.getId(),
     })),
-    page: {
-      id: page?.getId() || "",
-      name: pageName || "",
-      slug,
-    },
+    page: getPageContext(page),
     currentDevice: editor.getDevice() as AiMessageContext["currentDevice"],
+  };
+}
+
+/**
+ * Get the given page context
+ *
+ * @param page
+ * @returns
+ */
+export function getPageContext(
+  page: ReturnType<Editor["Pages"]["getAll"]>[0] | undefined
+) {
+  const pageSettings = page?.get("settings") as
+    | Record<string, string | number>
+    | undefined;
+
+  const pageName = page?.getName() || "";
+  const slug =
+    (pageSettings?.slug as string) ||
+    pageName.replace(/\s+/g, "-").toLowerCase() ||
+    "";
+
+  return {
+    id: page?.getId() || "",
+    name: pageName || "",
+    slug,
   };
 }

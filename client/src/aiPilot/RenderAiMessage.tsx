@@ -1,3 +1,4 @@
+import { useTheme } from "client/bootstrap/Theme";
 import { AiChatMessage } from "common/models/aiPilot/ChatMessage";
 import ReactMarkdown from "react-markdown";
 import { Prism as SyntaxHighlighter } from "react-syntax-highlighter";
@@ -6,14 +7,18 @@ import {
   oneLight,
 } from "react-syntax-highlighter/dist/esm/styles/prism";
 import remarkGfm from "remark-gfm";
-
-import { useTheme } from "client/bootstrap/Theme";
 import "./aiPilotStyles.css";
 
 interface RenderAiMessageProps {
   message: AiChatMessage;
 }
 
+/**
+ * Render the given AI message
+ *
+ * @param param0
+ * @returns
+ */
 export function RenderAiMessage({ message }: RenderAiMessageProps) {
   const content = message.getMergedContent();
   const { theme } = useTheme();
@@ -23,7 +28,7 @@ export function RenderAiMessage({ message }: RenderAiMessageProps) {
       {content.map((m, i: number) => {
         if (m.category === "tool_call") {
           return (
-            <div className="p-2 text-muted" key={i}>
+            <div className="p-2 text-muted text-nowrap text-truncate" key={i}>
               <strong>Tool Call:</strong> {m.content}
             </div>
           );

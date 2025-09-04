@@ -10,7 +10,7 @@ import Form from "react-bootstrap/Form";
 import InputGroup from "react-bootstrap/InputGroup";
 import Spinner from "react-bootstrap/Spinner";
 import { RenderAiMessage } from "./RenderAiMessage";
-import { useAiChatState } from "./tools/useAiChatState";
+import { useAiChatState } from "./useAiChatState";
 
 /**
  * Render the open chat interface

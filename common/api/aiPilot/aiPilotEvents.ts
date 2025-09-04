@@ -28,7 +28,30 @@ export interface AiPilotChatEvents extends ObserverSetup {
         }
   ) => void;
 
-  serverRequests: {};
+  serverRequests: {
+    "list-pages": (request: {}) => RequestReturn<{
+      success: boolean;
+      pages: PageContext[];
+    }>;
+
+    "get-page-html": (request: {
+      page: string;
+    }) => RequestReturn<{ success: boolean; html: string; page: PageContext }>;
+
+    "list-styles-selectors": () => RequestReturn<{
+      success: boolean;
+      selectors: string[];
+    }>;
+
+    "get-style-by-selector": (request: {
+      selector: string;
+    }) => RequestReturn<{ success: boolean; styles: string[] }>;
+
+    // "get-elements": (request: {
+    //   page: string;
+    //   search?: string;
+    // }) => RequestReturn<{ success: boolean; elements: any[] }>;
+  };
 
   clientRequests: {
     "user-message": (request: {

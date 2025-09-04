@@ -75,6 +75,9 @@ registerObserver<AiPilotChatEvents>(
             {
               llmModel: currentModel,
               temperature: modelTemperature,
+            },
+            (name, ...args) => {
+              return sendRequest(name, ...args);
             }
           );
 

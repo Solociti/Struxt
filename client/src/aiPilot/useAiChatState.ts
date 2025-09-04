@@ -9,7 +9,8 @@ import {
   UserChatMessage,
 } from "common/models/aiPilot/ChatMessage";
 import { useEffect, useMemo, useState } from "react";
-import { getEditorContext } from "./context";
+import { getEditorContext } from "./tools/context";
+import { setupClientTools } from "./tools/setupClientTools";
 
 function updateMessages(
   msgs: (
@@ -104,7 +105,7 @@ export function useAiChatState({
         }
       },
       // register the server request handlers
-      {}
+      setupClientTools(editor)
     );
 
     return result;

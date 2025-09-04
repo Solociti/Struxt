@@ -2,10 +2,11 @@ import { HumanMessage } from "@langchain/core/messages";
 import { tool } from "@langchain/core/tools";
 import { MongoDBSaver } from "@langchain/langgraph-checkpoint-mongodb";
 import { createReactAgent } from "@langchain/langgraph/prebuilt";
-import { getMongoClient, dbName as mongoDbName } from "server/database/mongodb";
-import { z } from "zod";
-import { setupLLM } from "./setupLLM";
+import { AiPilotChatEvents } from "common/api/aiPilot/aiPilotEvents";
 import { AiMessageContext } from "common/models/aiPilot/tools/Context";
+import { getMongoClient, dbName as mongoDbName } from "server/database/mongodb";
+import { getClientTools } from "../tools/setupClientTools";
+import { setupLLM } from "./setupLLM";
 
 /**
  * Setup the AI Pilot agent with all of the required tools.
@@ -18,7 +19,11 @@ import { AiMessageContext } from "common/models/aiPilot/tools/Context";
  */
 export async function setupAiPilot(
   { chatId, projectId }: { chatId: string; projectId: string },
-  { llmModel, temperature }: { llmModel: string; temperature?: number }
+  { llmModel, temperature }: { llmModel: string; temperature?: number },
+  clientRequest: <K extends keyof AiPilotChatEvents["serverRequests"]>(
+    name: K,
+    ...args: Parameters<AiPilotChatEvents["serverRequests"][K]>
+  ) => ReturnType<AiPilotChatEvents["serverRequests"][K]>
 ) {
   // TODO: load the project and chat context
 
@@ -48,30 +53,31 @@ export async function setupAiPilot(
     checkpointWritesCollectionName: "ai_pilot_checkpoint_writes",
   });
 
+  const clientTools = await getClientTools();
+
   /**
    * Setup the main agent that handles all tasks.
    */
   const agent = createReactAgent({
     name: "ai_pilot_agent",
     prompt: [
-      "You are an AI assistant specializing in web development and digital marketing for a drag-and-drop website builder.",
-      "Help users create and optimize websites through code generation, SEO, marketing, UX design, and content strategy.",
+      "You are an AI assistant specializing in web development and digital marketing for a drag-and-drop website builder (Struxt - a modified version of GrapesJS).",
+      "Help users create and optimize websites through code generation, SEO, UX design, and content strategy.",
       "You're open to discussing any concept that might inspire web projects.",
     ].join("\n"),
     tools: [
-      tool(
-        async (input: any) => {
-          console.log("Generating code for:", input);
-          return `Generated code: ${input.code}`;
-        },
-        {
-          name: "generate_code",
-          description: "Generate code snippets based on the input.",
-          schema: z.object({
-            code: z.string().describe("The generated code snippet"),
-          }),
-        }
-      ),
+      ...clientTools.map((t) => {
+        return tool(
+          async (input) => {
+            return clientRequest(t.name, input as any);
+          },
+          {
+            name: t.name,
+            description: t.description,
+            schema: t.schema,
+          }
+        );
+      }),
     ],
     llm,
     checkpointSaver: checkPointer,
