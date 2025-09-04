@@ -6,6 +6,7 @@ import {
   AiChatMessage,
   UserChatMessage,
 } from "common/models/aiPilot/ChatMessage";
+import { zAiMessageContext } from "common/models/aiPilot/tools/Context";
 import { roles } from "common/models/user/Roles";
 import { randomUUID } from "node:crypto";
 import { registerObserver } from "server/ws/observers";
@@ -56,9 +57,10 @@ registerObserver<AiPilotChatEvents>(
 
       onClientRequests: {
         "user-message": async (request) => {
-          const { message, llmModel, temperature } = z
+          const { message, llmModel, temperature, context } = z
             .object({
               message: z.string().min(1, "Message cannot be empty"),
+              context: zAiMessageContext(),
               llmModel: z.string().min(3).optional(),
               temperature: z.number().min(0).max(1).optional(),
             })
@@ -121,7 +123,7 @@ registerObserver<AiPilotChatEvents>(
           const chunks = [];
 
           // Handle the user message
-          const stream = await chat.streamResponse(message);
+          const stream = await chat.streamResponse(message, context);
 
           // consider listening to multiple event types and tracking the states
           // to know what to send to the client

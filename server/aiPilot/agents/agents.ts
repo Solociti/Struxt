@@ -5,6 +5,7 @@ import { createReactAgent } from "@langchain/langgraph/prebuilt";
 import { getMongoClient, dbName as mongoDbName } from "server/database/mongodb";
 import { z } from "zod";
 import { setupLLM } from "./setupLLM";
+import { AiMessageContext } from "common/models/aiPilot/tools/Context";
 
 /**
  * Setup the AI Pilot agent with all of the required tools.
@@ -81,12 +82,18 @@ export async function setupAiPilot(
       return agent;
     },
 
-    async streamResponse(message: string) {
+    async streamResponse(message: string, context: AiMessageContext) {
+      let content = message;
+
+      if (context) {
+        content = `Context: ${JSON.stringify(context)}\n\nMessage: ${message}`;
+      }
+
       return await agent.stream(
         {
           messages: [
             new HumanMessage({
-              content: message,
+              content,
             }),
           ],
         },

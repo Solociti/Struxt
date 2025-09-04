@@ -4,6 +4,10 @@ import {
   AiChatMessage,
   UserChatMessage,
 } from "common/models/aiPilot/ChatMessage";
+import {
+  AiMessageContext,
+  PageContext,
+} from "common/models/aiPilot/tools/Context";
 import { ObserverSetup, RequestReturn } from "../observer";
 
 export type AiPilotAgentIds = "supervisor" | "code_agent" | "chat_agent";
@@ -30,7 +34,7 @@ export interface AiPilotChatEvents extends ObserverSetup {
     "user-message": (request: {
       message: string;
 
-      context: {};
+      context: AiMessageContext;
 
       /**
        * The temperature to use for th LLM
