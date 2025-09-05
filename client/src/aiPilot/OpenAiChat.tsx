@@ -5,7 +5,7 @@ import {
   AiChatMessage,
   UserChatMessage,
 } from "common/models/aiPilot/ChatMessage";
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import Form from "react-bootstrap/Form";
 import InputGroup from "react-bootstrap/InputGroup";
 import Spinner from "react-bootstrap/Spinner";
@@ -27,6 +27,8 @@ export function OpenAiChat({
   chatId: string;
   editor: GrapesEditor;
 }) {
+  const container = useRef<HTMLDivElement>(null);
+
   const [inputValue, setInputValue] = useState("");
 
   const { chatError, isLoading, messages, sendMessage } = useAiChatState({
@@ -34,6 +36,24 @@ export function OpenAiChat({
     chatId,
     editor,
   });
+
+  useEffect(() => {
+    if (!container.current) {
+      return;
+    }
+
+    // only scroll if already near the bottom
+    const diff =
+      container.current.scrollHeight -
+      (container.current.scrollTop + container.current.clientHeight);
+    if (diff > 100) {
+      return;
+    }
+
+    container.current.scrollTo({
+      top: container.current.scrollHeight,
+    });
+  }, [messages]);
 
   return (
     <div
@@ -48,7 +68,7 @@ export function OpenAiChat({
       <ShowError error={chatError} />
       {isLoading && <Spinner />}
 
-      <div className="mb-2 flex-grow-1 overflow-auto">
+      <div ref={container} className="mb-2 flex-grow-1 overflow-auto">
         {messages.map((msg, index) => {
           if (msg.isUserMessage) {
             return (

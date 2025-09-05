@@ -77,6 +77,7 @@ registerObserver<AiPilotChatEvents>(
               temperature: modelTemperature,
             },
             (name, ...args) => {
+              console.log("Tool Request:", name);
               return sendRequest(name, ...args);
             }
           );

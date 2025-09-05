@@ -9,6 +9,7 @@ import {
   PageContext,
 } from "common/models/aiPilot/tools/Context";
 import { ObserverSetup, RequestReturn } from "../observer";
+import { BasicComponentTree } from "./eventHelpers";
 
 export type AiPilotAgentIds = "supervisor" | "code_agent" | "chat_agent";
 
@@ -47,10 +48,34 @@ export interface AiPilotChatEvents extends ObserverSetup {
       selector: string;
     }) => RequestReturn<{ success: boolean; styles: string[] }>;
 
-    // "get-elements": (request: {
-    //   page: string;
-    //   search?: string;
-    // }) => RequestReturn<{ success: boolean; elements: any[] }>;
+    "get-elements": (request: {
+      page: string;
+      selector?: string;
+    }) => RequestReturn<{ success: boolean; elements: string[] }>;
+
+    "get-available-blocks": (request: {}) => RequestReturn<{
+      success: boolean;
+      blocks: {
+        id: string;
+        label?: string;
+        content?: BasicComponentTree;
+      }[];
+    }>;
+
+    "get-traits": (request: { componentId?: string }) => RequestReturn<{
+      success: boolean;
+      traits: {
+        name: string;
+        type: string;
+        value?: any;
+        options?: any[];
+      }[];
+    }>;
+
+    "get-layers": (request: { page?: string }) => RequestReturn<{
+      success: boolean;
+      layers: any[];
+    }>;
   };
 
   clientRequests: {

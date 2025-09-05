@@ -100,6 +100,7 @@ export function useAiChatState({
                 messages: prev.map((m) => m.uuid),
               });
             }
+
             return updateMessages(prev);
           });
         }
