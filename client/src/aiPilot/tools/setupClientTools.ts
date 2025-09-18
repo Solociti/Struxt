@@ -1,12 +1,12 @@
 import { Editor as GrapesEditor } from "@grapesjs/studio-sdk-plugins/dist/types.js";
 import * as cheerio from "cheerio";
 import { AiPilotChatEvents } from "common/api/aiPilot/aiPilotEvents";
-import { BasicComponentTree } from "common/api/aiPilot/eventHelpers";
+import {
+  BasicComponentTree,
+  ComponentData,
+} from "common/api/aiPilot/eventHelpers";
 import { Component, ContentType } from "grapesjs";
 import { getPageContext } from "./context";
-
-// @ts-ignore
-window.cheerio = cheerio;
 
 /**
  * Setup the client tools that the AI agents can request
@@ -55,6 +55,26 @@ export function setupClientTools(
         styles: rules.map((r) => r.toCSS()),
       };
     },
+    "update-style": async (request) => {
+      // replace the rule
+      if (request.method === "set") {
+        const rule = editor.Css.addRules(request.css);
+
+        return {
+          success: true,
+          style: rule.map((r) => r.toCSS()).join("\n"),
+        };
+      }
+
+      // append to the existing styles
+      if (request.method === "append") {
+        // TODO: implement append method
+        throw new Error("Append method not implemented yet");
+      }
+
+      return { success: false, style: "" };
+    },
+
     "get-elements": async (request) => {
       // get the page by id or the selected page
       const page = (() => {
@@ -188,6 +208,93 @@ export function setupClientTools(
         success: true,
         layers: buildLayerTree(page.getMainComponent()),
       };
+    },
+
+    "get-component": async (request) => {
+      const componentId = request.id || null;
+
+      const component = componentId
+        ? editor.Components.getById(componentId)
+        : editor.getSelected();
+
+      return {
+        success: true,
+        component: JSON.parse(JSON.stringify(component)) as ComponentData,
+      };
+    },
+
+    "add-component": async (request) => {
+      const page = editor.Pages.get(request.page);
+      if (!page) {
+        return { success: false };
+      }
+
+      const parent = editor.Components.getById(request.parentId);
+      if (!parent) {
+        return { success: false };
+      }
+
+      const components = parent.append(request.component, {});
+
+      return {
+        success: Boolean(components.length),
+        ids: components.map((c) => c.getId()),
+      };
+    },
+
+    "add-component-html": async (request) => {
+      const page = editor.Pages.get(request.page);
+      if (!page) {
+        return { success: false };
+      }
+
+      const parent = editor.Components.getById(request.parentId);
+      if (!parent) {
+        return { success: false };
+      }
+
+      const components = parent.append(request.html, {});
+
+      return {
+        success: Boolean(components.length),
+        ids: components.map((c) => c.getId()),
+      };
+    },
+
+    "delete-component": async (request) => {
+      const componentId = request.id || null;
+      if (!componentId) {
+        return { success: false };
+      }
+
+      const component = editor.Components.getById(componentId);
+      if (!component) {
+        return { success: true };
+      }
+
+      component.remove({});
+      return { success: true };
+    },
+
+    "move-component": async (request) => {
+      const componentId = request.id || null;
+      const parentId = request.newParentId || null;
+      const index = request.position;
+
+      if (!componentId || !parentId) {
+        return { success: false };
+      }
+
+      const component = editor.Components.getById(componentId);
+      const newParent = editor.Components.getById(parentId);
+
+      if (!component || !newParent) {
+        return { success: false };
+      }
+
+      component.move(newParent, index !== undefined ? { at: index } : {});
+
+      return { success: true };
     },
   };
 }

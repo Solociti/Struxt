@@ -1,4 +1,5 @@
 import { useTheme } from "client/bootstrap/Theme";
+import { toolNames } from "common/api/aiPilot/toolNames";
 import { AiChatMessage } from "common/models/aiPilot/ChatMessage";
 import ReactMarkdown from "react-markdown";
 import { Prism as SyntaxHighlighter } from "react-syntax-highlighter";
@@ -26,10 +27,23 @@ export function RenderAiMessage({ message }: RenderAiMessageProps) {
   return (
     <div className="m-1 my-3">
       {content.map((m, i: number) => {
+        if (m.category === "tool_response") {
+          return null;
+        }
+
         if (m.category === "tool_call") {
+          const tool = toolNames[m.content as keyof typeof toolNames];
+          if (!tool || !tool.displayName) {
+            return null;
+          }
+
           return (
-            <div className="p-2 text-muted text-nowrap text-truncate" key={i}>
-              <strong>Tool Call:</strong> {m.content}
+            <div
+              key={i}
+              className="d-inline-block border rounded p-1 m-1 text-nowrap text-truncate"
+              style={{ backgroundColor: "rgba(92, 246, 151, 0.2)" }}
+            >
+              {tool.displayName}
             </div>
           );
         }

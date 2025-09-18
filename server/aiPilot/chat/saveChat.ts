@@ -53,10 +53,6 @@ export async function appendChatMessage(
     throw customError(404, "Chat not found");
   }
 
-  if (result.modifiedCount === 0) {
-    throw customError(500, "Failed to append message to chat");
-  }
-
   return { success: true };
 }
 
@@ -82,10 +78,6 @@ export async function updateChatMessage(
 
   if (result.matchedCount === 0) {
     throw customError(404, "Chat or message not found");
-  }
-
-  if (result.modifiedCount === 0) {
-    throw customError(500, "Failed to update message in chat");
   }
 
   return { success: true };

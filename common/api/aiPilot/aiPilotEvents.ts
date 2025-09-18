@@ -9,7 +9,7 @@ import {
   PageContext,
 } from "common/models/aiPilot/tools/Context";
 import { ObserverSetup, RequestReturn } from "../observer";
-import { BasicComponentTree } from "./eventHelpers";
+import { BasicComponentTree, ComponentData } from "./eventHelpers";
 
 export type AiPilotAgentIds = "supervisor" | "code_agent" | "chat_agent";
 
@@ -48,10 +48,42 @@ export interface AiPilotChatEvents extends ObserverSetup {
       selector: string;
     }) => RequestReturn<{ success: boolean; styles: string[] }>;
 
+    "update-style": (request: {
+      css: string;
+      method: "set" | "append";
+    }) => RequestReturn<{ success: boolean; style: string }>;
+
     "get-elements": (request: {
       page: string;
       selector?: string;
     }) => RequestReturn<{ success: boolean; elements: string[] }>;
+
+    "get-component": (request: { id: string }) => RequestReturn<{
+      success: boolean;
+      component: ComponentData;
+    }>;
+
+    "add-component": (request: {
+      page: string;
+      parentId: string;
+      component: ComponentData;
+    }) => RequestReturn<{ success: boolean; componentId?: string }>;
+
+    "add-component-html": (request: {
+      page: string;
+      parentId: string;
+      html: string;
+    }) => RequestReturn<{ success: boolean; componentId?: string }>;
+
+    "delete-component": (request: { id: string }) => RequestReturn<{
+      success: boolean;
+    }>;
+
+    "move-component": (request: {
+      id: string;
+      newParentId: string;
+      position?: number;
+    }) => RequestReturn<{ success: boolean }>;
 
     "get-available-blocks": (request: {}) => RequestReturn<{
       success: boolean;

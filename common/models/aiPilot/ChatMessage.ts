@@ -184,9 +184,17 @@ export interface AiChatContents {
   content: string;
 
   /**
+   * Optional metadata about the content.
+   *
+   * Input parameters for tools.
+   * Results for tool calls.
+   */
+  metadata?: any;
+
+  /**
    * The message category, this is determined from the lang_chain id.
    */
-  category: "message" | "tool_call" | "resource" | "unknown";
+  category: "message" | "tool_call" | "tool_response" | "resource" | "unknown";
 
   /**
    * The specific action or operation identifier.

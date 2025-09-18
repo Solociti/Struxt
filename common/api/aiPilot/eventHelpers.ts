@@ -8,6 +8,23 @@ export type BasicComponentTree =
       components?: BasicComponentTree[];
     };
 
+/**
+ * Data structure representing a component in detail.
+ */
+export interface ComponentData {
+  type: string;
+
+  locked?: boolean;
+
+  attributes?: Record<string, string>;
+  classes?: string[];
+
+  style?: Record<string, string>;
+
+  components?: ComponentData[];
+  content?: string;
+}
+
 export interface LayerTree {
   id: string;
   name: string;

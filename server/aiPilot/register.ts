@@ -70,6 +70,8 @@ registerObserver<AiPilotChatEvents>(
           const currentModel = llmModel || "openai:gpt-4o";
           const modelTemperature = temperature || 0.5;
 
+          let responseMessage: AiChatMessage;
+
           const chat = await setupAiPilot(
             { chatId, projectId },
             {
@@ -77,7 +79,34 @@ registerObserver<AiPilotChatEvents>(
               temperature: modelTemperature,
             },
             (name, ...args) => {
-              console.log("Tool Request:", name);
+              if (responseMessage) {
+                const content: AiChatContents = {
+                  msgType: "tool",
+                  content: name,
+                  contentId: randomUUID(),
+                  agentId: "supervisor",
+                  category: "tool_call",
+                  action: "",
+                  totalTokens: 0,
+                  metadata: { args },
+                };
+
+                responseMessage.contents.push(content);
+
+                updateChatMessage(
+                  chatId,
+                  responseMessage.uuid,
+                  responseMessage
+                ).then(() => {
+                  event.send({
+                    chatId,
+                    messageId: responseMessage.uuid,
+                    content,
+                    chunks: [],
+                  });
+                });
+              }
+
               return sendRequest(name, ...args);
             }
           );
@@ -107,7 +136,7 @@ registerObserver<AiPilotChatEvents>(
 
           // create the ai message
           const responseId: string = await randomUUID();
-          const responseMessage = new AiChatMessage({
+          responseMessage = new AiChatMessage({
             uuid: responseId,
             chatId,
             metadata: {
@@ -154,8 +183,6 @@ registerObserver<AiPilotChatEvents>(
                 chunks,
               });
             }
-
-            // TODO: Save the AI message chunk to the database
           }
 
           return {
@@ -203,7 +230,7 @@ function processStreamChunk(
 
   const category: AiChatContents["category"] = (() => {
     if (msgType === "tool") {
-      return "tool_call";
+      return "tool_response";
     }
     if (msgType === "ai" && hasContent) {
       return "message";
@@ -218,16 +245,19 @@ function processStreamChunk(
 
   const action = "";
 
+  const responseContent: AiChatContents = {
+    contentId,
+    content: category === "tool_response" ? msg.name || "" : content,
+    metadata: category === "tool_response" ? { content } : undefined,
+    category,
+    action,
+    msgType,
+    agentId: "supervisor",
+    totalTokens: usage.total_tokens || 0,
+  };
+
   return {
-    content: {
-      contentId,
-      content,
-      category,
-      action,
-      msgType,
-      agentId: "supervisor",
-      totalTokens: usage.total_tokens || 0,
-    },
+    content: responseContent,
     shouldSend: shouldSend,
   };
 }
