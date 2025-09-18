@@ -19,8 +19,6 @@ export function setupClientTools(
 ): AiPilotChatEvents["serverRequests"] {
   return {
     "list-pages": async () => {
-      console.log("Listing pages for AI Pilot");
-
       return {
         success: true,
         pages: editor.Pages.getAll().map((p) => getPageContext(p)),
@@ -165,17 +163,18 @@ export function setupClientTools(
         ? editor.Components.getById(request.componentId)
         : editor.getSelected();
 
-      // TODO: handle if no component is found. Need to alert the llm to select a component first
+      if (!component) {
+        throw new Error("Could not find the requested component.");
+      }
+
       return {
         success: true,
-        traits: component
-          ? component.getTraits().map((trait) => ({
-              name: trait.getName(),
-              type: trait.getType(),
-              value: trait.getValue(),
-              options: trait.getOptions(),
-            }))
-          : [],
+        traits: component.getTraits().map((trait) => ({
+          name: trait.getName(),
+          type: trait.getType(),
+          value: trait.getValue(),
+          options: trait.getOptions(),
+        })),
       };
     },
 
@@ -184,9 +183,9 @@ export function setupClientTools(
         ? editor.Pages.get(request.page)
         : editor.Pages.getSelected();
 
-      // TODO: notify the llm if no page is found
+      // notify the llm if no page is found
       if (!page) {
-        return { success: false, layers: [] };
+        throw new Error("Could not find the requested page");
       }
 
       const buildLayerTree = (component: Component): any => {
@@ -217,6 +216,10 @@ export function setupClientTools(
         ? editor.Components.getById(componentId)
         : editor.getSelected();
 
+      if (!component) {
+        throw new Error("Could not find the requested component.");
+      }
+
       return {
         success: true,
         component: JSON.parse(JSON.stringify(component)) as ComponentData,
@@ -226,12 +229,12 @@ export function setupClientTools(
     "add-component": async (request) => {
       const page = editor.Pages.get(request.page);
       if (!page) {
-        return { success: false };
+        throw new Error("Could not find the requested page");
       }
 
       const parent = editor.Components.getById(request.parentId);
       if (!parent) {
-        return { success: false };
+        throw new Error("Could not find the requested parent component");
       }
 
       const components = parent.append(request.component, {});
@@ -245,12 +248,12 @@ export function setupClientTools(
     "add-component-html": async (request) => {
       const page = editor.Pages.get(request.page);
       if (!page) {
-        return { success: false };
+        throw new Error("Could not find the requested page");
       }
 
       const parent = editor.Components.getById(request.parentId);
       if (!parent) {
-        return { success: false };
+        throw new Error("Could not find the requested parent component");
       }
 
       const components = parent.append(request.html, {});
@@ -264,12 +267,12 @@ export function setupClientTools(
     "delete-component": async (request) => {
       const componentId = request.id || null;
       if (!componentId) {
-        return { success: false };
+        throw new Error("No component id provided");
       }
 
       const component = editor.Components.getById(componentId);
       if (!component) {
-        return { success: true };
+        throw new Error("Could not find the requested component");
       }
 
       component.remove({});
@@ -282,14 +285,17 @@ export function setupClientTools(
       const index = request.position;
 
       if (!componentId || !parentId) {
-        return { success: false };
+        throw new Error("Component id or new parent id not provided");
       }
 
       const component = editor.Components.getById(componentId);
       const newParent = editor.Components.getById(parentId);
 
-      if (!component || !newParent) {
-        return { success: false };
+      if (!component) {
+        throw new Error("Could not find the requested component");
+      }
+      if (!newParent) {
+        throw new Error("Could not find the requested new parent component");
       }
 
       component.move(newParent, index !== undefined ? { at: index } : {});
