@@ -67,12 +67,14 @@ export interface AiPilotChatEvents extends ObserverSetup {
       page: string;
       parentId: string;
       component: ComponentData;
+      position?: number;
     }) => RequestReturn<{ success: boolean; componentId?: string }>;
 
     "add-component-html": (request: {
       page: string;
       parentId: string;
       html: string;
+      position?: number;
     }) => RequestReturn<{ success: boolean; componentId?: string }>;
 
     "delete-component": (request: { id: string }) => RequestReturn<{

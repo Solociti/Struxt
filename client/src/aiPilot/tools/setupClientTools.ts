@@ -237,7 +237,9 @@ export function setupClientTools(
         throw new Error("Could not find the requested parent component");
       }
 
-      const components = parent.append(request.component, {});
+      const components = parent.append(request.component, {
+        at: request.position,
+      });
 
       return {
         success: Boolean(components.length),
@@ -256,7 +258,7 @@ export function setupClientTools(
         throw new Error("Could not find the requested parent component");
       }
 
-      const components = parent.append(request.html, {});
+      const components = parent.append(request.html, { at: request.position });
 
       return {
         success: Boolean(components.length),

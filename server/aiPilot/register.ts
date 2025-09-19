@@ -108,6 +108,35 @@ registerObserver<AiPilotChatEvents>(
               }
 
               return sendRequest(name, ...args);
+            },
+            (name, data) => {
+              if (responseMessage) {
+                const content: AiChatContents = {
+                  msgType: "tool",
+                  content: name,
+                  contentId: randomUUID(),
+                  agentId: "supervisor",
+                  category: "tool_call",
+                  action: "",
+                  totalTokens: 0,
+                  metadata: { args: [data] },
+                };
+
+                responseMessage.contents.push(content);
+
+                updateChatMessage(
+                  chatId,
+                  responseMessage.uuid,
+                  responseMessage
+                ).then(() => {
+                  event.send({
+                    chatId,
+                    messageId: responseMessage.uuid,
+                    content,
+                    chunks: [],
+                  });
+                });
+              }
             }
           );
 

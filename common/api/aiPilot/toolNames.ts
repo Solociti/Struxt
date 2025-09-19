@@ -4,8 +4,15 @@ interface Description {
   displayName: string;
 }
 
+type ToolKeys =
+  | keyof AiPilotChatEvents["serverRequests"]
+  | "update-context"
+  | "list-context-keys"
+  | "get-context";
+
+// TODO: add the context tools / server side only tools
 export const toolNames: {
-  [K in keyof AiPilotChatEvents["serverRequests"]]: Omit<Description, "name">;
+  [K in ToolKeys]: Omit<Description, "name">;
 } = {
   "add-component": {
     displayName: "Add Component",
@@ -48,5 +55,14 @@ export const toolNames: {
   },
   "get-layers": {
     displayName: "View Layers",
+  },
+  "get-context": {
+    displayName: "Get Context",
+  },
+  "list-context-keys": {
+    displayName: "List Context Keys",
+  },
+  "update-context": {
+    displayName: "Update Context",
   },
 };

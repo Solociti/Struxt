@@ -112,6 +112,7 @@ const clientTools: {
       component: ComponentDataSchema.describe(
         "The component data to add, including type, attributes, styles, classes, and children"
       ),
+      position: z.number().int().min(0).optional(),
     }),
   },
 
@@ -122,6 +123,7 @@ const clientTools: {
       page: z.string(),
       parentId: z.string(),
       html: z.string(),
+      position: z.number().int().min(0).optional(),
     }),
   },
 

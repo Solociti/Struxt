@@ -5,6 +5,7 @@ import { createReactAgent } from "@langchain/langgraph/prebuilt";
 import { AiPilotChatEvents } from "common/api/aiPilot/aiPilotEvents";
 import { AiMessageContext } from "common/models/aiPilot/tools/Context";
 import { getMongoClient, dbName as mongoDbName } from "server/database/mongodb";
+import { setupContextTools } from "../tools/contextTools";
 import { getClientTools } from "../tools/setupClientTools";
 import { setupLLM } from "./setupLLM";
 
@@ -23,7 +24,8 @@ export async function setupAiPilot(
   clientRequest: <K extends keyof AiPilotChatEvents["serverRequests"]>(
     name: K,
     ...args: Parameters<AiPilotChatEvents["serverRequests"][K]>
-  ) => ReturnType<AiPilotChatEvents["serverRequests"][K]>
+  ) => ReturnType<AiPilotChatEvents["serverRequests"][K]>,
+  toolCall: (name: string, data: any) => void
 ) {
   // TODO: load the project and chat context
 
@@ -64,8 +66,10 @@ export async function setupAiPilot(
       "You are an AI assistant specializing in web development and digital marketing for a drag-and-drop website builder (Struxt - a modified version of GrapesJS).",
       "Help users create and optimize websites through code generation, SEO, UX design, and content strategy.",
       "You're open to discussing any concept that might inspire web projects.",
+      "There is tools setup for managing project context. Save important details about the project.",
     ].join("\n"),
     tools: [
+      ...setupContextTools(projectId, toolCall),
       ...clientTools.map((t) => {
         return tool(
           async (input) => {
