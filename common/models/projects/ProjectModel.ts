@@ -159,33 +159,6 @@ export class ProjectModel extends Model {
     return new ProjectModel(data);
   }
 
-  /**
-   * Get the context for the project, including name and description.
-   *
-   * @returns
-   */
-  getContextSummary(): Record<string, string> {
-    const _context: Record<string, string> = {};
-
-    if (this.name) {
-      _context["name"] = this.name;
-    }
-
-    if (this.description) {
-      _context["description"] = this.description;
-    }
-
-    for (const ctx of this.context) {
-      if (ctx.deleted.active) {
-        continue;
-      }
-
-      _context[ctx.key] = ctx.value;
-    }
-
-    return _context;
-  }
-
   static createContextItem(
     data: DeepPartial<ProjectContextItem>
   ): ProjectContextItem {

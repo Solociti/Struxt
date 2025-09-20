@@ -6,11 +6,11 @@ interface Description {
 
 type ToolKeys =
   | keyof AiPilotChatEvents["serverRequests"]
-  | "update-context"
-  | "list-context-keys"
-  | "get-context";
+  // add server side only tools here
+  | "update-project-context"
+  | "list-project-context-keys"
+  | "get-project-context";
 
-// TODO: add the context tools / server side only tools
 export const toolNames: {
   [K in ToolKeys]: Omit<Description, "name">;
 } = {
@@ -56,13 +56,13 @@ export const toolNames: {
   "get-layers": {
     displayName: "View Layers",
   },
-  "get-context": {
+  "get-project-context": {
     displayName: "Get Context",
   },
-  "list-context-keys": {
+  "list-project-context-keys": {
     displayName: "List Context Keys",
   },
-  "update-context": {
+  "update-project-context": {
     displayName: "Update Context",
   },
 };

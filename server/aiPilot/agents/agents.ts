@@ -56,6 +56,7 @@ export async function setupAiPilot(
   });
 
   const clientTools = await getClientTools();
+  const contextTools = setupContextTools(projectId, toolCall);
 
   /**
    * Setup the main agent that handles all tasks.
@@ -69,7 +70,7 @@ export async function setupAiPilot(
       "There is tools setup for managing project context. Save important details about the project.",
     ].join("\n"),
     tools: [
-      ...setupContextTools(projectId, toolCall),
+      ...contextTools.tools,
       ...clientTools.map((t) => {
         return tool(
           async (input) => {
@@ -95,9 +96,16 @@ export async function setupAiPilot(
     async streamResponse(message: string, context: AiMessageContext) {
       let content = message;
 
-      if (context) {
-        content = `Context: ${JSON.stringify(context)}\n\nMessage: ${message}`;
-      }
+      const contextKeysResult = await contextTools.getContextKeys();
+      const contextKeys = JSON.stringify(
+        contextKeysResult.success ? contextKeysResult.value : []
+      );
+
+      content = [
+        `ProjectContextKeys: ${contextKeys}`,
+        `Context: ${JSON.stringify(context || {})}`,
+        `Message: ${message}`,
+      ].join("\n\n");
 
       return await agent.stream(
         {
