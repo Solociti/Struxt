@@ -14,6 +14,7 @@ import z from "zod";
 import { setupAiPilot } from "./agents/agents";
 import { loadChat } from "./chat/loadChat";
 import { appendChatMessage, updateChatMessage } from "./chat/saveChat";
+import { getAiPilotModelAuto, getAiPilotModels } from "./models/getModels";
 
 function sleep(ms: number) {
   return new Promise((resolve) => setTimeout(resolve, ms));
@@ -39,6 +40,19 @@ registerObserver<AiPilotChatEvents>(
     if (!user.hasProjectPermission(projectId, [roles.projects.edit])) {
       throw customError(403, "You do not have access to this project");
     }
+
+    // load the list of available models
+    const models = await getAiPilotModels();
+    if (models.length === 0) {
+      throw customError(
+        500,
+        "No AI models are configured. Please contact the system administrator."
+      );
+    }
+
+    event.send({
+      models,
+    });
 
     // get the chat details from database
     // if the chat isn't found, it'll throw a 404 error
@@ -66,8 +80,7 @@ registerObserver<AiPilotChatEvents>(
             })
             .parse(request);
 
-          // TODO: validate the llm model against allowed models
-          const currentModel = llmModel || "openai:gpt-4o";
+          const currentModel = await getAiPilotModelAuto(llmModel);
           const modelTemperature = temperature || 0.5;
 
           let responseMessage: AiChatMessage;
@@ -75,7 +88,7 @@ registerObserver<AiPilotChatEvents>(
           const chat = await setupAiPilot(
             { chatId, projectId },
             {
-              llmModel: currentModel,
+              llmModel: currentModel.id,
               temperature: modelTemperature,
             },
             (name, ...args) => {
@@ -169,7 +182,7 @@ registerObserver<AiPilotChatEvents>(
             uuid: responseId,
             chatId,
             metadata: {
-              model: currentModel,
+              model: currentModel.id,
               temperature: modelTemperature,
             },
           });

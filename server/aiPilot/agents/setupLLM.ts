@@ -17,8 +17,8 @@ export async function setupLLM(
     apiKey = process.env.OPENAI_API_KEY || "";
   } else if (modelName.startsWith("anthropic:")) {
     apiKey = process.env.ANTHROPIC_API_KEY || "";
-  } else if (modelName.startsWith("google:")) {
-    apiKey = process.env.GOOGLE_API_KEY || "";
+  } else if (modelName.startsWith("google-genai:")) {
+    apiKey = process.env.GOOGLE_GEN_AI_API_KEY || "";
   } else {
     throw new Error(`Unsupported model: ${modelName}`);
   }

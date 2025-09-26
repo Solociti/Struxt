@@ -16,10 +16,10 @@ export interface ComponentData {
 
   locked?: boolean;
 
-  attributes?: Record<string, string>;
+  attributes?: any;
   classes?: string[];
 
-  style?: Record<string, string>;
+  style?: any;
 
   components?: ComponentData[];
   content?: string;

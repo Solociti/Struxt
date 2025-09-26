@@ -3,6 +3,7 @@ import { createObserver } from "client/api/observers";
 import { useAsyncCallback } from "client/components/useAsyncCallback";
 import { AiPilotChatEvents } from "common/api/aiPilot/aiPilotEvents";
 import { deStructureError } from "common/custom-error/custom-error";
+import { AiPilotModel } from "common/models/aiPilot/AiPilotModels";
 import {
   AiChatMessage,
   ChatMessage,
@@ -47,6 +48,31 @@ export function useAiChatState({
     []
   );
 
+  const [modelsList, setModelsList] = useState<AiPilotModel[]>([]);
+  const [currentModel, setCurrentModel] = useState<AiPilotModel | null>(null);
+
+  useEffect(() => {
+    if (currentModel) {
+      return;
+    }
+
+    // try to find the model from the last AI message that has a model set
+    for (let i = messages.length - 1; i >= 0; i--) {
+      const msg = messages[i];
+      if (!(msg instanceof AiChatMessage)) {
+        continue;
+      }
+
+      if (msg.metadata.model) {
+        const model = modelsList.find((m) => m.id === msg.metadata.model);
+        if (model) {
+          setCurrentModel(model);
+          break;
+        }
+      }
+    }
+  }, [messages, modelsList]);
+
   // setup a chat observer
   const observer = useMemo(() => {
     const result = createObserver<AiPilotChatEvents, "aiPilot:chat:open">(
@@ -60,7 +86,22 @@ export function useAiChatState({
         }
       },
       (result) => {
-        if (result.chatId !== chatId) {
+        if ("models" in result && result.models) {
+          // initial models load
+          const list = result.models
+            .map((m) => new AiPilotModel(m))
+            .sort((a, b) => {
+              if (a.vendor === b.vendor) {
+                return a.modelName.localeCompare(b.modelName);
+              }
+
+              return a.vendor.localeCompare(b.vendor);
+            });
+
+          setModelsList(list);
+        }
+
+        if ("chatId" in result && result.chatId !== chatId) {
           // not for this chat
           return;
         }
@@ -130,6 +171,7 @@ export function useAiChatState({
       await observer.sendRequest("user-message", {
         message: inputValue,
         context,
+        llmModel: currentModel ? currentModel.id : undefined,
       });
     },
     {
@@ -137,5 +179,17 @@ export function useAiChatState({
     }
   );
 
-  return { isLoading, chatError, messages, sendMessage };
+  return {
+    isLoading,
+    chatError,
+    messages,
+    sendMessage,
+    models: {
+      list: modelsList,
+      current: currentModel,
+      select: (model: AiPilotModel) => {
+        setCurrentModel(model);
+      },
+    },
+  };
 }

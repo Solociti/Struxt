@@ -27,7 +27,7 @@ export async function setupAiPilot(
   ) => ReturnType<AiPilotChatEvents["serverRequests"][K]>,
   toolCall: (name: string, data: any) => void
 ) {
-  // TODO: load the project and chat context
+  const isStupidGoogleModel = llmModel.startsWith("google-genai:");
 
   const langSmithConfig = {
     projectName: `ai-pilot-${projectId}`,
@@ -55,14 +55,14 @@ export async function setupAiPilot(
     checkpointWritesCollectionName: "ai_pilot_checkpoint_writes",
   });
 
-  const clientTools = await getClientTools();
+  const clientTools = await getClientTools(llmModel);
   const contextTools = setupContextTools(projectId, toolCall);
 
   /**
    * Setup the main agent that handles all tasks.
    */
   const agent = createReactAgent({
-    name: "ai_pilot_agent",
+    name: isStupidGoogleModel ? undefined : "ai_pilot_agent",
     prompt: [
       "You are an AI assistant specializing in web development and digital marketing for a drag-and-drop website builder (Struxt - a modified version of GrapesJS).",
       "Help users create and optimize websites through code generation, SEO, UX design, and content strategy.",

@@ -6,10 +6,12 @@ interface ClientTool {
   name: keyof AiPilotChatEvents["serverRequests"];
   description: string;
   schema: z.ZodSchema;
+
+  geminiSchema?: z.ZodSchema;
 }
 
-const ComponentDataSchema: z.ZodType<ComponentData> = z.lazy(() =>
-  z.object({
+const setupComponentSchema = (component: any) => {
+  return z.object({
     type: z
       .string()
       .describe(
@@ -20,11 +22,11 @@ const ComponentDataSchema: z.ZodType<ComponentData> = z.lazy(() =>
       .optional()
       .describe("Components that are locked can't be edited."),
     attributes: z
-      .record(z.string(), z.string())
+      .looseObject({})
       .optional()
       .describe("Component attributes as key-value pairs"),
     style: z
-      .record(z.string(), z.string())
+      .looseObject({})
       .optional()
       .describe(
         "Optional inline styles for the component as key-value pairs. Keys are CSS properties in snake-case."
@@ -34,11 +36,15 @@ const ComponentDataSchema: z.ZodType<ComponentData> = z.lazy(() =>
       .optional()
       .describe("Optional list of CSS classes for the component"),
     components: z
-      .array(ComponentDataSchema)
+      .array(component)
       .optional()
       .describe("Optional child components"),
     content: z.string().optional().describe("Text content of the component."),
-  })
+  });
+};
+
+const ComponentDataSchema: z.ZodType<ComponentData> = z.lazy(() =>
+  setupComponentSchema(ComponentDataSchema)
 );
 
 const clientTools: {
@@ -114,6 +120,14 @@ const clientTools: {
       ),
       position: z.number().int().min(0).optional(),
     }),
+    geminiSchema: z.object({
+      page: z.string().describe("The page ID to add the component to"),
+      parentId: z.string().describe("Parent component ID"),
+      component: setupComponentSchema(z.object({})).describe(
+        "The component data to add, including type, attributes, styles, classes, and children"
+      ),
+      position: z.number().int().min(0).optional(),
+    }),
   },
 
   "add-component-html": {
@@ -171,11 +185,22 @@ const clientTools: {
  *
  * @returns
  */
-export async function getClientTools(): Promise<ClientTool[]> {
+export async function getClientTools(model: string): Promise<ClientTool[]> {
   // ! this function is async to allow for future description fetching if needed
 
-  return Object.entries(clientTools).map(([name, info]) => ({
-    name: name as keyof AiPilotChatEvents["serverRequests"],
-    ...info,
-  }));
+  return Object.entries(clientTools).map(([name, info]) => {
+    if (model.startsWith("google-genai:") && info.geminiSchema) {
+      return {
+        name: name as keyof AiPilotChatEvents["serverRequests"],
+        description: info.description,
+        schema: info.geminiSchema,
+      };
+    }
+
+    return {
+      name: name as keyof AiPilotChatEvents["serverRequests"],
+      description: info.description,
+      schema: info.schema,
+    };
+  });
 }

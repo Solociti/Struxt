@@ -50,7 +50,17 @@ export default function AiChat({ projectId, editor }: AiChatProps) {
 
   return (
     <div className="border-top h-100 d-flex flex-column">
-      <h6 className="p-2 m-0 mb-1 border-bottom">AI Chat</h6>
+      <div className="d-flex justify-content-between align-items-center p-1">
+        <IconButton
+          disabled={!selectedChat}
+          icon="arrow_back"
+          onClick={() => setSelectedChat("")}
+          size="sm"
+          variant="outline-secondary"
+        />
+
+        <h6 className="m-0">AI Chat</h6>
+      </div>
 
       <ShowError error={error} />
       {isLoading && <Spinner animation="border" />}

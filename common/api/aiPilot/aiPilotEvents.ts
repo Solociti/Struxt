@@ -1,4 +1,5 @@
 import { AiPilotChat } from "common/models/aiPilot/aiPilotChat";
+import { AiPilotModel } from "common/models/aiPilot/AiPilotModels";
 import {
   AiChatContents,
   AiChatMessage,
@@ -27,6 +28,7 @@ export interface AiPilotChatEvents extends ObserverSetup {
           content: AiChatContents;
           chunks: any[];
         }
+      | { models: AiPilotModel[] }
   ) => void;
 
   serverRequests: {
@@ -119,7 +121,7 @@ export interface AiPilotChatEvents extends ObserverSetup {
       context: AiMessageContext;
 
       /**
-       * The temperature to use for th LLM
+       * The temperature to use for the LLM
        */
       temperature?: number;
       /**
