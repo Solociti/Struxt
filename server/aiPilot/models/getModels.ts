@@ -10,7 +10,7 @@ import { getCollection, toArray } from "server/database/mongodb";
 export async function getAiPilotModels(): Promise<AiPilotModel[]> {
   const collection = await getCollection<AiPilotModel>("ai_pilot_models");
 
-  const cursor = collection.find({ "deleted.active": { $ne: true } });
+  const cursor = collection.find({ "disabled.active": { $ne: true } });
   const docs = await toArray(cursor);
 
   return docs.map((doc) => new AiPilotModel(doc));
@@ -27,7 +27,10 @@ export async function getAiPilotModel(
 ): Promise<AiPilotModel | null> {
   const collection = await getCollection<AiPilotModel>("ai_pilot_models");
 
-  const doc = await collection.findOne({ id, "deleted.active": { $ne: true } });
+  const doc = await collection.findOne({
+    id,
+    "disabled.active": { $ne: true },
+  });
   if (!doc) {
     return null;
   }
@@ -45,7 +48,7 @@ export async function getDefaultAiPilotModel(): Promise<AiPilotModel | null> {
 
   const doc = await collection.findOne({
     isDefault: true,
-    "deleted.active": { $ne: true },
+    "disabled.active": { $ne: true },
   });
   if (!doc) {
     return null;

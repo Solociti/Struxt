@@ -52,18 +52,27 @@ export async function up() {
       modelName: "GPT-5",
       vendor: "OpenAI",
       tokenMultiplier: 1.25,
+      disabled: {
+        active: true,
+      },
     }),
     new AiPilotModel({
       id: "openai:gpt-5-mini",
       modelName: "GPT-5 mini",
       vendor: "OpenAI",
       tokenMultiplier: 1,
+      disabled: {
+        active: true,
+      },
     }),
     new AiPilotModel({
       id: "openai:gpt-5-nano",
       modelName: "GPT-5 nano",
       vendor: "OpenAI",
       tokenMultiplier: 0.75,
+      disabled: {
+        active: true,
+      },
     }),
     new AiPilotModel({
       id: "openai:gpt-4.1",

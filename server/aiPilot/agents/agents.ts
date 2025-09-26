@@ -62,7 +62,6 @@ export async function setupAiPilot(
    * Setup the main agent that handles all tasks.
    */
   const agent = createReactAgent({
-    name: isStupidGoogleModel ? undefined : "ai_pilot_agent",
     prompt: [
       "You are an AI assistant specializing in web development and digital marketing for a drag-and-drop website builder (Struxt - a modified version of GrapesJS).",
       "Help users create and optimize websites through code generation, SEO, UX design, and content strategy.",
