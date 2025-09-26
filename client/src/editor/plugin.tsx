@@ -42,20 +42,6 @@ export function setupStruxtPlugin(editor: Editor) {
 function addCustomStyles(editor: Editor) {
   // add the bullet styles for lists (ol, ul)
   editor.onReady(() => {
-    // editor.StyleManager.addProperty("gs-typography", {
-    //   label: "List Style",
-    //   property: "list-style",
-    //   type: "select",
-    //   default: "",
-    //   options: [
-    //     { id: "", label: "Default" },
-    //     { id: "none", label: "None" },
-    //     { id: "disc", label: "Disc" },
-    //     { id: "circle", label: "Circle" },
-    //     { id: "square", label: "Square" },
-    //   ],
-    // });
-
     // Create a custom sector for lists
     const sector = editor.StyleManager.addSector("custom-lists", {
       name: "List Styles",
@@ -123,6 +109,7 @@ export function customLayout(
    */
   const onLeftTabChange: ((tab: string) => void)[] = [];
   let aiChatRoot: ReturnType<typeof createRoot> | null = null;
+  let aiChatDiv: HTMLDivElement | null = null;
 
   return {
     default: {
@@ -170,9 +157,14 @@ export function customLayout(
                     type: "custom",
                     style: { height: "100%" },
                     render: ({ editor }) => {
+                      if (aiChatDiv) {
+                        return aiChatDiv;
+                      }
+
                       const div = document.createElement("div");
                       div.style.maxHeight = "calc(100vh - 40px)";
                       div.style.height = "100%";
+                      aiChatDiv = div;
 
                       if (aiChatRoot) {
                         const prevRoot = aiChatRoot;
@@ -211,10 +203,10 @@ export function customLayout(
                         }
                       }
 
-                      onLeftTabChange.push(() => {
-                        aiChatRoot?.unmount();
-                        aiChatRoot = null;
-                      });
+                      // onLeftTabChange.push(() => {
+                      // aiChatRoot?.unmount();
+                      // aiChatRoot = null;
+                      // });
 
                       return div;
                     },
