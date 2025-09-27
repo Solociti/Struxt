@@ -5,15 +5,30 @@ import { getCollection, toArray } from "server/database/mongodb";
 /**
  * Get the available AI Pilot models
  *
+ * @param allowDisabled Whether to include disabled models
  * @returns
  */
-export async function getAiPilotModels(): Promise<AiPilotModel[]> {
+export async function getAiPilotModels(
+  allowDisabled?: boolean
+): Promise<AiPilotModel[]> {
   const collection = await getCollection<AiPilotModel>("ai_pilot_models");
 
-  const cursor = collection.find({ "disabled.active": { $ne: true } });
+  const filter = {};
+  if (!allowDisabled) {
+    Object.assign(filter, { "disabled.active": { $ne: true } });
+  }
+
+  const cursor = collection.find(filter);
   const docs = await toArray(cursor);
 
-  return docs.map((doc) => new AiPilotModel(doc));
+  return docs
+    .map((doc) => new AiPilotModel(doc))
+    .sort((a, b) => {
+      if (a.vendor === b.vendor) {
+        return a.modelName.localeCompare(b.modelName);
+      }
+      return a.vendor.localeCompare(b.vendor);
+    });
 }
 
 /**
@@ -23,14 +38,17 @@ export async function getAiPilotModels(): Promise<AiPilotModel[]> {
  * @returns
  */
 export async function getAiPilotModel(
-  id: string
+  id: string,
+  allowDisabled?: boolean
 ): Promise<AiPilotModel | null> {
   const collection = await getCollection<AiPilotModel>("ai_pilot_models");
 
-  const doc = await collection.findOne({
-    id,
-    "disabled.active": { $ne: true },
-  });
+  const filter = { id };
+  if (!allowDisabled) {
+    Object.assign(filter, { "disabled.active": { $ne: true } });
+  }
+
+  const doc = await collection.findOne(filter);
   if (!doc) {
     return null;
   }

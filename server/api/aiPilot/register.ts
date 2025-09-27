@@ -1,12 +1,23 @@
-import { AiPilotChatList, AiPilotNewChat } from "common/api/aiPilot/chatApi";
+import {
+  AiPilotChatList,
+  AiPilotModels,
+  AiPilotNewChat,
+} from "common/api/aiPilot/chatApi";
 import { customError } from "common/custom-error/custom-error";
 import { AiPilotChat } from "common/models/aiPilot/aiPilotChat";
 import { roles } from "common/models/user/Roles";
+import { loadChatList } from "server/aiPilot/chat/loadChat";
 import { saveChat } from "server/aiPilot/chat/saveChat";
 import "server/aiPilot/register";
 import z from "zod";
 import { registerApi } from "../registerApi";
-import { loadChatList } from "server/aiPilot/chat/loadChat";
+import {
+  getAiPilotModel,
+  getAiPilotModels,
+} from "server/aiPilot/models/getModels";
+import { AiPilotModel } from "common/models/aiPilot/AiPilotModels";
+import { saveAiPilotModel } from "server/aiPilot/models/saveModels";
+import { zAiPilotModel } from "common/models/aiPilot/zValidation";
 
 registerApi<AiPilotChatList>("/api/aiPilot/chat/list").get(
   [{ and: [roles.struxt.editor, roles.struxt.aiPilot] }],
@@ -68,3 +79,45 @@ registerApi<AiPilotNewChat>("/api/aiPilot/chat/new").post(
     return result;
   }
 );
+
+registerApi<AiPilotModels>("/api/aiPilot/models")
+  .get([roles.struxt.admin], async ({}) => {
+    const models = await getAiPilotModels(true);
+
+    return { models };
+  })
+  .post([roles.struxt.admin], async ({ user, body }) => {
+    if (!body.model || typeof body.model !== "object") {
+      throw customError(400, "Model is required to save.");
+    }
+
+    // check the model shape
+    const zModel = zAiPilotModel.parse(body.model);
+    const model = new AiPilotModel(zModel);
+
+    // load the existing model if it exists
+    const existingModel = await getAiPilotModel(model.id, true);
+    if (!existingModel) {
+      // new model, set created info
+      model.created = {
+        ...model.created,
+        date: Math.floor(Date.now() / 1000),
+        userId: user.id,
+        displayName: user.name,
+      };
+      return await saveAiPilotModel(model);
+    }
+
+    // check if the model is being disabled
+    if (model.disabled.active && !existingModel.disabled.active) {
+      model.disabled = {
+        ...model.disabled,
+        date: Math.floor(Date.now() / 1000),
+        userId: user.id,
+        displayName: user.name,
+      };
+    }
+
+    // save the model to database
+    return await saveAiPilotModel(model);
+  });

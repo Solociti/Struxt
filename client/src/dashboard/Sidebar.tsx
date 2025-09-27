@@ -122,6 +122,25 @@ export function DashboardSidebar() {
               Logout
             </Nav.Link>
           </Nav.Item>
+
+          {hasPermission("struxt.admin") && (
+            <>
+              <hr />
+
+              <Nav.Item className="mb-3">
+                <Nav.Link
+                  className={
+                    "text-light" +
+                    (location.pathname === "/admin" ? " bg-primary bg-600" : "")
+                  }
+                  href="#/admin"
+                  active={location.pathname === "/admin"}
+                >
+                  Admin
+                </Nav.Link>
+              </Nav.Item>
+            </>
+          )}
         </Nav>
       </div>
 

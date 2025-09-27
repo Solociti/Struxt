@@ -27,8 +27,6 @@ export async function setupAiPilot(
   ) => ReturnType<AiPilotChatEvents["serverRequests"][K]>,
   toolCall: (name: string, data: any) => void
 ) {
-  const isStupidGoogleModel = llmModel.startsWith("google-genai:");
-
   const langSmithConfig = {
     projectName: `ai-pilot-${projectId}`,
     sessionId: chatId,
