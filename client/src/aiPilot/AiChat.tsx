@@ -20,7 +20,7 @@ export default function AiChat({ projectId, editor }: AiChatProps) {
   const [selectedChat, setSelectedChat] = useState("");
 
   // load the list of chats
-  const { isLoading, error, response } = useLoadAsync(async () => {
+  const { isLoading, error, response, reload } = useLoadAsync(async () => {
     if (!projectId) {
       return null;
     }
@@ -54,7 +54,10 @@ export default function AiChat({ projectId, editor }: AiChatProps) {
         <IconButton
           disabled={!selectedChat}
           icon="arrow_back"
-          onClick={() => setSelectedChat("")}
+          onClick={() => {
+            reload();
+            setSelectedChat("");
+          }}
           size="sm"
           variant="outline-secondary"
         />

@@ -74,6 +74,12 @@ describe("AiChatMessage", () => {
         model: "",
         temperature: 0,
       },
+      tokens: {
+        completion: 0,
+        consumed: 0,
+        prompt: 0,
+        total: 0,
+      },
       created: {
         date: 0,
         displayName: "",
@@ -107,6 +113,12 @@ describe("AiChatMessage", () => {
         date: 123,
         userId: "",
         displayName: "",
+      },
+      tokens: {
+        completion: 0,
+        consumed: 0,
+        prompt: 0,
+        total: 0,
       },
     });
   });
@@ -152,10 +164,9 @@ describe("AiChatMessage", () => {
         msgType: "ai",
         category: "message",
         content: "Hello World\nThis is a test.",
-        agentId: "supervisor",
         contentId: "",
+        uid: "",
         action: "",
-        totalTokens: 0,
       },
     ]);
   });
@@ -168,25 +179,21 @@ describe("AiChatMessage", () => {
           msgType: "ai",
           category: "message",
           content: "Hello",
-          totalTokens: 5,
         },
         {
           msgType: "ai",
           category: "message",
           content: " World\n",
-          totalTokens: 3,
         },
         {
           msgType: "ai",
           category: "tool_call",
           content: "[Action performed]",
-          totalTokens: 4,
         },
         {
           msgType: "ai",
           category: "message",
           content: "This is a test.",
-          totalTokens: 6,
         },
       ],
     });
@@ -196,28 +203,25 @@ describe("AiChatMessage", () => {
         msgType: "ai",
         category: "message",
         content: "Hello World\n",
-        agentId: "supervisor",
         contentId: "",
         action: "",
-        totalTokens: 8,
+        uid: "",
       },
       {
         msgType: "ai",
         category: "tool_call",
         content: "[Action performed]",
-        agentId: "supervisor",
         contentId: "",
         action: "",
-        totalTokens: 4,
+        uid: "",
       },
       {
         msgType: "ai",
         category: "message",
         content: "This is a test.",
-        agentId: "supervisor",
         contentId: "",
         action: "",
-        totalTokens: 6,
+        uid: "",
       },
     ]);
   });

@@ -8,6 +8,7 @@ import {
   UserChatMessage,
 } from "common/models/aiPilot/ChatMessage";
 import { useEffect, useRef, useState } from "react";
+import Alert from "react-bootstrap/Alert";
 import Dropdown from "react-bootstrap/Dropdown";
 import Form from "react-bootstrap/Form";
 import Spinner from "react-bootstrap/Spinner";
@@ -76,10 +77,7 @@ export function OpenAiChat({
       return acc;
     }
 
-    return (
-      acc +
-      (msg as AiChatMessage).contents.reduce((a, c) => a + c.totalTokens, 0)
-    );
+    return acc + (msg as AiChatMessage).tokens.total;
   }, 0);
 
   return (
@@ -89,7 +87,9 @@ export function OpenAiChat({
     >
       <div className="mb-2 px-2 d-flex justify-content-between border-bottom">
         <small className="text-muted">{chatId}</small>
-        <small className="text-muted">{tokens}</small>
+        <small className={tokens > 50_000 ? "text-warning" : "text-muted"}>
+          {Math.round(tokens)}
+        </small>
       </div>
 
       {/* show the list of messages */}
@@ -114,7 +114,8 @@ export function OpenAiChat({
         })}
       </div>
 
-      <InputMessage
+      <MessageInput
+        isNewChat={messages.length === 0}
         isLoading={sendMessage.isLoading}
         sendMessage={sendMessage.callback}
         models={models.list}
@@ -131,13 +132,15 @@ export function OpenAiChat({
  * @param param0
  * @returns
  */
-function InputMessage({
+function MessageInput({
+  isNewChat,
   isLoading,
   sendMessage,
   models,
   currentModel,
   selectModel,
 }: {
+  isNewChat: boolean;
   isLoading: boolean;
   sendMessage: (msg: string) => Promise<any>;
   models: AiPilotModel[];
@@ -170,15 +173,15 @@ function InputMessage({
   return (
     <div className="border rounded m-1">
       <Form.Control
-        placeholder="Message..."
-        disabled={isLoading}
-        type="text"
         as="textarea"
-        value={inputValue}
         className="border-0 shadow-none"
-        style={{ resize: "none", overflow: "auto" }}
+        disabled={isLoading}
+        placeholder="Message..."
         ref={textareaRef}
         rows={1}
+        style={{ resize: "none", overflow: "auto" }}
+        type="text"
+        value={inputValue}
         onChange={(e) => setInputValue(e.target.value)}
         onKeyDown={(e) => {
           if (e.key === "Enter" && !e.shiftKey) {
@@ -209,11 +212,31 @@ function InputMessage({
           </Dropdown.Toggle>
 
           <Dropdown.Menu popperConfig={{ strategy: "fixed" }}>
+            {!isNewChat && (
+              <Alert variant="warning" style={{ maxWidth: "20em" }}>
+                <small>
+                  Changing model during a chat context is experimental and may
+                  lead to unexpected results or broken chats.
+                </small>
+              </Alert>
+            )}
+
             {models.map((model) => {
               return (
                 <Dropdown.Item key={model.id} eventKey={model.id}>
                   <Dropdown.ItemText className="d-flex justify-content-between">
                     <div className="me-2">
+                      {!isNewChat && (
+                        <span
+                          className={
+                            currentModel?.vendor === model.vendor
+                              ? "text-success me-1"
+                              : "text-warning me-1"
+                          }
+                        >
+                          •
+                        </span>
+                      )}
                       {model.vendor} {model.modelName}
                     </div>
                     <small className="text-muted">

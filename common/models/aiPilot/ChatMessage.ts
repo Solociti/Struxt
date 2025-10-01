@@ -1,4 +1,3 @@
-import { AiPilotAgentIds } from "common/api/aiPilot/aiPilotEvents";
 import { Model, UserModelAction } from "../Model";
 import { DeepPartial, mergeDeep } from "../utils";
 
@@ -110,6 +109,25 @@ export class AiChatMessage extends ChatMessage {
     temperature: 0,
   };
 
+  /**
+   * Token usage information for the AI response.
+   *
+   * `prompt, completion, total` are provided by the AI service.
+   * `consumed` is the number of tokens we have recorded as consumed from this message.
+   * This is the total times the model multiplier.
+   */
+  public tokens: {
+    prompt: number;
+    completion: number;
+    total: number;
+    consumed: number;
+  } = {
+    prompt: 0,
+    completion: 0,
+    total: 0,
+    consumed: 0,
+  };
+
   constructor(data?: DeepPartial<AiChatMessage>) {
     super(data);
 
@@ -124,13 +142,12 @@ export class AiChatMessage extends ChatMessage {
     if (data?.contents) {
       this.contents = data.contents.map((c) => {
         const original: AiChatContents = {
-          agentId: "supervisor",
+          uid: "",
           contentId: "",
           content: "",
           category: "unknown",
           msgType: "ai",
           action: "",
-          totalTokens: 0,
         };
 
         return { ...original, ...c };
@@ -152,7 +169,6 @@ export class AiChatMessage extends ChatMessage {
         if (current) {
           // merge message contents
           current.content = [current.content, content.content].join("");
-          current.totalTokens += content.totalTokens;
         } else {
           current = { ...content };
           list.push(current);
@@ -171,10 +187,17 @@ export class AiChatMessage extends ChatMessage {
  * Represents the contents of a message or resource in the AI Pilot chat.
  */
 export interface AiChatContents {
-  agentId: AiPilotAgentIds;
+  /**
+   * A unique identifier for this content chunk.
+   *
+   * This can be the same as contentId in some cases. (e.g. tool calls)
+   */
+  uid: string;
 
   /**
    * This id can be used when debugging to find the raw tool call output.
+   *
+   * Multiple chunks can share the same contentId if they are part of the same tool call or resource.
    */
   contentId: string;
 
@@ -215,9 +238,4 @@ export interface AiChatContents {
     | "system"
     | "tool"
     | "remove";
-
-  /**
-   * The number of tokens used in this message or resource.
-   */
-  totalTokens: number;
 }

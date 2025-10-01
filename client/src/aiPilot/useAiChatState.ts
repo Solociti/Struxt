@@ -113,12 +113,23 @@ export function useAiChatState({
 
         if ("message" in result && result.message) {
           // append a new message
-          setMessages((prev) =>
-            updateMessages([...prev, ChatMessage.fromData(result.message)])
-          );
+          setMessages((prev) => {
+            // check if the message already exists
+            const exitingIndex = prev.findIndex(
+              (m) => m.uuid === result.message.uuid
+            );
+
+            if (exitingIndex !== -1) {
+              const newList = [...prev];
+              newList[exitingIndex] = ChatMessage.fromData(result.message);
+              return updateMessages(newList);
+            }
+
+            return updateMessages([...prev, result.message]);
+          });
         }
 
-        if ("content" in result && result.content) {
+        if ("contents" in result && result.contents) {
           // append a new content chunk to the last AI message
           const messageId = result.messageId;
 
@@ -129,7 +140,19 @@ export function useAiChatState({
 
             if (message) {
               // since we are cloning it yet, we don't need to validate the shape here
-              message.contents.push(result.content);
+              const existingIds = message.contents.map((c) => c.uid);
+              for (const content of result.contents) {
+                const index = existingIds.indexOf(content.uid);
+
+                if (index >= 0) {
+                  message.contents[index] = content;
+                  continue;
+                }
+
+                // append the new content
+                message.contents.push(content);
+                existingIds.push(content.uid);
+              }
 
               return updateMessages([
                 ...prev.filter((m) => m.uuid !== messageId),

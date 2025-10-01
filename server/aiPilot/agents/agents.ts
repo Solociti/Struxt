@@ -25,7 +25,12 @@ export async function setupAiPilot(
     name: K,
     ...args: Parameters<AiPilotChatEvents["serverRequests"][K]>
   ) => ReturnType<AiPilotChatEvents["serverRequests"][K]>,
-  toolCall: (name: string, data: any) => void
+  toolCall: (name: string, data: any) => void,
+  tokenUsage: (tokens: {
+    prompt: number;
+    completion: number;
+    total: number;
+  }) => void
 ) {
   const langSmithConfig = {
     projectName: `ai-pilot-${projectId}`,
@@ -100,7 +105,7 @@ export async function setupAiPilot(
 
       content = [
         `ProjectContextKeys: ${contextKeys}`,
-        `Context: ${JSON.stringify(context || {})}`,
+        `EditorContext: ${JSON.stringify(context || {})}`,
         `Message: ${message}`,
       ].join("\n\n");
 
@@ -114,6 +119,27 @@ export async function setupAiPilot(
         },
         {
           streamMode: "messages",
+          callbacks: [
+            {
+              handleLLMEnd(output) {
+                // get the total token usage from the output
+                const llmOutput = output.llmOutput || {};
+                const usage = llmOutput.tokenUsage;
+                if (!usage) {
+                  return;
+                }
+
+                const prompt = usage.promptTokens || 0;
+                const completion = usage.completionTokens || 0;
+                const total = usage.totalTokens || 0;
+                tokenUsage({
+                  prompt,
+                  completion,
+                  total,
+                });
+              },
+            },
+          ],
           configurable: {
             ...langSmithConfig,
             runName: `chat-${chatId.substring(0, 10)}`,

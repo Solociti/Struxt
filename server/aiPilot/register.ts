@@ -1,6 +1,7 @@
 import { BaseMessage } from "@langchain/core/messages";
 import { AiPilotChatEvents } from "common/api/aiPilot/aiPilotEvents";
 import { customError } from "common/custom-error/custom-error";
+import debounce from "common/debounce/debounce";
 import {
   AiChatContents,
   AiChatMessage,
@@ -85,6 +86,49 @@ registerObserver<AiPilotChatEvents>(
 
           let responseMessage: AiChatMessage;
 
+          let sendFullMessageUpdates = false;
+          let lastContentIndexSent = 0;
+          const sendMessageUpdates = debounce(
+            async () => {
+              if (!responseMessage) {
+                return;
+              }
+
+              // save the message update to the database
+              await updateChatMessage(
+                chatId,
+                responseMessage.uuid,
+                responseMessage
+              );
+
+              if (sendFullMessageUpdates) {
+                sendFullMessageUpdates = false;
+                lastContentIndexSent = responseMessage.contents.length;
+
+                // send the full message to the client
+                event.send({
+                  chatId,
+                  messageId: responseMessage.uuid,
+                  message: responseMessage,
+                });
+              } else {
+                const startIndex = lastContentIndexSent;
+                const newContents = responseMessage.contents.slice(startIndex);
+                lastContentIndexSent = responseMessage.contents.length;
+
+                event.send({
+                  chatId,
+                  messageId: responseMessage.uuid,
+                  contents: newContents,
+                });
+              }
+            },
+            {
+              delayMs: 10,
+              maxDelayMs: 50,
+            }
+          );
+
           const chat = await setupAiPilot(
             { chatId, projectId },
             {
@@ -93,63 +137,51 @@ registerObserver<AiPilotChatEvents>(
             },
             (name, ...args) => {
               if (responseMessage) {
+                const id = randomUUID();
                 const content: AiChatContents = {
+                  uid: id,
                   msgType: "tool",
                   content: name,
-                  contentId: randomUUID(),
-                  agentId: "supervisor",
+                  contentId: id,
                   category: "tool_call",
                   action: "",
-                  totalTokens: 0,
                   metadata: { args },
                 };
 
                 responseMessage.contents.push(content);
-
-                updateChatMessage(
-                  chatId,
-                  responseMessage.uuid,
-                  responseMessage
-                ).then(() => {
-                  event.send({
-                    chatId,
-                    messageId: responseMessage.uuid,
-                    content,
-                    chunks: [],
-                  });
-                });
+                sendMessageUpdates.trigger();
               }
 
               return sendRequest(name, ...args);
             },
             (name, data) => {
               if (responseMessage) {
+                const id = randomUUID();
                 const content: AiChatContents = {
+                  uid: id,
                   msgType: "tool",
                   content: name,
-                  contentId: randomUUID(),
-                  agentId: "supervisor",
+                  contentId: id,
                   category: "tool_call",
                   action: "",
-                  totalTokens: 0,
                   metadata: { args: [data] },
                 };
 
                 responseMessage.contents.push(content);
-
-                updateChatMessage(
-                  chatId,
-                  responseMessage.uuid,
-                  responseMessage
-                ).then(() => {
-                  event.send({
-                    chatId,
-                    messageId: responseMessage.uuid,
-                    content,
-                    chunks: [],
-                  });
-                });
+                sendMessageUpdates.trigger();
               }
+            },
+            (tokens) => {
+              responseMessage.tokens.prompt += tokens.prompt;
+              responseMessage.tokens.completion += tokens.completion;
+              responseMessage.tokens.total += tokens.total;
+
+              const consumed =
+                responseMessage.tokens.total * currentModel.tokenMultiplier;
+              responseMessage.tokens.consumed = consumed;
+
+              sendFullMessageUpdates = true;
+              sendMessageUpdates.trigger();
             }
           );
 
@@ -174,8 +206,6 @@ registerObserver<AiPilotChatEvents>(
             message: userMessage,
           });
 
-          await sleep(25);
-
           // create the ai message
           const responseId: string = await randomUUID();
           responseMessage = new AiChatMessage({
@@ -188,14 +218,7 @@ registerObserver<AiPilotChatEvents>(
           });
 
           await appendChatMessage(chatId, responseMessage);
-
-          event.send({
-            chatId,
-            messageId: responseId,
-            message: responseMessage,
-          });
-
-          const chunks = [];
+          sendMessageUpdates.trigger();
 
           // Handle the user message
           const stream = await chat.streamResponse(message, context);
@@ -203,8 +226,6 @@ registerObserver<AiPilotChatEvents>(
           // consider listening to multiple event types and tracking the states
           // to know what to send to the client
           for await (const [msg, details] of stream) {
-            chunks.push({ msg, details });
-
             const { content, shouldSend } = processStreamChunk(
               msg as any,
               details
@@ -212,18 +233,7 @@ registerObserver<AiPilotChatEvents>(
 
             if (shouldSend) {
               responseMessage.contents.push(content);
-              await updateChatMessage(
-                chatId,
-                responseMessage.uuid,
-                responseMessage
-              );
-
-              event.send({
-                chatId,
-                messageId: responseId,
-                content,
-                chunks,
-              });
+              sendMessageUpdates.trigger();
             }
           }
 
@@ -266,8 +276,9 @@ function processStreamChunk(
   shouldSend: boolean;
 } {
   const msgType = msg.getType();
-  const hasContent = typeof msg.content === "string" && msg.content.length > 0;
+  const content: string = extractContentFromMessage(msg);
 
+  const hasContent = content.length > 0;
   const shouldSend = Boolean(hasContent || msgType === "tool");
 
   const category: AiChatContents["category"] = (() => {
@@ -280,22 +291,19 @@ function processStreamChunk(
     return "unknown";
   })();
 
-  const content: string = extractContentFromMessage(msg);
   const contentId =
     msg.id || `${details.langgraph_step}-${details.langgraph_node}`;
-  const usage = (msg as any).usage_metadata || { total_tokens: 0 };
 
   const action = "";
 
   const responseContent: AiChatContents = {
+    uid: randomUUID(),
     contentId,
     content: category === "tool_response" ? msg.name || "" : content,
     metadata: category === "tool_response" ? { content } : undefined,
     category,
     action,
     msgType,
-    agentId: "supervisor",
-    totalTokens: usage.total_tokens || 0,
   };
 
   return {

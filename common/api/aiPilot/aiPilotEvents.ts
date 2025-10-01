@@ -12,8 +12,6 @@ import {
 import { ObserverSetup, RequestReturn } from "../observer";
 import { BasicComponentTree, ComponentData } from "./eventHelpers";
 
-export type AiPilotAgentIds = "supervisor" | "code_agent" | "chat_agent";
-
 export interface AiPilotChatEvents extends ObserverSetup {
   event: "aiPilot:chat:open";
 
@@ -25,8 +23,7 @@ export interface AiPilotChatEvents extends ObserverSetup {
       | {
           chatId: string;
           messageId: string;
-          content: AiChatContents;
-          chunks: any[];
+          contents: AiChatContents[];
         }
       | { models: AiPilotModel[] }
   ) => void;

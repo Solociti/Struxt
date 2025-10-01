@@ -21,6 +21,7 @@ describe("ProjectModel", () => {
         dataSources: [],
         custom: { projectType: "site", id: "" },
       },
+      context: [],
       staging: {
         forceSsl: true,
         hsts: true,
@@ -83,6 +84,7 @@ describe("ProjectModel", () => {
       description: "",
       storage: { maxBytes: 0 },
       editorData: { assets: [{}] },
+      context: [],
       staging: {
         forceSsl: true,
         hsts: true,
