@@ -32,6 +32,11 @@ export interface ProjectContextItem {
   value: string;
 
   /**
+   * The type of context item
+   */
+  type: "facts" | "preferences" | "decisions" | "context" | "style";
+
+  /**
    * Created information for the context item
    */
   created: Omit<UserModelAction, "active">;
@@ -166,6 +171,7 @@ export class ProjectModel extends Model {
     const item: ProjectContextItem = {
       key: "",
       value: "",
+      type: "context",
       created: {
         date,
         userId: "",

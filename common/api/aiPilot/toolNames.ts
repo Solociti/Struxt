@@ -7,9 +7,11 @@ interface Description {
 type ToolKeys =
   | keyof AiPilotChatEvents["serverRequests"]
   // add server side only tools here
-  | "update-project-context"
-  | "list-project-context-keys"
-  | "get-project-context";
+  | "list-project-memories"
+  | "get-project-memory"
+  | "save-project-memory"
+  | "archive-project-memory"
+  | "search-project-memories";
 
 export const toolNames: {
   [K in ToolKeys]: Omit<Description, "name">;
@@ -56,13 +58,19 @@ export const toolNames: {
   "get-layers": {
     displayName: "View Layers",
   },
-  "get-project-context": {
-    displayName: "Get Context",
+  "get-project-memory": {
+    displayName: "Get Memory",
   },
-  "list-project-context-keys": {
-    displayName: "List Context Keys",
+  "list-project-memories": {
+    displayName: "List Memories",
   },
-  "update-project-context": {
-    displayName: "Update Context",
+  "save-project-memory": {
+    displayName: "Update Memory",
+  },
+  "archive-project-memory": {
+    displayName: "Archive Memory",
+  },
+  "search-project-memories": {
+    displayName: "Search Memory",
   },
 };

@@ -5,7 +5,7 @@ import { createReactAgent } from "@langchain/langgraph/prebuilt";
 import { AiPilotChatEvents } from "common/api/aiPilot/aiPilotEvents";
 import { AiMessageContext } from "common/models/aiPilot/tools/Context";
 import { getMongoClient, dbName as mongoDbName } from "server/database/mongodb";
-import { setupContextTools } from "../tools/contextTools";
+import { setupMemoryTools } from "../tools/contextTools";
 import { getClientTools } from "../tools/setupClientTools";
 import { setupLLM } from "./setupLLM";
 
@@ -59,7 +59,7 @@ export async function setupAiPilot(
   });
 
   const clientTools = await getClientTools(llmModel);
-  const contextTools = setupContextTools(projectId, toolCall);
+  const memoryTools = setupMemoryTools(projectId, toolCall);
 
   /**
    * Setup the main agent that handles all tasks.
@@ -69,10 +69,10 @@ export async function setupAiPilot(
       "You are an AI assistant specializing in web development and digital marketing for a drag-and-drop website builder (Struxt - a modified version of GrapesJS).",
       "Help users create and optimize websites through code generation, SEO, UX design, and content strategy.",
       "You're open to discussing any concept that might inspire web projects.",
-      "There is tools setup for managing project context. Save important details about the project.",
+      "Before responding, check project memories for existing preferences and standards, then save any new important project information using the appropriate type (facts, preferences, decisions, context, style).",
     ].join("\n"),
     tools: [
-      ...contextTools.tools,
+      ...memoryTools.tools,
       ...clientTools.map((t) => {
         return tool(
           async (input) => {
@@ -98,13 +98,13 @@ export async function setupAiPilot(
     async streamResponse(message: string, context: AiMessageContext) {
       let content = message;
 
-      const contextKeysResult = await contextTools.getContextKeys();
-      const contextKeys = JSON.stringify(
-        contextKeysResult.success ? contextKeysResult.value : []
+      const memoryKeysResult = await memoryTools.getMemoryKeys();
+      const memoryKeys = JSON.stringify(
+        memoryKeysResult.success ? memoryKeysResult.value : []
       );
 
       content = [
-        `ProjectContextKeys: ${contextKeys}`,
+        `ProjectMemoryKeys: ${memoryKeys}`,
         `EditorContext: ${JSON.stringify(context || {})}`,
         `Message: ${message}`,
       ].join("\n\n");
