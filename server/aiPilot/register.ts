@@ -16,6 +16,7 @@ import { setupAiPilot } from "./agents/agents";
 import { loadChat } from "./chat/loadChat";
 import { appendChatMessage, updateChatMessage } from "./chat/saveChat";
 import { getAiPilotModelAuto, getAiPilotModels } from "./models/getModels";
+import { model, sessions, messages, users, tools, errors } from "./metrics";
 
 function sleep(ms: number) {
   return new Promise((resolve) => setTimeout(resolve, ms));
@@ -59,6 +60,10 @@ registerObserver<AiPilotChatEvents>(
     // if the chat isn't found, it'll throw a 404 error
     const chat = await loadChat(projectId, chatId);
 
+    // Record metrics for chat session opening
+    sessions.recordChat(projectId);
+    users.recordActive(projectId);
+
     // send the chat details to the user
     event.send({
       chatId,
@@ -84,163 +89,211 @@ registerObserver<AiPilotChatEvents>(
           const currentModel = await getAiPilotModelAuto(llmModel);
           const modelTemperature = temperature || 0.5;
 
-          let responseMessage: AiChatMessage;
+          // Record model request metric
+          model.countRequest(currentModel.id, currentModel.vendor, projectId);
 
-          let sendFullMessageUpdates = false;
-          let lastContentIndexSent = 0;
-          const sendMessageUpdates = debounce(
-            async () => {
-              if (!responseMessage) {
-                return;
-              }
+          const startTime = Date.now();
 
-              // save the message update to the database
-              await updateChatMessage(
-                chatId,
-                responseMessage.uuid,
-                responseMessage
-              );
+          try {
+            let responseMessage: AiChatMessage;
+            let sendFullMessageUpdates = false;
+            let lastContentIndexSent = 0;
+            const sendMessageUpdates = debounce(
+              async () => {
+                if (!responseMessage) {
+                  return;
+                }
 
-              if (sendFullMessageUpdates) {
-                sendFullMessageUpdates = false;
-                lastContentIndexSent = responseMessage.contents.length;
-
-                // send the full message to the client
-                event.send({
+                // save the message update to the database
+                await updateChatMessage(
                   chatId,
-                  messageId: responseMessage.uuid,
-                  message: responseMessage,
-                });
-              } else {
-                const startIndex = lastContentIndexSent;
-                const newContents = responseMessage.contents.slice(startIndex);
-                lastContentIndexSent = responseMessage.contents.length;
+                  responseMessage.uuid,
+                  responseMessage
+                );
 
-                event.send({
-                  chatId,
-                  messageId: responseMessage.uuid,
-                  contents: newContents,
-                });
+                if (sendFullMessageUpdates) {
+                  sendFullMessageUpdates = false;
+                  lastContentIndexSent = responseMessage.contents.length;
+
+                  // send the full message to the client
+                  event.send({
+                    chatId,
+                    messageId: responseMessage.uuid,
+                    message: responseMessage,
+                  });
+                } else {
+                  const startIndex = lastContentIndexSent;
+                  const newContents =
+                    responseMessage.contents.slice(startIndex);
+                  lastContentIndexSent = responseMessage.contents.length;
+
+                  event.send({
+                    chatId,
+                    messageId: responseMessage.uuid,
+                    contents: newContents,
+                  });
+                }
+              },
+              {
+                delayMs: 10,
+                maxDelayMs: 50,
               }
-            },
-            {
-              delayMs: 10,
-              maxDelayMs: 50,
-            }
-          );
-
-          const chat = await setupAiPilot(
-            { chatId, projectId },
-            {
-              llmModel: currentModel.id,
-              temperature: modelTemperature,
-            },
-            (name, ...args) => {
-              if (responseMessage) {
-                const id = randomUUID();
-                const content: AiChatContents = {
-                  uid: id,
-                  msgType: "tool",
-                  content: name,
-                  contentId: id,
-                  category: "tool_call",
-                  action: "",
-                  metadata: { args },
-                };
-
-                responseMessage.contents.push(content);
-                sendMessageUpdates.trigger();
-              }
-
-              return sendRequest(name, ...args);
-            },
-            (name, data) => {
-              if (responseMessage) {
-                const id = randomUUID();
-                const content: AiChatContents = {
-                  uid: id,
-                  msgType: "tool",
-                  content: name,
-                  contentId: id,
-                  category: "tool_call",
-                  action: "",
-                  metadata: { args: [data] },
-                };
-
-                responseMessage.contents.push(content);
-                sendMessageUpdates.trigger();
-              }
-            },
-            (tokens) => {
-              responseMessage.tokens.prompt += tokens.prompt;
-              responseMessage.tokens.completion += tokens.completion;
-              responseMessage.tokens.total += tokens.total;
-
-              const consumed =
-                responseMessage.tokens.total * currentModel.tokenMultiplier;
-              responseMessage.tokens.consumed = consumed;
-
-              sendFullMessageUpdates = true;
-              sendMessageUpdates.trigger();
-            }
-          );
-
-          // Handle the user message
-          const msgId = await randomUUID();
-          const userMessage = new UserChatMessage({
-            uuid: msgId,
-            chatId,
-            content: message,
-            created: {
-              date: Math.floor(Date.now() / 1000),
-              userId: user.id,
-              displayName: user.name,
-            },
-          });
-
-          await appendChatMessage(chatId, userMessage);
-
-          event.send({
-            chatId,
-            messageId: msgId,
-            message: userMessage,
-          });
-
-          // create the ai message
-          const responseId: string = await randomUUID();
-          responseMessage = new AiChatMessage({
-            uuid: responseId,
-            chatId,
-            metadata: {
-              model: currentModel.id,
-              temperature: modelTemperature,
-            },
-          });
-
-          await appendChatMessage(chatId, responseMessage);
-          sendMessageUpdates.trigger();
-
-          // Handle the user message
-          const stream = await chat.streamResponse(message, context);
-
-          // consider listening to multiple event types and tracking the states
-          // to know what to send to the client
-          for await (const [msg, details] of stream) {
-            const { content, shouldSend } = processStreamChunk(
-              msg as any,
-              details
             );
 
-            if (shouldSend) {
-              responseMessage.contents.push(content);
-              sendMessageUpdates.trigger();
-            }
-          }
+            const chat = await setupAiPilot(
+              { chatId, projectId },
+              {
+                llmModel: currentModel.id,
+                temperature: modelTemperature,
+              },
+              (name, ...args) => {
+                if (responseMessage) {
+                  const id = randomUUID();
+                  const content: AiChatContents = {
+                    uid: id,
+                    msgType: "tool",
+                    content: name,
+                    contentId: id,
+                    category: "tool_call",
+                    action: "",
+                    metadata: { args },
+                  };
 
-          return {
-            success: true,
-            message: responseMessage,
-          };
+                  responseMessage.contents.push(content);
+                  sendMessageUpdates.trigger();
+                }
+
+                return sendRequest(name, ...args);
+              },
+              (name, data) => {
+                if (responseMessage) {
+                  const id = randomUUID();
+                  const content: AiChatContents = {
+                    uid: id,
+                    msgType: "tool",
+                    content: name,
+                    contentId: id,
+                    category: "tool_call",
+                    action: "",
+                    metadata: { args: [data] },
+                  };
+
+                  responseMessage.contents.push(content);
+                  sendMessageUpdates.trigger();
+                }
+              },
+              (tokens) => {
+                responseMessage.tokens.prompt += tokens.prompt;
+                responseMessage.tokens.completion += tokens.completion;
+                responseMessage.tokens.total += tokens.total;
+
+                const consumed =
+                  responseMessage.tokens.total * currentModel.tokenMultiplier;
+                responseMessage.tokens.consumed = consumed;
+
+                sendFullMessageUpdates = true;
+                sendMessageUpdates.trigger();
+
+                // Record token usage metrics
+                const tokenData = {
+                  prompt: tokens.prompt,
+                  completion: tokens.completion,
+                  total: tokens.total,
+                  consumed: tokens.total * currentModel.tokenMultiplier,
+                };
+
+                model.recordTokenUsage(
+                  currentModel.id,
+                  currentModel.vendor,
+                  tokenData,
+                  projectId
+                );
+              }
+            );
+
+            // Handle the user message
+            const msgId = await randomUUID();
+            const userMessage = new UserChatMessage({
+              uuid: msgId,
+              chatId,
+              content: message,
+              created: {
+                date: Math.floor(Date.now() / 1000),
+                userId: user.id,
+                displayName: user.name,
+              },
+            });
+
+            await appendChatMessage(chatId, userMessage);
+
+            // Record user message metrics
+            messages.record("user", projectId, message.length);
+
+            event.send({
+              chatId,
+              messageId: msgId,
+              message: userMessage,
+            });
+
+            // create the ai message
+            const responseId: string = await randomUUID();
+            responseMessage = new AiChatMessage({
+              uuid: responseId,
+              chatId,
+              metadata: {
+                model: currentModel.id,
+                temperature: modelTemperature,
+              },
+            });
+
+            await appendChatMessage(chatId, responseMessage);
+            sendMessageUpdates.trigger();
+
+            // Handle the user message
+            const stream = await chat.streamResponse(message, context);
+
+            // consider listening to multiple event types and tracking the states
+            // to know what to send to the client
+            for await (const [msg, details] of stream) {
+              const { content, shouldSend } = processStreamChunk(
+                msg as any,
+                details
+              );
+
+              if (shouldSend) {
+                responseMessage.contents.push(content);
+                sendMessageUpdates.trigger();
+
+                messages.record("ai", projectId, content.content.length);
+              }
+            }
+
+            // Record AI response completion metrics
+            const endTime = Date.now();
+            const responseDuration = (endTime - startTime) / 1000;
+
+            model.recordResponseDuration(
+              currentModel.id,
+              currentModel.vendor,
+              projectId,
+              responseDuration
+            );
+
+            return {
+              success: true,
+              message: responseMessage,
+            };
+          } catch (error) {
+            // Record error metrics - use unknown values if model info unavailable
+            errors.record(
+              error instanceof Error ? error.name : "UnknownError",
+              currentModel.id,
+              projectId
+            );
+
+            // Re-throw the error to maintain existing error handling
+            throw error;
+          }
         },
       },
     };

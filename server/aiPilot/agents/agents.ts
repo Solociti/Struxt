@@ -8,6 +8,7 @@ import { getMongoClient, dbName as mongoDbName } from "server/database/mongodb";
 import { setupMemoryTools } from "../tools/contextTools";
 import { getClientTools } from "../tools/setupClientTools";
 import { setupLLM } from "./setupLLM";
+import { tools } from "../metrics";
 
 /**
  * Setup the AI Pilot agent with all of the required tools.
@@ -76,7 +77,33 @@ export async function setupAiPilot(
       ...clientTools.map((t) => {
         return tool(
           async (input) => {
-            return clientRequest(t.name, input as any);
+            const toolStartTime = Date.now();
+
+            try {
+              // Record tool call
+              tools.recordCall("client", t.name, projectId, llmModel);
+
+              const result = await clientRequest(t.name, input as any);
+
+              // Record successful tool execution
+              const toolDuration = (Date.now() - toolStartTime) / 1000;
+              tools.recordExecution(t.name, projectId, toolDuration);
+
+              return result;
+            } catch (error) {
+              // Record tool error
+              const errorType =
+                error instanceof Error
+                  ? error.constructor.name
+                  : "UnknownError";
+              tools.recordError(t.name, errorType, projectId);
+
+              // Record execution time even for failed tools
+              const toolDuration = (Date.now() - toolStartTime) / 1000;
+              tools.recordExecution(t.name, projectId, toolDuration);
+
+              throw error;
+            }
           },
           {
             name: t.name,
