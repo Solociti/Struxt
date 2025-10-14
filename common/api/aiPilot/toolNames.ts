@@ -4,14 +4,15 @@ interface Description {
   displayName: string;
 }
 
-type ToolKeys =
+export type ToolKeys =
   | keyof AiPilotChatEvents["serverRequests"]
   // add server side only tools here
   | "list-project-memories"
   | "get-project-memory"
   | "save-project-memory"
   | "archive-project-memory"
-  | "search-project-memories";
+  | "search-project-memories"
+  | "get-memories-by-type";
 
 export const toolNames: {
   [K in ToolKeys]: Omit<Description, "name">;
@@ -72,5 +73,8 @@ export const toolNames: {
   },
   "search-project-memories": {
     displayName: "Search Memory",
+  },
+  "get-memories-by-type": {
+    displayName: "Get Memories by Type",
   },
 };

@@ -4,11 +4,12 @@ import { MongoDBSaver } from "@langchain/langgraph-checkpoint-mongodb";
 import { createReactAgent } from "@langchain/langgraph/prebuilt";
 import { AiPilotChatEvents } from "common/api/aiPilot/aiPilotEvents";
 import { AiMessageContext } from "common/models/aiPilot/tools/Context";
+import { tools } from "server/aiPilot/metrics";
+import { setupMemoryTools } from "server/aiPilot/tools/contextTools";
+import { getToolDescriptions } from "server/aiPilot/tools/descriptions/getToolDescriptions";
+import { getClientTools } from "server/aiPilot/tools/setupClientTools";
 import { getMongoClient, dbName as mongoDbName } from "server/database/mongodb";
-import { setupMemoryTools } from "../tools/contextTools";
-import { getClientTools } from "../tools/setupClientTools";
 import { setupLLM } from "./setupLLM";
-import { tools } from "../metrics";
 
 /**
  * Setup the AI Pilot agent with all of the required tools.
@@ -59,19 +60,16 @@ export async function setupAiPilot(
     checkpointWritesCollectionName: "ai_pilot_checkpoint_writes",
   });
 
-  const clientTools = await getClientTools(llmModel);
-  const memoryTools = setupMemoryTools(projectId, toolCall);
+  const descriptions = await getToolDescriptions();
+
+  const clientTools = getClientTools(llmModel, descriptions);
+  const memoryTools = setupMemoryTools(projectId, descriptions, toolCall);
 
   /**
    * Setup the main agent that handles all tasks.
    */
   const agent = createReactAgent({
-    prompt: [
-      "You are an AI assistant specializing in web development and digital marketing for a drag-and-drop website builder (Struxt - a modified version of GrapesJS).",
-      "Help users create and optimize websites through code generation, SEO, UX design, and content strategy.",
-      "You're open to discussing any concept that might inspire web projects.",
-      "Before responding, check project memories for existing preferences and standards, then save any new important project information using the appropriate type (facts, preferences, decisions, context, style).",
-    ].join("\n"),
+    prompt: descriptions.agentPrompt,
     tools: [
       ...memoryTools.tools,
       ...clientTools.map((t) => {

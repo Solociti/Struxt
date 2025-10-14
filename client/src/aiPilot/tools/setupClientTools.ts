@@ -25,7 +25,7 @@ export function setupClientTools(
       };
     },
     "get-page-html": async (request) => {
-      const page = editor.Pages.get(request.page);
+      const page = editor.Pages.get(request.pageId);
 
       return {
         success: true,

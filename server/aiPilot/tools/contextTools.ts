@@ -1,4 +1,5 @@
-import { Tool, tool } from "@langchain/core/tools";
+import { tool } from "@langchain/core/tools";
+import { ToolDescriptions } from "common/models/aiPilot/tools/ToolDescriptions";
 import { ProjectModel } from "common/models/projects/ProjectModel";
 import { getProjectData } from "server/api/projects/getProject";
 import { saveProject } from "server/api/projects/saveProject";
@@ -7,6 +8,7 @@ import { tools } from "../metrics";
 
 export function setupMemoryTools(
   projectId: string,
+  descriptions: ToolDescriptions,
   toolCall: (name: string, data: any) => void
 ) {
   const getSchema = z.object({
@@ -256,37 +258,37 @@ export function setupMemoryTools(
     tools: [
       setupTool(
         "list-project-memories",
-        "List all memory keys stored for the current project. Use this to see what information has been saved about the project.",
+        descriptions.getTool("list-project-memories"),
         z.object({}),
         () => getMemoryKeys()
       ),
       setupTool(
         "get-project-memory",
-        "Get project memories by key using regexp. Use this to recall specific information about the project.",
+        descriptions.getTool("get-project-memory"),
         getSchema,
         getProjectMemory
       ),
       setupTool(
         "search-project-memories",
-        "Search project memories by content and/or type. Use query to search in keys/values, use type to filter by memory category (facts, preferences, decisions, context, style).",
+        descriptions.getTool("search-project-memories"),
         searchSchema,
         searchProjectMemories
       ),
       setupTool(
         "get-memories-by-type",
-        "Get all project memories of a specific type (facts, preferences, decisions, context, style). Use this to recall specific categories of information.",
+        descriptions.getTool("get-memories-by-type"),
         getByTypeSchema,
         getMemoriesByType
       ),
       setupTool(
         "save-project-memory",
-        "Save important information about the project for future reference. Always use this when you learn something important about the project: style preferences, brand voice, target audience, technical requirements, design decisions, user feedback, etc. This helps maintain continuity across conversations.",
+        descriptions.getTool("save-project-memory"),
         updateSchema,
         saveProjectMemory
       ),
       setupTool(
         "archive-project-memory",
-        "Archive a memory entry when it's no longer relevant or accurate.",
+        descriptions.getTool("archive-project-memory"),
         archiveSchema,
         archiveProjectMemory
       ),

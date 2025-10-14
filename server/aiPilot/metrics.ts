@@ -1,5 +1,7 @@
 import * as client from "prom-client";
 
+// TODO: remove any metrics that are not being used
+
 /**
  * Model usage metrics
  */
