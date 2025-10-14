@@ -93,7 +93,7 @@ export function getClientTools(
 
     "get-elements": {
       schema: z.object({
-        page: z.string().describe(description.getSchema("get-elements.page")),
+        page: z.string().describe(description.getSchema("get-elements.pageId")),
         selector: z
           .string()
           .optional()
@@ -109,7 +109,9 @@ export function getClientTools(
 
     "add-component": {
       schema: z.object({
-        page: z.string().describe(description.getSchema("add-component.page")),
+        page: z
+          .string()
+          .describe(description.getSchema("add-component.pageId")),
         parentId: z
           .string()
           .describe(description.getSchema("add-component.parentId")),
@@ -119,7 +121,9 @@ export function getClientTools(
         position: z.number().int().min(0).optional(),
       }),
       geminiSchema: z.object({
-        page: z.string().describe(description.getSchema("add-component.page")),
+        page: z
+          .string()
+          .describe(description.getSchema("add-component.pageId")),
         parentId: z
           .string()
           .describe(description.getSchema("add-component.parentId")),

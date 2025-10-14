@@ -53,7 +53,7 @@ export interface AiPilotChatEvents extends ObserverSetup {
     }) => RequestReturn<{ success: boolean; style: string }>;
 
     "get-elements": (request: {
-      page: string;
+      pageId: string;
       selector?: string;
     }) => RequestReturn<{ success: boolean; elements: string[] }>;
 
@@ -63,14 +63,14 @@ export interface AiPilotChatEvents extends ObserverSetup {
     }>;
 
     "add-component": (request: {
-      page: string;
+      pageId: string;
       parentId: string;
       component: ComponentData;
       position?: number;
     }) => RequestReturn<{ success: boolean; componentId?: string }>;
 
     "add-component-html": (request: {
-      page: string;
+      pageId: string;
       parentId: string;
       html: string;
       position?: number;

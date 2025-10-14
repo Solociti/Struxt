@@ -64,11 +64,11 @@ export class ToolDescriptions extends Model {
     "get-style-by-selector.selector": "The CSS selector to get the styles for",
     "update-style.css":
       "CSS rules with simple ID (#elementId), class (.className), or pseudo-class selectors only. Example: '#myElement { color: red; }' or '.myClass:hover { margin: 10px; }'",
-    "get-elements.page":
+    "get-elements.pageId":
       "Page ID to get the elements from. Defaults to the selected page.",
     "get-elements.selector":
       "The CSS selector to match. If not provided, all elements will be returned.",
-    "add-component.page": "The page ID to add the component to",
+    "add-component.pageId": "The page ID to add the component to",
     "add-component.parentId": "Parent component ID",
     "add-component.component":
       "The component data to add, including type, attributes, styles, classes, and children",

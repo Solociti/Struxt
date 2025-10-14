@@ -76,8 +76,8 @@ export function setupClientTools(
     "get-elements": async (request) => {
       // get the page by id or the selected page
       const page = (() => {
-        if (request.page) {
-          const p = editor.Pages.get(request.page);
+        if (request.pageId) {
+          const p = editor.Pages.get(request.pageId);
           if (p) {
             return p;
           }
@@ -227,7 +227,7 @@ export function setupClientTools(
     },
 
     "add-component": async (request) => {
-      const page = editor.Pages.get(request.page);
+      const page = editor.Pages.get(request.pageId);
       if (!page) {
         throw new Error("Could not find the requested page");
       }
@@ -248,7 +248,7 @@ export function setupClientTools(
     },
 
     "add-component-html": async (request) => {
-      const page = editor.Pages.get(request.page);
+      const page = editor.Pages.get(request.pageId);
       if (!page) {
         throw new Error("Could not find the requested page");
       }
