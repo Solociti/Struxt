@@ -1,5 +1,5 @@
 import { tool } from "@langchain/core/tools";
-import { ToolDescriptions } from "common/models/aiPilot/tools/ToolDescriptions";
+import { AiPilotPrompts } from "common/models/aiPilot/tools/AiPilotPrompts";
 import { ProjectModel } from "common/models/projects/ProjectModel";
 import { getProjectData } from "server/api/projects/getProject";
 import { saveProject } from "server/api/projects/saveProject";
@@ -8,7 +8,7 @@ import { tools } from "../metrics";
 
 export function setupMemoryTools(
   projectId: string,
-  descriptions: ToolDescriptions,
+  descriptions: AiPilotPrompts,
   toolCall: (name: string, data: any) => void
 ) {
   const getSchema = z.object({

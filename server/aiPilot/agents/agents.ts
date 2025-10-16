@@ -3,10 +3,11 @@ import { tool } from "@langchain/core/tools";
 import { MongoDBSaver } from "@langchain/langgraph-checkpoint-mongodb";
 import { createReactAgent } from "@langchain/langgraph/prebuilt";
 import { AiPilotChatEvents } from "common/api/aiPilot/aiPilotEvents";
+import { AiPilotModel } from "common/models/aiPilot/AiPilotModels";
 import { AiMessageContext } from "common/models/aiPilot/tools/Context";
 import { tools } from "server/aiPilot/metrics";
 import { setupMemoryTools } from "server/aiPilot/tools/contextTools";
-import { getToolDescriptions } from "server/aiPilot/tools/descriptions/getToolDescriptions";
+import { getAiPilotPrompts } from "server/aiPilot/tools/prompts/getAiPilotPrompts";
 import { getClientTools } from "server/aiPilot/tools/setupClientTools";
 import { getMongoClient, dbName as mongoDbName } from "server/database/mongodb";
 import { setupLLM } from "./setupLLM";
@@ -22,7 +23,7 @@ import { setupLLM } from "./setupLLM";
  */
 export async function setupAiPilot(
   { chatId, projectId }: { chatId: string; projectId: string },
-  { llmModel, temperature }: { llmModel: string; temperature?: number },
+  { llmModel, temperature }: { llmModel: AiPilotModel; temperature?: number },
   clientRequest: <K extends keyof AiPilotChatEvents["serverRequests"]>(
     name: K,
     ...args: Parameters<AiPilotChatEvents["serverRequests"][K]>
@@ -46,7 +47,7 @@ export async function setupAiPilot(
   };
 
   // Setup the LLM based on user selection
-  const llm = await setupLLM(llmModel, {
+  const llm = await setupLLM(llmModel.id, {
     temperature: temperature || 0.5,
   });
 
@@ -60,9 +61,10 @@ export async function setupAiPilot(
     checkpointWritesCollectionName: "ai_pilot_checkpoint_writes",
   });
 
-  const descriptions = await getToolDescriptions();
+  const { vendor, model } = llmModel.splitId();
+  const descriptions = await getAiPilotPrompts(vendor, model);
 
-  const clientTools = getClientTools(llmModel, descriptions);
+  const clientTools = getClientTools(llmModel.id, descriptions);
   const memoryTools = setupMemoryTools(projectId, descriptions, toolCall);
 
   /**
@@ -79,7 +81,7 @@ export async function setupAiPilot(
 
             try {
               // Record tool call
-              tools.recordCall("client", t.name, projectId, llmModel);
+              tools.recordCall("client", t.name, projectId, llmModel.id);
 
               const result = await clientRequest(t.name, input as any);
 

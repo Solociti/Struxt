@@ -1,6 +1,6 @@
-import Card from "react-bootstrap/Card";
-import { ShowAiPilotModels } from "./aiPilot/ShowAiPilotModels";
 import Container from "react-bootstrap/Container";
+import { ShowAiPilotModels } from "./aiPilot/ShowAiPilotModels";
+import { ShowAiPilotPrompts } from "./aiPilot/ShowAiPilotPrompts";
 
 export default function AdminSettings() {
   return (
@@ -9,10 +9,7 @@ export default function AdminSettings() {
 
       <ShowAiPilotModels />
 
-      <Card className="my-4">
-        <Card.Header>AI Pilot Default Messages</Card.Header>
-        <Card.Body></Card.Body>
-      </Card>
+      <ShowAiPilotPrompts />
     </Container>
   );
 }

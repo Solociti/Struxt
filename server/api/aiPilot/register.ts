@@ -2,22 +2,28 @@ import {
   AiPilotChatList,
   AiPilotModels,
   AiPilotNewChat,
+  AiPilotPrompts as AiPilotPromptsApi,
 } from "common/api/aiPilot/chatApi";
 import { customError } from "common/custom-error/custom-error";
 import { AiPilotChat } from "common/models/aiPilot/aiPilotChat";
+import { AiPilotModel } from "common/models/aiPilot/AiPilotModels";
+import { AiPilotPrompts } from "common/models/aiPilot/tools/AiPilotPrompts";
+import { PromptOverrides } from "common/models/aiPilot/tools/PromptOverrides";
+import { zAiPilotModel } from "common/models/aiPilot/zValidation";
 import { roles } from "common/models/user/Roles";
+import { DeepPartial } from "common/models/utils";
 import { loadChatList } from "server/aiPilot/chat/loadChat";
 import { saveChat } from "server/aiPilot/chat/saveChat";
-import "server/aiPilot/register";
-import z from "zod";
-import { registerApi } from "../registerApi";
 import {
   getAiPilotModel,
   getAiPilotModels,
 } from "server/aiPilot/models/getModels";
-import { AiPilotModel } from "common/models/aiPilot/AiPilotModels";
 import { saveAiPilotModel } from "server/aiPilot/models/saveModels";
-import { zAiPilotModel } from "common/models/aiPilot/zValidation";
+import "server/aiPilot/register";
+import { getAllAiPilotPromptOverrides } from "server/aiPilot/tools/prompts/getAiPilotPrompts";
+import z from "zod";
+import { registerApi } from "../registerApi";
+import { saveAiPilotPrompts } from "server/aiPilot/tools/prompts/saveAiPilotPrompts";
 
 registerApi<AiPilotChatList>("/api/aiPilot/chat/list").get(
   [{ and: [roles.struxt.editor, roles.struxt.aiPilot] }],
@@ -120,4 +126,85 @@ registerApi<AiPilotModels>("/api/aiPilot/models")
 
     // save the model to database
     return await saveAiPilotModel(model);
+  });
+
+registerApi<AiPilotPromptsApi>("/api/aiPilot/prompts")
+  .get([roles.struxt.admin], async ({}) => {
+    // get the list of models from the database
+    const models = await getAiPilotModels(false);
+    // get the list of prompt overrides from the database
+    const overrides = await getAllAiPilotPromptOverrides();
+    // get the default tool prompts
+    const defaultPrompts = new AiPilotPrompts();
+
+    return {
+      defaultPrompts,
+      overrides,
+      models,
+    };
+  })
+  .post([roles.struxt.admin], async ({ user, body }) => {
+    if (!body.prompt || typeof body.prompt !== "object") {
+      throw customError(400, "Override is required to save.");
+    }
+
+    // validate the override shape
+    const zOverride = z
+      .object({
+        uuid: z.string(),
+        vendors: z.array(z.string()),
+        models: z.array(z.string()),
+        key: z.string(),
+        prompt: z.string().min(1, "Prompt text is required"),
+        created: z.object({
+          date: z.number(),
+          userId: z.string(),
+          displayName: z.string(),
+        }),
+        updated: z.object({
+          date: z.number(),
+          userId: z.string(),
+          displayName: z.string(),
+        }),
+        archived: z.object({
+          active: z.boolean(),
+          date: z.number(),
+          userId: z.string(),
+          displayName: z.string(),
+        }),
+      })
+      .parse(body.prompt);
+
+    const prompt = new PromptOverrides(
+      zOverride as DeepPartial<PromptOverrides>
+    );
+
+    if (prompt.uuid === "new") {
+      prompt.created = {
+        ...prompt.created,
+        date: Math.floor(Date.now() / 1000),
+        userId: user.id,
+        displayName: user.name,
+      };
+    }
+
+    prompt.updated = {
+      ...prompt.updated,
+      date: Math.floor(Date.now() / 1000),
+      userId: user.id,
+      displayName: user.name,
+    };
+
+    // set the user that is making the change
+    if (prompt.archived.active && !prompt.archived.userId) {
+      prompt.archived = {
+        ...prompt.archived,
+        userId: user.id,
+        displayName: user.name,
+        date: Math.floor(Date.now() / 1000),
+      };
+    }
+
+    const result = await saveAiPilotPrompts(prompt);
+    return result;
   });

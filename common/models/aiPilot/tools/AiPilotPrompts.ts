@@ -1,8 +1,9 @@
 import { ToolKeys } from "common/api/aiPilot/toolNames";
 import { Model } from "common/models/Model";
 import { DeepPartial, mergeDeep } from "common/models/utils";
+import { PromptOverrides } from "./PromptOverrides";
 
-export class ToolDescriptions extends Model {
+export class AiPilotPrompts extends Model {
   public agentPrompt: string = [
     "You are an AI assistant specializing in web development and digital marketing for a drag-and-drop website builder (Struxt - a modified version of GrapesJS).",
     "Help users create and optimize websites through code generation, SEO, UX design, and content strategy.",
@@ -86,7 +87,7 @@ export class ToolDescriptions extends Model {
     "add-component.component.content": "Text content of the component.",
   };
 
-  constructor(data?: DeepPartial<ToolDescriptions>) {
+  constructor(data?: DeepPartial<AiPilotPrompts>) {
     super();
 
     if (data) {
@@ -94,8 +95,12 @@ export class ToolDescriptions extends Model {
     }
   }
 
-  update(data: DeepPartial<ToolDescriptions>) {
+  update(data: DeepPartial<AiPilotPrompts>) {
     mergeDeep(this, data);
+  }
+
+  clone() {
+    return new AiPilotPrompts(JSON.parse(JSON.stringify(this)));
   }
 
   /**
@@ -117,5 +122,53 @@ export class ToolDescriptions extends Model {
    */
   getSchema(key: keyof typeof this.schemas) {
     return this.schemas[key] || "";
+  }
+
+  /**
+   * Get the prompt for a specific key.
+   *
+   * @param key
+   * @returns
+   */
+  getPrompt(key: PromptOverrides["key"]) {
+    if (key === "agentPrompt") {
+      return this.agentPrompt;
+    } else if (key in this.tools) {
+      return this.getTool(key as ToolKeys);
+    } else if (key in this.schemas) {
+      return this.getSchema(key as keyof typeof this.schemas);
+    }
+
+    return "";
+  }
+
+  /**
+   * Apply the list of overrides to the current prompts
+   *
+   * @param overrides
+   * @param vendor the llm vendor to apply overrides for
+   * @param model the llm model to apply overrides for
+   */
+  applyOverrides(overrides: PromptOverrides[], vendor: string, model: string) {
+    // apply default overrides first
+    for (const ovr of overrides) {
+      if (ovr.isDefault()) {
+        ovr.applyOverride(this);
+      }
+    }
+
+    // apply all vendor overrides first
+    for (const ovr of overrides) {
+      if (ovr.isVendorMatch(vendor)) {
+        ovr.applyOverride(this);
+      }
+    }
+
+    // then apply all model overrides
+    for (const ovr of overrides) {
+      if (ovr.isModelMatch(model)) {
+        ovr.applyOverride(this);
+      }
+    }
   }
 }

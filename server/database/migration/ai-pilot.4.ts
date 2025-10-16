@@ -18,10 +18,10 @@ export async function up() {
   await createIndex(
     "ai_pilot_prompts",
     {
-      id: 1,
+      uuid: 1,
     },
     {
-      name: "id",
+      name: "uuid",
       unique: true,
     },
     false

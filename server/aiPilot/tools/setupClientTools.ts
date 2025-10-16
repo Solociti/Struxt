@@ -1,7 +1,7 @@
 import { AiPilotChatEvents } from "common/api/aiPilot/aiPilotEvents";
 import { ComponentData } from "common/api/aiPilot/eventHelpers";
 import { ToolKeys } from "common/api/aiPilot/toolNames";
-import { ToolDescriptions } from "common/models/aiPilot/tools/ToolDescriptions";
+import { AiPilotPrompts } from "common/models/aiPilot/tools/AiPilotPrompts";
 import z from "zod";
 
 interface ClientTool {
@@ -19,7 +19,7 @@ interface ClientTool {
  */
 export function getClientTools(
   model: string,
-  description: ToolDescriptions
+  description: AiPilotPrompts
 ): ClientTool[] {
   const setupComponentSchema = (component: any) => {
     return z.object({

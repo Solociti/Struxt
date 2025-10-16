@@ -2,6 +2,7 @@ import { getCollection } from "server/database/mongodb";
 
 export type IdCounterName =
   | "ai_pilot_chat"
+  | "ai_pilot_prompt"
   | "submission"
   | "project"
   | "publish"

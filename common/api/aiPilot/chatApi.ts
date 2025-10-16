@@ -1,5 +1,7 @@
 import { AiPilotChatListItem } from "common/models/aiPilot/aiPilotChat";
 import { AiPilotModel } from "common/models/aiPilot/AiPilotModels";
+import { AiPilotPrompts as AiPilotPromptsModel } from "common/models/aiPilot/tools/AiPilotPrompts";
+import { PromptOverrides } from "common/models/aiPilot/tools/PromptOverrides";
 import { Api } from "../api";
 
 export interface AiPilotNewChat extends Api {
@@ -33,5 +35,25 @@ export interface AiPilotModels extends Api {
   };
   PostResponse: {
     success: boolean;
+  };
+}
+
+export interface AiPilotPrompts extends Api {
+  Endpoint: "/api/aiPilot/prompts";
+
+  GetQuery: {};
+  GetResponse: {
+    defaultPrompts: AiPilotPromptsModel;
+    overrides: PromptOverrides[];
+    models: AiPilotModel[];
+  };
+
+  PostBody: {
+    prompt: PromptOverrides;
+  };
+  PostResponse: {
+    success: boolean;
+
+    uuid: string;
   };
 }

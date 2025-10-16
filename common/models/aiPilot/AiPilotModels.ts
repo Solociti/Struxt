@@ -2,10 +2,21 @@ import { Model as BaseModel, UserModelAction } from "common/models/Model";
 import { DeepPartial, mergeDeep } from "../utils";
 
 export class AiPilotModel extends BaseModel {
+  /**
+   * The unique identifier for this model.
+   *
+   * `vendor:model-name`
+   */
   public id: string = "";
 
+  /**
+   * The vendor display name
+   */
   public vendor: string = "";
 
+  /**
+   * The model display name
+   */
   public modelName: string = "";
 
   /**
@@ -47,5 +58,15 @@ export class AiPilotModel extends BaseModel {
   clone(): AiPilotModel {
     const data = JSON.parse(JSON.stringify(this));
     return new AiPilotModel(data);
+  }
+
+  /**
+   * Split the id into vendor and model components
+   *
+   * @returns
+   */
+  splitId() {
+    const [vendor, model] = this.id.split(":");
+    return { vendor, model };
   }
 }

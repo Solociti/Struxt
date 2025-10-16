@@ -15,8 +15,8 @@ import z from "zod";
 import { setupAiPilot } from "./agents/agents";
 import { loadChat } from "./chat/loadChat";
 import { appendChatMessage, updateChatMessage } from "./chat/saveChat";
+import { errors, messages, model, sessions, users } from "./metrics";
 import { getAiPilotModelAuto, getAiPilotModels } from "./models/getModels";
-import { model, sessions, messages, users, tools, errors } from "./metrics";
 
 function sleep(ms: number) {
   return new Promise((resolve) => setTimeout(resolve, ms));
@@ -143,7 +143,7 @@ registerObserver<AiPilotChatEvents>(
             const chat = await setupAiPilot(
               { chatId, projectId },
               {
-                llmModel: currentModel.id,
+                llmModel: currentModel,
                 temperature: modelTemperature,
               },
               (name, ...args) => {
