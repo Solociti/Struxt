@@ -65,9 +65,41 @@ export function setupClientTools(
       }
 
       // append to the existing styles
-      if (request.method === "append") {
-        // TODO: implement append method
-        throw new Error("Append method not implemented yet");
+      if (request.method === "merge") {
+        const css = editor.Parser.parserCss;
+        const ast = css.parse(request.css, { throwOnError: true });
+
+        let final = "";
+
+        for (const newRule of ast) {
+          const selector = newRule.selectors
+            .map((s) => {
+              if (typeof s !== "string") {
+                // I don't expect this to happen, or know how it would. Using blank text as fallback.
+                console.log("An unexpected selector type was given.", {
+                  request,
+                  s,
+                });
+                return "";
+              }
+
+              return /^\W/.test(s) ? s : `.${s}`;
+            })
+            .join(", ");
+          // get the existing rule
+          const rules = editor.Css.getRules(selector);
+
+          for (const rule of rules) {
+            // append the new declarations to the existing rule
+            for (const prop in newRule.style) {
+              rule.addStyle(prop, newRule.style[prop]);
+            }
+
+            final += rule.toCSS() + "\n";
+          }
+        }
+
+        return { success: true, style: final };
       }
 
       return { success: false, style: "" };

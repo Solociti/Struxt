@@ -49,7 +49,7 @@ export interface AiPilotChatEvents extends ObserverSetup {
 
     "update-style": (request: {
       css: string;
-      method: "set" | "append";
+      method: "set" | "merge";
     }) => RequestReturn<{ success: boolean; style: string }>;
 
     "get-elements": (request: {

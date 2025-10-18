@@ -33,7 +33,7 @@ export class AiPilotPrompts extends Model {
     "get-style-by-selector":
       "Get the CSS styles associated with a given CSS selector.",
     "update-style":
-      "Update CSS styles. Target elements by ID (#elementId) or class (.className). Use 'set' to replace all styles, 'append' to add new ones.",
+      "Update CSS styles. Target elements by ID (#elementId) or class (.className). Use 'set' to replace all styles, 'merge' to add/update style props.",
 
     "get-elements": "Get HTML elements matching a CSS selector on a page.",
 

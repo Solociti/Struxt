@@ -87,7 +87,7 @@ export function getClientTools(
     "update-style": {
       schema: z.object({
         css: z.string().describe(description.getSchema("update-style.css")),
-        method: z.enum(["set", "append"]),
+        method: z.enum(["set", "merge"]),
       }),
     },
 
