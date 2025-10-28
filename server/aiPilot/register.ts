@@ -10,6 +10,7 @@ import {
 import { zAiMessageContext } from "common/models/aiPilot/tools/Context";
 import { roles } from "common/models/user/Roles";
 import { randomUUID } from "node:crypto";
+import { getProjectData } from "server/api/projects/getProject";
 import { registerObserver } from "server/ws/observers";
 import z from "zod";
 import { setupAiPilot } from "./agents/agents";
@@ -17,10 +18,6 @@ import { loadChat } from "./chat/loadChat";
 import { appendChatMessage, updateChatMessage } from "./chat/saveChat";
 import { errors, messages, model, sessions, users } from "./metrics";
 import { getAiPilotModelAuto, getAiPilotModels } from "./models/getModels";
-
-function sleep(ms: number) {
-  return new Promise((resolve) => setTimeout(resolve, ms));
-}
 
 registerObserver<AiPilotChatEvents>(
   "aiPilot:chat:open",
@@ -42,6 +39,18 @@ registerObserver<AiPilotChatEvents>(
     if (!user.hasProjectPermission(projectId, [roles.projects.edit])) {
       throw customError(403, "You do not have access to this project");
     }
+
+    // load the project
+    const project = await getProjectData(projectId);
+    if (!project) {
+      throw customError(404, "Project not found");
+    }
+
+    if (!project.featureFlags.aiPilot.enabled) {
+      throw customError(403, "AI Pilot is not enabled for this project");
+    }
+
+    // TODO: check how many tokens are still available for the project
 
     // load the list of available models
     const models = await getAiPilotModels();

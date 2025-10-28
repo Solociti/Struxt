@@ -21,6 +21,8 @@ export async function getProjectDetails(projectId: string) {
     staging: project.staging,
     production: project.production,
 
+    featureFlags: project.featureFlags,
+
     publish: {
       staging: {
         active: false,

@@ -95,6 +95,18 @@ export class ProjectModel extends Model {
   };
 
   /**
+   * Feature flags for the project
+   */
+  public featureFlags = {
+    aiPilot: {
+      enabled: false,
+      settings: {
+        tokensPerMonth: 0,
+      },
+    },
+  };
+
+  /**
    * The GrapesJS editor data
    */
   public editorData: EditorData = {

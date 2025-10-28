@@ -59,6 +59,20 @@ export interface ProjectDetailsApi extends Api {
      */
     details: ProjectDetails;
   };
+
+  PostBody: {
+    propPath:
+      | "name"
+      | "description"
+      | "featureFlags.aiPilot.enabled"
+      | "featureFlags.aiPilot.settings.tokensPerMonth";
+    value: string | number | boolean | null;
+  };
+  PostResponse: {
+    success: boolean;
+
+    details: ProjectDetails;
+  };
 }
 
 export interface ProjectCreateApi extends Api {

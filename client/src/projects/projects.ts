@@ -83,3 +83,29 @@ export async function getProjectDetails(projectId: string) {
   ]);
   return response.details;
 }
+
+/**
+ * Update a project details property on the server
+ *
+ * @param projectId
+ * @param propPath
+ * @param value
+ * @returns
+ */
+export async function updateProjectDetails(
+  projectId: string,
+  propPath: ProjectDetailsApi["PostBody"]["propPath"],
+  value: string | number | boolean | null
+) {
+  const body: ProjectDetailsApi["PostBody"] = {
+    propPath,
+    value,
+  };
+
+  const response: ProjectDetailsApi["PostResponse"] = await postApi(
+    ["/api/projects", projectId, "details"],
+    body
+  );
+
+  return response;
+}
