@@ -42,6 +42,14 @@ describe("ProjectModel", () => {
           redirectId: 0,
         },
       },
+      featureFlags: {
+        aiPilot: {
+          enabled: false,
+          settings: {
+            monthlyAllowance: 0,
+          },
+        },
+      },
       created: { date: 0, userId: "", displayName: "" },
       updated: { date: 0, userId: "", displayName: "" },
     });
@@ -121,6 +129,14 @@ describe("ProjectModel", () => {
           certificateId: 0,
           hostId: 0,
           redirectId: 0,
+        },
+      },
+      featureFlags: {
+        aiPilot: {
+          enabled: false,
+          settings: {
+            monthlyAllowance: 0,
+          },
         },
       },
       created: { date: 1234, userId: "", displayName: "" },

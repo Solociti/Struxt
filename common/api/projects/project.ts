@@ -65,7 +65,7 @@ export interface ProjectDetailsApi extends Api {
       | "name"
       | "description"
       | "featureFlags.aiPilot.enabled"
-      | "featureFlags.aiPilot.settings.tokensPerMonth";
+      | "featureFlags.aiPilot.settings.monthlyAllowance";
     value: string | number | boolean | null;
   };
   PostResponse: {

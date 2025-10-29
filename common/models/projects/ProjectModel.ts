@@ -101,7 +101,7 @@ export class ProjectModel extends Model {
     aiPilot: {
       enabled: false,
       settings: {
-        tokensPerMonth: 0,
+        monthlyAllowance: 0,
       },
     },
   };

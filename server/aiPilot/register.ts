@@ -10,11 +10,15 @@ import {
 import { zAiMessageContext } from "common/models/aiPilot/tools/Context";
 import { roles } from "common/models/user/Roles";
 import { randomUUID } from "node:crypto";
-import { getProjectData } from "server/api/projects/getProject";
 import { registerObserver } from "server/ws/observers";
 import z from "zod";
 import { setupAiPilot } from "./agents/agents";
 import { loadChat } from "./chat/loadChat";
+import {
+  getAiPilotFeatureFlags,
+  getTokenWallet,
+  trackProjectTokenUsage,
+} from "./chat/projectTokens";
 import { appendChatMessage, updateChatMessage } from "./chat/saveChat";
 import { errors, messages, model, sessions, users } from "./metrics";
 import { getAiPilotModelAuto, getAiPilotModels } from "./models/getModels";
@@ -41,16 +45,11 @@ registerObserver<AiPilotChatEvents>(
     }
 
     // load the project
-    const project = await getProjectData(projectId);
-    if (!project) {
-      throw customError(404, "Project not found");
-    }
+    const aiPilotFlags = await getAiPilotFeatureFlags(projectId);
 
-    if (!project.featureFlags.aiPilot.enabled) {
+    if (!aiPilotFlags.enabled) {
       throw customError(403, "AI Pilot is not enabled for this project");
     }
-
-    // TODO: check how many tokens are still available for the project
 
     // load the list of available models
     const models = await getAiPilotModels();
@@ -79,6 +78,8 @@ registerObserver<AiPilotChatEvents>(
       chat,
     });
 
+    // TODO: add a way to send to the client when the user runs out of tokens. Notify the user before using emergency tokens.
+
     return {
       onUnregister() {
         // TODO: Implement any cleanup logic if necessary
@@ -94,6 +95,16 @@ registerObserver<AiPilotChatEvents>(
               temperature: z.number().min(0).max(1).optional(),
             })
             .parse(request);
+
+          const wallet = await getTokenWallet(projectId, user);
+          const available = wallet.hasTokensAvailable();
+
+          if (!available.general && !available.emergency) {
+            throw customError(
+              402,
+              "Insufficient tokens available for AI Pilot usage."
+            );
+          }
 
           const currentModel = await getAiPilotModelAuto(llmModel);
           const modelTemperature = temperature || 0.5;
@@ -217,6 +228,19 @@ registerObserver<AiPilotChatEvents>(
                   tokenData,
                   projectId
                 );
+
+                // track the tokens used in the message
+                trackProjectTokenUsage(
+                  projectId,
+                  { chatId, messageId: responseId },
+                  responseMessage.tokens.consumed,
+                  user
+                ).catch((error) => {
+                  console.error(
+                    "Failed to track project token usage:",
+                    error instanceof Error ? error.message : error
+                  );
+                });
               }
             );
 

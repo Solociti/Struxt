@@ -48,3 +48,19 @@ export function formatDate(
     minute: time ? "2-digit" : undefined,
   });
 }
+
+/**
+ * Calculate the number of months difference between two dates
+ *
+ * @param d1
+ * @param d2
+ * @returns
+ */
+export function getMonthDifference(d1: Date, d2: Date): number {
+  let months = 0;
+
+  months += (d2.getUTCFullYear() - d1.getUTCFullYear()) * 12;
+  months += d2.getUTCMonth() - d1.getUTCMonth();
+
+  return months;
+}

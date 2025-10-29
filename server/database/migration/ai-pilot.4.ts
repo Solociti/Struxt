@@ -1,6 +1,6 @@
 import { AiPilotModel } from "common/models/aiPilot/AiPilotModels";
-import { createIndex } from "../mongodb";
 import { saveAiPilotModel } from "server/aiPilot/models/saveModels";
+import { createIndex } from "../mongodb";
 
 export async function up() {
   await createIndex(
@@ -23,6 +23,44 @@ export async function up() {
     {
       name: "uuid",
       unique: true,
+    },
+    false
+  );
+
+  await createIndex(
+    "ai_pilot_token_wallet",
+    {
+      projectId: 1,
+    },
+    {
+      name: "uuid",
+      unique: true,
+    },
+    false
+  );
+
+  await createIndex(
+    "ai_pilot_token_transactions",
+    {
+      uuid: 1,
+    },
+    {
+      name: "uuid",
+      unique: true,
+    },
+    false
+  );
+
+  await createIndex(
+    "ai_pilot_token_transactions",
+    {
+      projectId: 1,
+      createdMonth: -1,
+      monthlyTokens: 1,
+      prepaidTokens: 1,
+    },
+    {
+      name: "calc_fields",
     },
     false
   );

@@ -51,6 +51,8 @@ export type CollectionNames =
   | "ai_pilot_checkpoints"
   | "ai_pilot_models"
   | "ai_pilot_prompts"
+  | "ai_pilot_token_wallet"
+  | "ai_pilot_token_transactions"
   | "form_settings"
   | "form_submissions"
   | "id_counters"

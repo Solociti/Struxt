@@ -77,7 +77,7 @@ export function OpenAiChat({
       return acc;
     }
 
-    return acc + (msg as AiChatMessage).tokens.total;
+    return acc + (msg as AiChatMessage).tokens.consumed;
   }, 0);
 
   return (

@@ -8,9 +8,10 @@ export const ErrorNames = {
   ObserverError: "Observer Error",
   ProjectNotFound: "Project Not Found",
   Unauthorized: "Unauthorized",
+  PaymentRequired: "Payment Required",
 };
 
-export type HTTPStatus = 400 | 401 | 403 | 404 | 500;
+export type HTTPStatus = 400 | 401 | 402 | 403 | 404 | 500;
 type ErrorNames = keyof typeof ErrorNames;
 
 declare global {
@@ -22,6 +23,13 @@ declare global {
 
 /**
  * Create a custom error with the provided status, message, and name.
+ *
+ * `401 Unauthorized`
+ * `402 Payment Required`
+ * `403 Forbidden`
+ * `404 Not Found`
+ *
+ * `500 Internal Server Error`
  *
  * @param status
  * @param message
@@ -45,6 +53,9 @@ export function customError(
         break;
       case 401:
         err.name = ErrorNames.Unauthorized;
+        break;
+      case 402:
+        err.name = ErrorNames.PaymentRequired;
         break;
       case 403:
         err.name = ErrorNames.Forbidden;

@@ -71,14 +71,14 @@ export function ProjectFeatures({
           <Group prepend="Tokens" append="/ month">
             <FormInput
               type="number"
-              value={aiPilot.settings.tokensPerMonth.toString()}
+              value={aiPilot.settings.monthlyAllowance.toString()}
               disabled={!isAdmin || !aiPilot.enabled}
               style={{ maxWidth: "10em" }}
               onRealChange={(value) => {
                 const tokens = parseInt(value) || 0;
 
                 updateValue.callback(
-                  "featureFlags.aiPilot.settings.tokensPerMonth",
+                  "featureFlags.aiPilot.settings.monthlyAllowance",
                   tokens
                 );
               }}

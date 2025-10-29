@@ -154,7 +154,7 @@ registerApi<ProjectDetailsApi>("/api/projects/:projectId/details")
           "name",
           "description",
           "featureFlags.aiPilot.enabled",
-          "featureFlags.aiPilot.settings.tokensPerMonth",
+          "featureFlags.aiPilot.settings.monthlyAllowance",
         ]),
         value: z.union([z.string(), z.number(), z.boolean(), z.null()]),
       })
