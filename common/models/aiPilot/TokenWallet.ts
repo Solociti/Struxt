@@ -10,7 +10,14 @@ export class TokenWallet extends Model {
    */
   public projectId: string = "";
 
+  /**
+   * Monthly allowance of tokens included with the AI Pilot feature.
+   */
   public monthlyAllowance: number = 500;
+
+  /**
+   * Amount that can be borrowed in an emergency beyond the monthly allowance.
+   */
   public emergencyLimit: number = 250;
 
   /**

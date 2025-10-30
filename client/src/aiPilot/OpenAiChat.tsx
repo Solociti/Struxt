@@ -7,10 +7,12 @@ import {
   AiChatMessage,
   UserChatMessage,
 } from "common/models/aiPilot/ChatMessage";
+import { TokenWallet } from "common/models/aiPilot/TokenWallet";
 import { useEffect, useRef, useState } from "react";
 import Alert from "react-bootstrap/Alert";
 import Dropdown from "react-bootstrap/Dropdown";
 import Form from "react-bootstrap/Form";
+import Popover from "react-bootstrap/Popover";
 import Spinner from "react-bootstrap/Spinner";
 import { RenderAiMessage } from "./RenderAiMessage";
 import { useAiChatState } from "./useAiChatState";
@@ -25,18 +27,23 @@ export function OpenAiChat({
   projectId,
   chatId,
   editor,
+  wallet,
+  onWalletUpdate,
 }: {
   projectId: string;
   chatId: string;
   editor: GrapesEditor;
+  wallet: TokenWallet | null;
+  onWalletUpdate: (wallet: TokenWallet) => void;
 }) {
   const container = useRef<HTMLDivElement>(null);
 
-  const { chatError, isLoading, messages, sendMessage, models } =
+  const { chatError, isLoading, messages, sendMessage, models, tokens } =
     useAiChatState({
       projectId,
       chatId,
       editor,
+      onWalletUpdate,
     });
 
   const isFirstLoad = useRef(true);
@@ -72,14 +79,6 @@ export function OpenAiChat({
     });
   }, [messages]);
 
-  const tokens = messages.reduce((acc, msg) => {
-    if (msg.isUserMessage) {
-      return acc;
-    }
-
-    return acc + (msg as AiChatMessage).tokens.consumed;
-  }, 0);
-
   return (
     <div
       className="d-flex flex-column flex-grow-1 overflow-auto"
@@ -87,8 +86,8 @@ export function OpenAiChat({
     >
       <div className="mb-2 px-2 d-flex justify-content-between border-bottom">
         <small className="text-muted">{chatId}</small>
-        <small className={tokens > 50_000 ? "text-warning" : "text-muted"}>
-          {Math.round(tokens)}
+        <small className={tokens.used > 50_000 ? "text-warning" : "text-muted"}>
+          {Math.round(tokens.used)}
         </small>
       </div>
 
@@ -121,6 +120,7 @@ export function OpenAiChat({
         models={models.list}
         currentModel={models.current}
         selectModel={models.select}
+        wallet={wallet}
       />
     </div>
   );
@@ -139,6 +139,7 @@ function MessageInput({
   models,
   currentModel,
   selectModel,
+  wallet,
 }: {
   isNewChat: boolean;
   isLoading: boolean;
@@ -146,6 +147,7 @@ function MessageInput({
   models: AiPilotModel[];
   currentModel: AiPilotModel | null;
   selectModel: (modelId: AiPilotModel) => void;
+  wallet: TokenWallet | null;
 }) {
   const textareaRef = useRef<HTMLTextAreaElement>(null);
 
@@ -170,8 +172,68 @@ function MessageInput({
     }
   }, [inputValue]);
 
+  // keep track of states for emergency / borrowing tokens for prompts
+  const [borrowTokens, setBorrowTokens] = useState(false);
+
+  const [showBorrowWarning, setShowBorrowWarning] = useState(false);
+  const [showEmptyWarning, setShowEmptyWarning] = useState(false);
+
+  useEffect(() => {
+    if (!wallet) {
+      return;
+    }
+
+    const available = wallet.hasTokensAvailable();
+    if (!available.general && available.emergency) {
+      if (!borrowTokens) {
+        setShowBorrowWarning(true);
+      }
+    }
+
+    if (!available.general && !available.emergency) {
+      setShowEmptyWarning(true);
+    } else {
+      setShowEmptyWarning(false);
+    }
+  }, [wallet, borrowTokens]);
+
   return (
     <div className="border rounded m-1">
+      {showBorrowWarning && (
+        <Alert variant="warning" className="mb-0 p-1">
+          <div>You reached your monthly token limit.</div>
+
+          <div className="d-flex justify-content-end">
+            <IconButton
+              icon="check"
+              size="sm"
+              variant="outline-primary"
+              tooltip={
+                <Popover>
+                  <Popover.Header as="h3">Borrow Tokens</Popover.Header>
+                  <Popover.Body>
+                    You can borrow up to half of your next months tokens. These
+                    will be rolled into your next month's usage.
+                  </Popover.Body>
+                </Popover>
+              }
+              onClick={() => {
+                setBorrowTokens(true);
+                setShowBorrowWarning(false);
+              }}
+            >
+              Borrow
+            </IconButton>
+          </div>
+        </Alert>
+      )}
+
+      {showEmptyWarning && (
+        <Alert variant="danger" className="mb-0 p-1">
+          You have no remaining tokens.
+        </Alert>
+      )}
+
       <Form.Control
         as="textarea"
         className="border-0 shadow-none"
@@ -255,6 +317,11 @@ function MessageInput({
           title="Send Message"
           size="sm"
           spinner={isLoading}
+          disabled={
+            inputValue.trim().length === 0 ||
+            showBorrowWarning ||
+            showEmptyWarning
+          }
           onClick={() => {
             sendMessage(inputValue).then(() => {
               setInputValue("");

@@ -9,6 +9,12 @@ import ListGroup from "react-bootstrap/ListGroup";
 import Spinner from "react-bootstrap/Spinner";
 import { createNewChat, loadChatList } from "./aiPilotChats";
 import { OpenAiChat } from "./OpenAiChat";
+import { TokenWallet } from "common/models/aiPilot/TokenWallet";
+import { getTokenWallet } from "./tokens/tokenWallet";
+import MaterialIcon from "client/components/MaterialIcon";
+import Popover from "react-bootstrap/Popover";
+import OverlayTrigger from "react-bootstrap/OverlayTrigger";
+import ProgressBar from "react-bootstrap/ProgressBar";
 
 interface AiChatProps {
   projectId: string;
@@ -48,6 +54,19 @@ export default function AiChat({ projectId, editor }: AiChatProps) {
     }
   );
 
+  const [wallet, setWallet] = useState<TokenWallet | null>(null);
+
+  const { isLoading: walletIsLoading } = useLoadAsync(async () => {
+    if (!projectId) {
+      return null;
+    }
+
+    const w = await getTokenWallet(projectId);
+    setWallet(w);
+
+    return w;
+  }, [projectId]);
+
   return (
     <div className="border-top h-100 d-flex flex-column">
       <div className="d-flex justify-content-between align-items-center p-1">
@@ -63,6 +82,68 @@ export default function AiChat({ projectId, editor }: AiChatProps) {
         />
 
         <h6 className="m-0">AI Chat</h6>
+
+        <OverlayTrigger
+          overlay={
+            <Popover>
+              <Popover.Header as="h3">Token Wallet</Popover.Header>
+              <Popover.Body style={{ minWidth: "15rem" }}>
+                {wallet ? (
+                  <div>
+                    <h6>Monthly</h6>
+                    <ProgressBar
+                      max={wallet.monthlyAllowance}
+                      now={wallet.monthlyUsage}
+                    />
+                    <div className="d-flex justify-content-between gap-2">
+                      <span>
+                        {Math.floor(wallet.monthlyUsage).toLocaleString()}
+                      </span>
+                      <span>
+                        {Math.floor(wallet.monthlyAllowance).toLocaleString()}
+                      </span>
+                    </div>
+
+                    {wallet.monthlyUsage > wallet.monthlyAllowance && (
+                      <>
+                        <h6 className="mt-2">Borrowed</h6>
+                        <ProgressBar
+                          max={wallet.emergencyLimit}
+                          now={wallet.monthlyUsage - wallet.monthlyAllowance}
+                          variant="warning"
+                        />
+                        <div className="d-flex justify-content-between gap-2">
+                          <span>
+                            {Math.floor(
+                              wallet.monthlyUsage - wallet.monthlyAllowance
+                            ).toLocaleString()}
+                          </span>
+                          <span>
+                            {Math.floor(wallet.emergencyLimit).toLocaleString()}
+                          </span>
+                        </div>
+                      </>
+                    )}
+
+                    <hr />
+
+                    <h6>Prepaid</h6>
+                    <p>{wallet.prepaidBalance}</p>
+                  </div>
+                ) : walletIsLoading ? (
+                  <p className="text-center">
+                    <Spinner animation="border" />
+                    <br />
+                    Loading...
+                  </p>
+                ) : null}
+              </Popover.Body>
+            </Popover>
+          }
+          placement="bottom"
+        >
+          <MaterialIcon className="cursor-pointer">info</MaterialIcon>
+        </OverlayTrigger>
       </div>
 
       <ShowError error={error} />
@@ -73,6 +154,8 @@ export default function AiChat({ projectId, editor }: AiChatProps) {
           projectId={projectId}
           chatId={selectedChat}
           editor={editor}
+          wallet={wallet}
+          onWalletUpdate={(w) => setWallet(w)}
         />
       ) : (
         <div>

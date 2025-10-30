@@ -1,6 +1,8 @@
+import { OverlayTrigger } from "react-bootstrap";
 import Button, { ButtonProps } from "react-bootstrap/Button";
-import MaterialIcon, { MaterialIconProps } from "./MaterialIcon";
+import { OverlayChildren } from "react-bootstrap/esm/Overlay";
 import Spinner from "react-bootstrap/Spinner";
+import MaterialIcon, { MaterialIconProps } from "./MaterialIcon";
 
 export interface IconButtonProps extends ButtonProps {
   /**
@@ -9,6 +11,8 @@ export interface IconButtonProps extends ButtonProps {
   icon: string;
 
   iconProps?: MaterialIconProps;
+
+  tooltip?: OverlayChildren;
 
   /**
    * When true, shows a spinner instead of the icon.
@@ -29,11 +33,12 @@ export default function IconButton({
   iconProps,
   size,
   spinner,
+  tooltip,
   ...props
 }: IconButtonProps) {
   const spinnerVariant = props.variant === "light" ? "dark" : "light";
 
-  return (
+  const btn = (
     <Button disabled={spinner || disabled} size={size} {...props}>
       <span
         style={{
@@ -69,4 +74,10 @@ export default function IconButton({
       {children}
     </Button>
   );
+
+  if (tooltip) {
+    return <OverlayTrigger overlay={tooltip}>{btn}</OverlayTrigger>;
+  }
+
+  return btn;
 }

@@ -5,6 +5,7 @@ import {
   AiChatMessage,
   UserChatMessage,
 } from "common/models/aiPilot/ChatMessage";
+import { TokenWallet } from "common/models/aiPilot/TokenWallet";
 import {
   AiMessageContext,
   PageContext,
@@ -26,6 +27,7 @@ export interface AiPilotChatEvents extends ObserverSetup {
           contents: AiChatContents[];
         }
       | { models: AiPilotModel[] }
+      | { wallet: TokenWallet }
   ) => void;
 
   serverRequests: {

@@ -31,6 +31,13 @@ registerObserver<AiPilotChatEvents>(
     // The active editor will have other events registered to receive server requests.
 
     const { user, sendRequest } = event;
+    if (
+      !user.hasPermission([
+        { and: [roles.struxt.editor, roles.struxt.aiPilot] },
+      ])
+    ) {
+      throw customError(403, "You do not have access to AI Pilot features.");
+    }
 
     const { projectId, chatId } = z
       .object({
@@ -78,7 +85,10 @@ registerObserver<AiPilotChatEvents>(
       chat,
     });
 
-    // TODO: add a way to send to the client when the user runs out of tokens. Notify the user before using emergency tokens.
+    const wallet = await getTokenWallet(projectId, user);
+    event.send({
+      wallet,
+    });
 
     return {
       onUnregister() {
@@ -235,12 +245,16 @@ registerObserver<AiPilotChatEvents>(
                   { chatId, messageId: responseId },
                   responseMessage.tokens.consumed,
                   user
-                ).catch((error) => {
-                  console.error(
-                    "Failed to track project token usage:",
-                    error instanceof Error ? error.message : error
-                  );
-                });
+                )
+                  .then((result) => {
+                    event.send({ wallet: result.wallet });
+                  })
+                  .catch((error) => {
+                    console.error(
+                      "Failed to track project token usage:",
+                      error instanceof Error ? error.message : error
+                    );
+                  });
               }
             );
 

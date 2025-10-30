@@ -4,6 +4,7 @@ import {
   AiPilotNewChat,
   AiPilotPrompts as AiPilotPromptsApi,
 } from "common/api/aiPilot/chatApi";
+import { AiPilotTokenWallet } from "common/api/aiPilot/tokens";
 import { customError } from "common/custom-error/custom-error";
 import { AiPilotChat } from "common/models/aiPilot/aiPilotChat";
 import { AiPilotModel } from "common/models/aiPilot/AiPilotModels";
@@ -13,6 +14,7 @@ import { zAiPilotModel } from "common/models/aiPilot/zValidation";
 import { roles } from "common/models/user/Roles";
 import { DeepPartial } from "common/models/utils";
 import { loadChatList } from "server/aiPilot/chat/loadChat";
+import { getTokenWallet } from "server/aiPilot/chat/projectTokens";
 import { saveChat } from "server/aiPilot/chat/saveChat";
 import {
   getAiPilotModel,
@@ -21,9 +23,9 @@ import {
 import { saveAiPilotModel } from "server/aiPilot/models/saveModels";
 import "server/aiPilot/register";
 import { getAllAiPilotPromptOverrides } from "server/aiPilot/tools/prompts/getAiPilotPrompts";
+import { saveAiPilotPrompts } from "server/aiPilot/tools/prompts/saveAiPilotPrompts";
 import z from "zod";
 import { registerApi } from "../registerApi";
-import { saveAiPilotPrompts } from "server/aiPilot/tools/prompts/saveAiPilotPrompts";
 
 registerApi<AiPilotChatList>("/api/aiPilot/chat/list").get(
   [{ and: [roles.struxt.editor, roles.struxt.aiPilot] }],
@@ -208,3 +210,26 @@ registerApi<AiPilotPromptsApi>("/api/aiPilot/prompts")
     const result = await saveAiPilotPrompts(prompt);
     return result;
   });
+
+registerApi<AiPilotTokenWallet>("/api/aiPilot/tokens").get(
+  [{ and: [roles.struxt.editor, roles.struxt.aiPilot] }],
+  async ({ query, user }) => {
+    const { projectId } = z
+      .object({
+        projectId: z.string().min(6, "Project ID is required"),
+      })
+      .parse(query);
+
+    // check if the user has access to the project
+    if (!user.hasProjectPermission(projectId, [roles.projects.edit])) {
+      throw customError(
+        403,
+        "You do not have permission to access this project's token wallet."
+      );
+    }
+
+    const wallet = await getTokenWallet(projectId);
+
+    return { wallet, success: true };
+  }
+);

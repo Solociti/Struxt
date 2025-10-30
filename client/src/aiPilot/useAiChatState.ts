@@ -9,6 +9,7 @@ import {
   ChatMessage,
   UserChatMessage,
 } from "common/models/aiPilot/ChatMessage";
+import { TokenWallet } from "common/models/aiPilot/TokenWallet";
 import { useEffect, useMemo, useState } from "react";
 import { getEditorContext } from "./tools/context";
 import { setupClientTools } from "./tools/setupClientTools";
@@ -34,12 +35,15 @@ interface AiChatStateProps {
   projectId: string;
   chatId: string;
   editor: GrapesEditor;
+
+  onWalletUpdate: (wallet: TokenWallet) => void;
 }
 
 export function useAiChatState({
   projectId,
   chatId,
   editor,
+  onWalletUpdate,
 }: AiChatStateProps) {
   const [isLoading, setIsLoading] = useState(true);
   const [chatError, setChatError] = useState<Error | null>(null);
@@ -50,6 +54,17 @@ export function useAiChatState({
 
   const [modelsList, setModelsList] = useState<AiPilotModel[]>([]);
   const [currentModel, setCurrentModel] = useState<AiPilotModel | null>(null);
+
+  /**
+   * Calculate token usage and availability
+   */
+  const tokensUsed = messages.reduce((acc, msg) => {
+    if (msg.isUserMessage) {
+      return acc;
+    }
+
+    return acc + (msg as AiChatMessage).tokens.consumed;
+  }, 0);
 
   useEffect(() => {
     if (currentModel) {
@@ -99,6 +114,11 @@ export function useAiChatState({
             });
 
           setModelsList(list);
+        }
+
+        if ("wallet" in result && result.wallet) {
+          // token wallet update
+          onWalletUpdate(new TokenWallet(result.wallet));
         }
 
         if ("chatId" in result && result.chatId !== chatId) {
@@ -207,6 +227,9 @@ export function useAiChatState({
     chatError,
     messages,
     sendMessage,
+    tokens: {
+      used: tokensUsed,
+    },
     models: {
       list: modelsList,
       current: currentModel,
