@@ -1,3 +1,6 @@
+import { getTokenWallet } from "client/aiPilot/tokens/tokenWallet";
+import { useLoadAsync } from "client/api/useLoadAsync";
+import { ShowError } from "client/components/ShowError";
 import { useCurrentProject } from "client/projects/ProjectContext";
 import { formatStorageSize } from "common/format/storageSize";
 import { ProjectDetails } from "common/models/projects/ProjectDetails";
@@ -6,6 +9,7 @@ import Card from "react-bootstrap/Card";
 import Col from "react-bootstrap/Col";
 import ProgressBar from "react-bootstrap/ProgressBar";
 import Row from "react-bootstrap/Row";
+import Spinner from "react-bootstrap/Spinner";
 import Table from "react-bootstrap/Table";
 import { useNavigate } from "react-router";
 import { useCurrentUser } from "../auth/userCurrentUser";
@@ -15,6 +19,18 @@ export function ShowProject({ project }: { project: ProjectDetails }) {
   const { user } = useCurrentUser();
   const { setProject } = useCurrentProject();
   const navigate = useNavigate();
+
+  const {
+    isLoading: walletIsLoading,
+    response: wallet,
+    error: walletError,
+  } = useLoadAsync(async () => {
+    if (!project.featureFlags.aiPilot.enabled) {
+      return null;
+    }
+
+    return await getTokenWallet(project.projectId);
+  }, [project.projectId]);
 
   return (
     <Card className="my-4">
@@ -91,6 +107,63 @@ export function ShowProject({ project }: { project: ProjectDetails }) {
             />
           </Col>
         </Row>
+
+        {/* AI Pilot usage details */}
+        {wallet ? (
+          <div className="mb-4">
+            <h3 className="fs-5 fw-semibold mb-2">AI Pilot Tokens</h3>
+
+            <ShowError error={walletError} />
+
+            <div>
+              <div className="d-flex align-items-center mt-3 gap-2">
+                <h6 className="my-0 fw-semibold">Prepaid Available:</h6>
+                <div>{wallet.prepaidBalance.toLocaleString()}</div>
+              </div>
+
+              <div className="d-flex justify-content-between gap-2 mt-3">
+                <span>{Math.floor(wallet.monthlyUsage).toLocaleString()}</span>
+                <h6 className="my-0">Monthly</h6>
+                <span>
+                  {Math.floor(wallet.monthlyAllowance).toLocaleString()}
+                </span>
+              </div>
+              <ProgressBar
+                max={wallet.monthlyAllowance}
+                now={wallet.monthlyUsage}
+              />
+
+              {wallet.monthlyUsage > wallet.monthlyAllowance && (
+                <>
+                  <div className="d-flex justify-content-between gap-2 mt-3">
+                    <span>
+                      {Math.floor(
+                        wallet.monthlyUsage - wallet.monthlyAllowance
+                      ).toLocaleString()}
+                    </span>
+                    <h6 className="my-0">Borrowed</h6>
+                    <span>
+                      {Math.floor(wallet.emergencyLimit).toLocaleString()}
+                    </span>
+                  </div>
+                  <ProgressBar
+                    max={wallet.emergencyLimit}
+                    now={wallet.monthlyUsage - wallet.monthlyAllowance}
+                    variant="warning"
+                  />
+                </>
+              )}
+            </div>
+          </div>
+        ) : null}
+
+        {walletIsLoading ? (
+          <p className="text-center">
+            <Spinner animation="border" />
+            <br />
+            Loading...
+          </p>
+        ) : null}
 
         {/* Total Site Storage Used */}
         <div className="mb-4">

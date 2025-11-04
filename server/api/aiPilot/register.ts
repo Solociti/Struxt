@@ -212,7 +212,7 @@ registerApi<AiPilotPromptsApi>("/api/aiPilot/prompts")
   });
 
 registerApi<AiPilotTokenWallet>("/api/aiPilot/tokens").get(
-  [{ and: [roles.struxt.editor, roles.struxt.aiPilot] }],
+  [{ and: [roles.struxt.editor, roles.struxt.aiPilot] }, roles.struxt.admin],
   async ({ query, user }) => {
     const { projectId } = z
       .object({
@@ -221,7 +221,10 @@ registerApi<AiPilotTokenWallet>("/api/aiPilot/tokens").get(
       .parse(query);
 
     // check if the user has access to the project
-    if (!user.hasProjectPermission(projectId, [roles.projects.edit])) {
+    if (
+      !user.hasPermission(roles.struxt.admin) &&
+      !user.hasProjectPermission(projectId, [roles.projects.edit])
+    ) {
       throw customError(
         403,
         "You do not have permission to access this project's token wallet."
