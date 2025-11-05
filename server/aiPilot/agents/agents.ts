@@ -123,14 +123,12 @@ export async function setupAiPilot(
     },
 
     async streamResponse(message: string, context: AiMessageContext) {
-      let content = message;
-
       const memoryKeysResult = await memoryTools.getMemoryKeys();
       const memoryKeys = JSON.stringify(
         memoryKeysResult.success ? memoryKeysResult.value : []
       );
 
-      content = [
+      const content = [
         `ProjectMemoryKeys: ${memoryKeys}`,
         `EditorContext: ${JSON.stringify(context || {})}`,
         `Message: ${message}`,
