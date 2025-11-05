@@ -15,7 +15,7 @@ export async function saveAiPilotPrompts(
   const collection = await getCollection<PromptOverrides>("ai_pilot_prompts");
 
   if (!prompt.uuid) {
-    throw customError(401, "Prompt UUID is required to save.");
+    throw customError(400, "Prompt UUID is required to save.");
   }
 
   if (prompt.uuid === "new") {
