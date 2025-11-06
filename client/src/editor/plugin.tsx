@@ -177,7 +177,6 @@ export function customLayout(
                         // setup the ai chat react component
                         aiChatRoot = createRoot(div);
 
-                        // TODO: check the project features to see if ai pilot is enabled
                         if (
                           hasPermission({
                             or: [roles.struxt.aiPilot, roles.struxt.admin],

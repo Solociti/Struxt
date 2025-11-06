@@ -374,10 +374,6 @@ export const model = {
       { model_id: modelId, vendor, project_id: projectId },
       tokens.consumed
     );
-
-    // TODO: Add token usage to redis as a cache for quick retrieval.
-    // TODO: Add periodic job to update the redis cache from Prometheus data. (e.g., every 10 minutes)
-    // TODO: or alternatively, have a mongodb collection that logs daily token usage per chat per project.
   },
 
   /**
