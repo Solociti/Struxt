@@ -29,6 +29,7 @@ import "server/utils/geoLocation";
 
 // imports for workers
 import "server/api/projects/queues/projectWorker";
+import { HTTPStatus, StructuredError } from "common/custom-error/custom-error";
 
 // run init scripts and then start the server
 main();
@@ -91,13 +92,14 @@ async function main() {
     (err: Error, req: Request, res: Response, next: NextFunction) => {
       const statusCode = err.status || err.statusCode || 500;
 
+      const error: StructuredError = {
+        name: statusCode >= 500 ? "Server Error" : err.name || "Error",
+        status: statusCode as HTTPStatus,
+        message: err.message || "Something went wrong. Please try again later.",
+      };
+
       res.status(statusCode).json({
-        error: {
-          name: statusCode >= 500 ? "Server Error" : err.name || "Error",
-          status: statusCode,
-          message:
-            err.message || "Something went wrong. Please try again later.",
-        },
+        error,
       });
     }
   );

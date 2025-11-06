@@ -1,4 +1,5 @@
 import { HTTPStatus } from "common/custom-error/custom-error";
+import { AiPilotChatEvents } from "./aiPilot/aiPilotEvents";
 import { NotificationsApi } from "./notifications/notifications";
 
 /**
@@ -12,6 +13,8 @@ export interface ServerToClientEvents {
    * @returns
    */
   notifications: (data: NotificationsApi["GetResponse"]) => void;
+
+  "aiPilot:chat:open": AiPilotChatEvents["open"];
 }
 
 /**

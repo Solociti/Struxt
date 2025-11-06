@@ -2,7 +2,6 @@ import { useLoadAsync } from "client/api/useLoadAsync";
 import { useCurrentProject } from "client/projects/ProjectContext";
 import { getProjectDetails } from "client/projects/projects";
 import { formatStorageSize } from "common/format/storageSize";
-import { useState } from "react";
 import Card from "react-bootstrap/Card";
 import Col from "react-bootstrap/Col";
 import Container from "react-bootstrap/Container";
@@ -13,15 +12,16 @@ import Tab from "react-bootstrap/Tab";
 import Tabs from "react-bootstrap/Tabs";
 import { AddUserRoles } from "./AddUserRoles";
 import { EnvironmentSettings } from "./EnvironmentSettings";
+import { ProjectFeatures } from "./ProjectFeatures";
 
 export default function SettingsContent() {
   const { project } = useCurrentProject();
-  const [reload, setReload] = useState(0);
 
   // load the project
   const {
     response: projectDetails,
     isLoading: loadingProjectDetails,
+    reload: refreshProject,
     // error: projectDetailsError,
   } = useLoadAsync(async () => {
     if (project.projectId === "*") {
@@ -30,7 +30,7 @@ export default function SettingsContent() {
 
     // Load project details
     return await getProjectDetails(project.projectId);
-  }, [project.projectId, reload]);
+  }, [project.projectId]);
 
   if (project.projectId === "*") {
     return (
@@ -101,6 +101,17 @@ export default function SettingsContent() {
           </Card.Body>
         </Card>
 
+        {/* Project Features Panel */}
+        <Card className="my-4">
+          <Card.Header as="h5">Features</Card.Header>
+          <Card.Body>
+            <ProjectFeatures
+              projectDetails={projectDetails}
+              refresh={refreshProject}
+            />
+          </Card.Body>
+        </Card>
+
         {/* add users access control */}
         <Card className="my-4">
           <Card.Header as="h5">Users</Card.Header>
@@ -149,14 +160,14 @@ export default function SettingsContent() {
                 <EnvironmentSettings
                   environment="production"
                   project={projectDetails}
-                  refreshProject={() => setReload((c) => c + 1)}
+                  refreshProject={refreshProject}
                 />
               </Tab>
               <Tab eventKey="staging" title="Staging">
                 <EnvironmentSettings
                   environment="staging"
                   project={projectDetails}
-                  refreshProject={() => setReload((c) => c + 1)}
+                  refreshProject={refreshProject}
                 />
               </Tab>
             </Tabs>

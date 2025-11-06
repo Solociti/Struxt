@@ -20,6 +20,38 @@ export interface ProjectEditorData {
   editorData: EditorData;
 }
 
+export interface ProjectContextItem {
+  /**
+   * The key or identifier for the context item
+   */
+  key: string;
+
+  /**
+   * The value or description for the context item
+   */
+  value: string;
+
+  /**
+   * The type of context item
+   */
+  type: "facts" | "preferences" | "decisions" | "context" | "style";
+
+  /**
+   * Created information for the context item
+   */
+  created: Omit<UserModelAction, "active">;
+
+  /**
+   * Updated information for the context item
+   */
+  updated: Omit<UserModelAction, "active">;
+
+  /**
+   * Deleted information for the context item
+   */
+  deleted: UserModelAction;
+}
+
 export class ProjectModel extends Model {
   /**
    * The project db id
@@ -47,12 +79,31 @@ export class ProjectModel extends Model {
   public description: string = "";
 
   /**
+   * Any additional context about the project.
+   *
+   * This is used to provide additional information to the AI Pilot.
+   */
+  public context: ProjectContextItem[] = [];
+
+  /**
    * The storage settings for the project
    */
   public storage: {
     maxBytes: number;
   } = {
     maxBytes: 0,
+  };
+
+  /**
+   * Feature flags for the project
+   */
+  public featureFlags = {
+    aiPilot: {
+      enabled: false,
+      settings: {
+        monthlyAllowance: 0,
+      },
+    },
   };
 
   /**
@@ -123,5 +174,34 @@ export class ProjectModel extends Model {
   clone(): ProjectModel {
     const data = JSON.parse(JSON.stringify(this));
     return new ProjectModel(data);
+  }
+
+  static createContextItem(
+    data: DeepPartial<ProjectContextItem>
+  ): ProjectContextItem {
+    const date = Math.floor(Date.now() / 1000);
+    const item: ProjectContextItem = {
+      key: "",
+      value: "",
+      type: "context",
+      created: {
+        date,
+        userId: "",
+        displayName: "",
+      },
+      updated: {
+        date,
+        userId: "",
+        displayName: "",
+      },
+      deleted: {
+        active: false,
+        date: 0,
+        userId: "",
+        displayName: "",
+      },
+    };
+
+    return mergeDeep(item, data) as ProjectContextItem;
   }
 }

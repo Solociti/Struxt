@@ -21,6 +21,7 @@ describe("ProjectModel", () => {
         dataSources: [],
         custom: { projectType: "site", id: "" },
       },
+      context: [],
       staging: {
         forceSsl: true,
         hsts: true,
@@ -39,6 +40,14 @@ describe("ProjectModel", () => {
           certificateId: 0,
           hostId: 0,
           redirectId: 0,
+        },
+      },
+      featureFlags: {
+        aiPilot: {
+          enabled: false,
+          settings: {
+            monthlyAllowance: 0,
+          },
         },
       },
       created: { date: 0, userId: "", displayName: "" },
@@ -83,6 +92,7 @@ describe("ProjectModel", () => {
       description: "",
       storage: { maxBytes: 0 },
       editorData: { assets: [{}] },
+      context: [],
       staging: {
         forceSsl: true,
         hsts: true,
@@ -119,6 +129,14 @@ describe("ProjectModel", () => {
           certificateId: 0,
           hostId: 0,
           redirectId: 0,
+        },
+      },
+      featureFlags: {
+        aiPilot: {
+          enabled: false,
+          settings: {
+            monthlyAllowance: 0,
+          },
         },
       },
       created: { date: 1234, userId: "", displayName: "" },

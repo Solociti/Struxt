@@ -94,6 +94,12 @@ function registerHtmlElements(
       content: {},
     },
     {
+      el: "section",
+      traits: [...defaultTraits],
+      config: {},
+      content: {},
+    },
+    {
       el: "div",
       traits: [...defaultTraits],
       config: {},

@@ -194,6 +194,30 @@ async function main() {
     ].join("\n");
   }
 
+  const aiKeys = [
+    "OPENAI_API_KEY",
+    "ANTHROPIC_API_KEY",
+    "GOOGLE_GEN_AI_API_KEY",
+  ];
+  for (const key of aiKeys) {
+    if (!contents.includes(key)) {
+      contents += ["", `# ${key} is used for AI services`, `${key}=`].join(
+        "\n"
+      );
+    }
+  }
+
+  if (!contents.includes("LANGCHAIN_TRACING_V2")) {
+    contents += [
+      "",
+      "# Langchain Tracing settings",
+      "LANGCHAIN_TRACING_V2=false",
+      "LANGCHAIN_API_KEY=",
+      "LANGCHAIN_PROJECT=struxt-ai-pilot",
+      "LANGCHAIN_ENDPOINT=https://api.smith.langchain.com",
+    ].join("\n");
+  }
+
   if (!contents.includes("DOCKER_GROUP_ID")) {
     const result = await new Promise((resolve) => {
       exec("getent group docker", (error, stdout) => {

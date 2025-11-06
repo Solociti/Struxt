@@ -1,3 +1,5 @@
+import { deStructureError } from "common/custom-error/custom-error";
+
 type Params = URLSearchParams | Record<string, string>;
 
 /**
@@ -100,10 +102,10 @@ export async function callApi(
     // check if the server sent an error
     if (data.error) {
       // build a new error object
-      const err = new Error(data.error.message);
-      err.name = data.error.name;
-      err.status = data.error.status;
-      throw err;
+      throw deStructureError(
+        data.error,
+        "An error occurred while processing the request."
+      );
     }
 
     return data;

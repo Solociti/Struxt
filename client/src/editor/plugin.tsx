@@ -1,12 +1,17 @@
 import { LayoutConfig } from "@grapesjs/studio-sdk";
+import AiChat from "client/aiPilot/AiChat";
+import ErrorBoundary from "client/components/ErrorBoundary";
+import MaterialIcon from "client/components/MaterialIcon";
 import { addFonts } from "client/fonts/addFonts";
 import { publishSite } from "client/publish/publishSite";
+import { setupURL } from "common/format/url";
 import { Editor } from "grapesjs";
+import { createRoot } from "react-dom/client";
 import { registerComponents } from "./components/htmlElements";
 import launchIcon from "./components/icons/launch.svg?raw";
 import { registerImageViewer } from "./components/imageViewer";
-import MaterialIcon from "client/components/MaterialIcon";
-import { setupURL } from "common/format/url";
+import { PermType, roles } from "common/models/user/Roles";
+import { ThemeProvider } from "client/bootstrap/Theme";
 
 /**
  * Setup the struxt customizations for the editor.
@@ -37,20 +42,6 @@ export function setupStruxtPlugin(editor: Editor) {
 function addCustomStyles(editor: Editor) {
   // add the bullet styles for lists (ol, ul)
   editor.onReady(() => {
-    // editor.StyleManager.addProperty("gs-typography", {
-    //   label: "List Style",
-    //   property: "list-style",
-    //   type: "select",
-    //   default: "",
-    //   options: [
-    //     { id: "", label: "Default" },
-    //     { id: "none", label: "None" },
-    //     { id: "disc", label: "Disc" },
-    //     { id: "circle", label: "Circle" },
-    //     { id: "square", label: "Square" },
-    //   ],
-    // });
-
     // Create a custom sector for lists
     const sector = editor.StyleManager.addSector("custom-lists", {
       name: "List Styles",
@@ -108,13 +99,122 @@ function addCustomStyles(editor: Editor) {
  * @param projectId
  * @returns
  */
-export function customLayout(projectId: string): LayoutConfig {
+export function customLayout(
+  projectId: string,
+  hasPermission: (permission: PermType) => boolean
+): LayoutConfig {
+  /**
+   * Callback for when the left tab changes.
+   * This is used to clean up the AI chat component when the tab is closed.
+   */
+  const onLeftTabChange: ((tab: string) => void)[] = [];
+  let aiChatRoot: ReturnType<typeof createRoot> | null = null;
+  let aiChatDiv: HTMLDivElement | null = null;
+
   return {
     default: {
       type: "row",
       style: { height: "100%" },
       children: [
-        { type: "sidebarLeft" },
+        {
+          type: "sidebarLeft",
+          style: { maxHeight: "100vh", height: "100%", overflowY: "auto" },
+          children: [
+            {
+              type: "tabs",
+              value: "pages",
+              onChange: ({ value, setState }) => {
+                setState({ value });
+
+                while (onLeftTabChange.length) {
+                  const cb = onLeftTabChange.shift();
+                  cb?.(value);
+                }
+              },
+              tabs: [
+                {
+                  id: "pages",
+                  // it seems that react components work just fine here. The type just doesn't match
+                  label: (
+                    <MaterialIcon title="Pages">article</MaterialIcon>
+                  ) as any,
+                  children: {
+                    type: "panelPagesLayers",
+                    style: {
+                      maxHeight: "calc(100vh - 40px)",
+                      overflowY: "auto",
+                    },
+                  },
+                },
+
+                {
+                  id: "ai-pilot",
+                  // it seems that react components work just fine here. The type just doesn't match
+                  label: (
+                    <MaterialIcon title="AI Chat">star_shine</MaterialIcon>
+                  ) as any,
+                  children: {
+                    type: "custom",
+                    style: { height: "100%" },
+                    render: ({ editor }) => {
+                      if (aiChatDiv) {
+                        return aiChatDiv;
+                      }
+
+                      const div = document.createElement("div");
+                      div.style.maxHeight = "calc(100vh - 40px)";
+                      div.style.height = "100%";
+                      aiChatDiv = div;
+
+                      if (aiChatRoot) {
+                        const prevRoot = aiChatRoot;
+                        setTimeout(() => {
+                          prevRoot?.unmount();
+                        }, 0);
+                      }
+
+                      if (editor) {
+                        // setup the ai chat react component
+                        aiChatRoot = createRoot(div);
+
+                        if (
+                          hasPermission({
+                            or: [roles.struxt.aiPilot, roles.struxt.admin],
+                          })
+                        ) {
+                          aiChatRoot.render(
+                            <ErrorBoundary>
+                              <ThemeProvider>
+                                <AiChat editor={editor} projectId={projectId} />
+                              </ThemeProvider>
+                            </ErrorBoundary>
+                          );
+                        } else {
+                          aiChatRoot.render(
+                            <div className="p-2">
+                              <h5>Upgrade Required</h5>
+                              <p>
+                                Please upgrade your plan to use the AI Chat
+                                feature
+                              </p>
+                            </div>
+                          );
+                        }
+                      }
+
+                      // onLeftTabChange.push(() => {
+                      // aiChatRoot?.unmount();
+                      // aiChatRoot = null;
+                      // });
+
+                      return div;
+                    },
+                  },
+                },
+              ],
+            },
+          ],
+        },
         {
           type: "canvasSidebarTop",
           sidebarTop: {

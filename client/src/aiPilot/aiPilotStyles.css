@@ -1,0 +1,7 @@
+/* reset some grapesjs messes */
+.ai-pilot-md-message ol {
+  list-style: decimal;
+}
+.ai-pilot-md-message ul {
+  list-style: initial;
+}

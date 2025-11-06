@@ -1,5 +1,6 @@
 export type RoleTypes =
   | "struxt.editor"
+  | "struxt.ai-pilot"
   | "struxt.metrics"
   | "struxt.admin"
   | "struxt.publish.staging"
@@ -37,6 +38,13 @@ export namespace roles {
      * Allows access to edit content in the Struxt editor
      */
     export const editor: RoleTypes = "struxt.editor";
+
+    /**
+     * Allows access to the AI Pilot features.
+     *
+     * For editing projects, the user also needs the "projects.edit" role.
+     */
+    export const aiPilot: RoleTypes = "struxt.ai-pilot";
 
     /**
      * Allows access to the metrics page.
