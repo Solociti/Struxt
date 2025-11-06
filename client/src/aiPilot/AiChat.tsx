@@ -54,8 +54,9 @@ export default function AiChat({ projectId, editor }: AiChatProps) {
     }
   );
 
+  // load the token wallet
+  // this state can be updated from a active chat to keep it current
   const [wallet, setWallet] = useState<TokenWallet | null>(null);
-
   const { isLoading: walletIsLoading } = useLoadAsync(async () => {
     if (!projectId) {
       return null;
@@ -66,6 +67,16 @@ export default function AiChat({ projectId, editor }: AiChatProps) {
 
     return w;
   }, [projectId]);
+
+  // check if ai pilot is enabled for the project
+  if (error && (error as any).status === 402) {
+    return (
+      <div className="p-2">
+        <h5>Upgrade Required</h5>
+        <p>Please upgrade your plan to use the AI Chat feature</p>
+      </div>
+    );
+  }
 
   return (
     <div className="border-top h-100 d-flex flex-column">

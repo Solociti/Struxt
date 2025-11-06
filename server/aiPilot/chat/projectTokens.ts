@@ -3,7 +3,6 @@ import { TokenTransactions } from "common/models/aiPilot/TokenTransactions";
 import { TokenWallet } from "common/models/aiPilot/TokenWallet";
 import { ProjectModel } from "common/models/projects/ProjectModel";
 import { UserModel } from "common/models/user/UserModel";
-import { mergeDeep } from "common/models/utils";
 import { checkProjectExists } from "server/api/projects/getProject";
 import { getCollection } from "server/database/mongodb";
 import { createSimpleId } from "server/utils/createId";
@@ -27,12 +26,11 @@ export async function getAiPilotFeatureFlags(projectId: string) {
     }
   );
 
-  const defaultFlag = new ProjectModel().featureFlags.aiPilot;
-
+  const defaultProject = new ProjectModel();
   if (doc) {
-    return mergeDeep(defaultFlag, doc.featureFlags.aiPilot);
+    defaultProject.update(doc);
   }
-  return defaultFlag;
+  return defaultProject.featureFlags.aiPilot;
 }
 
 /**

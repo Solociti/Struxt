@@ -26,7 +26,11 @@ import { getAllAiPilotPromptOverrides } from "server/aiPilot/tools/prompts/getAi
 import { saveAiPilotPrompts } from "server/aiPilot/tools/prompts/saveAiPilotPrompts";
 import z from "zod";
 import { registerApi } from "../registerApi";
+import { aiPilotPermCheck } from "./aiPilotPermCheck";
 
+/**
+ * Get the list of AI Pilot chats for a project
+ */
 registerApi<AiPilotChatList>("/api/aiPilot/chat/list").get(
   [{ and: [roles.struxt.editor, roles.struxt.aiPilot] }],
   async ({ user, query }) => {
@@ -37,12 +41,7 @@ registerApi<AiPilotChatList>("/api/aiPilot/chat/list").get(
       .parse(query);
 
     // check if the user has access to the project
-    if (!user.hasProjectPermission(projectId, [roles.projects.edit])) {
-      throw customError(
-        403,
-        "You do not have permission to modify this project."
-      );
-    }
+    await aiPilotPermCheck(user, projectId);
 
     // get the list of chats for the project
     const list = await loadChatList(projectId, 0, 10);
@@ -66,13 +65,9 @@ registerApi<AiPilotNewChat>("/api/aiPilot/chat/new").post(
       .parse(body);
 
     // check if the user has access to the project
-    if (!user.hasProjectPermission(projectId, [roles.projects.edit])) {
-      throw customError(
-        403,
-        "You do not have permission to modify this project."
-      );
-    }
+    await aiPilotPermCheck(user, projectId);
 
+    // create a new chat session
     const chat = new AiPilotChat({
       projectId,
       uuid: "new",

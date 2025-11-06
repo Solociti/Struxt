@@ -36,7 +36,7 @@ registerObserver<AiPilotChatEvents>(
         { and: [roles.struxt.editor, roles.struxt.aiPilot] },
       ])
     ) {
-      throw customError(403, "You do not have access to AI Pilot features.");
+      throw customError(402, "You do not have access to AI Pilot features.");
     }
 
     const { projectId, chatId } = z
@@ -55,7 +55,7 @@ registerObserver<AiPilotChatEvents>(
     const aiPilotFlags = await getAiPilotFeatureFlags(projectId);
 
     if (!aiPilotFlags.enabled) {
-      throw customError(403, "AI Pilot is not enabled for this project");
+      throw customError(402, "AI Pilot is not enabled for this project");
     }
 
     // load the list of available models
