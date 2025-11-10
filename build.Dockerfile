@@ -4,7 +4,8 @@ WORKDIR /app
 
 # setup the build
 COPY package.json /app
-RUN npm install --ignore-scripts
+COPY scripts /app/scripts
+RUN npm install
 
 # copy the source code
 COPY . /app/
