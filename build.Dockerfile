@@ -4,6 +4,8 @@ WORKDIR /app
 
 # setup the build
 COPY package.json /app
+COPY scripts /app/scripts
+COPY build.Dockerfile /app
 RUN npm install
 
 # copy the source code
