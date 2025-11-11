@@ -211,8 +211,8 @@ export function setupClientTools(
     },
 
     "get-layers": async (request) => {
-      const page = request.page
-        ? editor.Pages.get(request.page)
+      const page = request.pageId
+        ? editor.Pages.get(request.pageId)
         : editor.Pages.getSelected();
 
       // notify the llm if no page is found
