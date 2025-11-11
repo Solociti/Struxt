@@ -109,7 +109,7 @@ export function getClientTools(
 
     "add-component": {
       schema: z.object({
-        page: z
+        pageId: z
           .string()
           .describe(description.getSchema("add-component.pageId")),
         parentId: z
@@ -121,7 +121,7 @@ export function getClientTools(
         position: z.number().int().min(0).optional(),
       }),
       geminiSchema: z.object({
-        page: z
+        pageId: z
           .string()
           .describe(description.getSchema("add-component.pageId")),
         parentId: z
@@ -136,7 +136,7 @@ export function getClientTools(
 
     "add-component-html": {
       schema: z.object({
-        page: z.string(),
+        pageId: z.string(),
         parentId: z.string(),
         html: z.string(),
         position: z.number().int().min(0).optional(),
@@ -169,7 +169,7 @@ export function getClientTools(
 
     "get-layers": {
       schema: z.object({
-        page: z.string().optional(),
+        pageId: z.string().optional(),
       }),
     },
   };

@@ -107,7 +107,7 @@ export interface AiPilotChatEvents extends ObserverSetup {
       }[];
     }>;
 
-    "get-layers": (request: { page?: string }) => RequestReturn<{
+    "get-layers": (request: { pageId?: string }) => RequestReturn<{
       success: boolean;
       layers: any[];
     }>;
