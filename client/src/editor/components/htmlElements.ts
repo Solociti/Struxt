@@ -15,6 +15,7 @@ export function registerComponents(editor: Editor) {
 
   registerListElements(editor, defaultTraits);
   registerHtmlElements(editor, defaultTraits);
+  registerLinkElement(editor);
 
   updateImage(editor, defaultTraits);
 }
@@ -185,4 +186,37 @@ function registerHtmlElements(
       },
     });
   }
+}
+
+/**
+ * Register the link element as a component.
+ *
+ * @param editor
+ */
+function registerLinkElement(editor: Editor) {
+  // am not adding it to the block manager because there is a link block already.
+  // This is just setup as a component for custom code inserting "a" elements.
+  const linkDefaults =
+    editor.DomComponents.getType("link")?.model.getDefaults();
+  const linkTraits = linkDefaults ? linkDefaults.traits : [];
+
+  editor.DomComponents.addType("a", {
+    isComponent: (el: HTMLElement) => {
+      if (typeof el !== "object" || isGrapesJsComponent(el)) {
+        return;
+      }
+
+      if (el.tagName === "A") {
+        return { type: "a" };
+      }
+    },
+    model: {
+      defaults: {
+        tagName: "a",
+        droppable: true,
+        editable: true,
+        traits: ["id", ...linkTraits],
+      },
+    },
+  });
 }
