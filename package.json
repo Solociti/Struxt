@@ -1,7 +1,7 @@
 {
   "name": "struxt",
   "private": true,
-  "version": "0.4.6-pre.7",
+  "version": "1.0.0",
   "type": "module",
   "scripts": {
     "test": "vitest",
