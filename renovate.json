@@ -29,6 +29,10 @@
         "/@types/react-*/"
       ],
       "groupName": "React"
+    },
+    {
+      "matchPackageNames": ["langchain", "@langchain/*"],
+      "groupName": "LangChain"
     }
   ]
 }
