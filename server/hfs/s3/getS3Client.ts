@@ -1,4 +1,5 @@
 import * as Minio from "minio";
+import { Agent } from "node:https";
 
 /**
  * Get the backup client for S3.
@@ -34,12 +35,20 @@ export async function getS3BackupClient() {
 
   const bucket = process.env.BACKUP_S3_BUCKET as string;
 
+  const agent = new Agent({
+    keepAlive: true,
+    maxSockets: 50,
+    maxFreeSockets: 10,
+    timeout: 60000,
+  });
+
   const client = new Minio.Client({
     endPoint: process.env.BACKUP_S3_ENDPOINT as string,
     port: parseInt(process.env.BACKUP_S3_PORT || "443"),
     useSSL: process.env.BACKUP_S3_USE_SSL === "true",
     accessKey: process.env.BACKUP_S3_ACCESS_KEY as string,
     secretKey: process.env.BACKUP_S3_SECRET_KEY as string,
+    transportAgent: agent,
   });
 
   // Check if the bucket exists

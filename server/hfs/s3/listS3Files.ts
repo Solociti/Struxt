@@ -1,5 +1,7 @@
 import { Client } from "minio";
 
+const MAX_IDLE_TIME = 60000;
+
 interface S3File {
   name: string;
   prefix: string;
@@ -22,9 +24,24 @@ export function listS3Files(
 ): Promise<S3File[]> {
   return new Promise((resolve, reject) => {
     const files: S3File[] = [];
-    const stream = client.listObjects(bucket, prefix, true);
+    const stream = client.listObjectsV2(bucket, prefix, true);
+
+    // monitor the stream for activity
+    let lastActivity = Date.now();
+    const activityCheck = setInterval(() => {
+      const idleTime = Date.now() - lastActivity;
+
+      if (idleTime > MAX_IDLE_TIME) {
+        stream.destroy(
+          new Error(`S3 listing stream stalled for too long. (${idleTime}ms)`)
+        );
+        clearInterval(activityCheck);
+      }
+    }, 5000);
 
     stream.on("data", (obj) => {
+      lastActivity = Date.now();
+
       if (!obj.name || obj.name === "") {
         return;
       }
@@ -40,10 +57,12 @@ export function listS3Files(
 
     stream.on("error", (err) => {
       reject(err);
+      clearInterval(activityCheck);
     });
 
     stream.on("end", () => {
       resolve(files);
+      clearInterval(activityCheck);
     });
   });
 }
