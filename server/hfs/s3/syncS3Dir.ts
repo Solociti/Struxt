@@ -126,6 +126,7 @@ export async function upSyncS3Directory(
   // upload the files that are not in the bucket
   const maxProgress = uploadFiles.length + deleteBucketFiles.length;
   let completed = 0;
+  let consecutiveErrors = 0;
 
   for (const { localFilePath, objectName, mTime } of uploadFiles) {
     try {
@@ -133,6 +134,8 @@ export async function upSyncS3Directory(
       await client.fPutObject(bucket, objectName, localFilePath, {
         struxtLastModified: mTime.toISOString(),
       });
+
+      consecutiveErrors = 0;
     } catch (err: unknown) {
       if (
         err instanceof Error &&
@@ -142,19 +145,47 @@ export async function upSyncS3Directory(
           `Skipping file: ${objectName} (${localFilePath}) - file does not exist.`
         );
       } else {
-        throw err;
+        // log the error
+        if (err instanceof Error) {
+          options.log?.(`${err.name}: ${err.message}\n${err.stack}`);
+        } else {
+          options.log?.(JSON.stringify(err));
+        }
+
+        consecutiveErrors++;
+        if (consecutiveErrors > 5) {
+          throw err;
+        }
       }
     }
 
     completed++;
     options.progress?.(completed, maxProgress);
   }
+  consecutiveErrors = 0;
 
   if (options.deleteRemote) {
     // delete the files that are in the bucket but not in the local directory
     for (const { objectName } of deleteBucketFiles) {
       options.log?.(`Deleting file from bucket: ${objectName}`);
-      await client.removeObject(bucket, objectName);
+
+      try {
+        await client.removeObject(bucket, objectName);
+
+        consecutiveErrors = 0;
+      } catch (err: unknown) {
+        if (err instanceof Error) {
+          // log the error
+          options.log?.(`${err.name}: ${err.message}\n${err.stack}`);
+        } else {
+          options.log?.(JSON.stringify(err));
+        }
+
+        consecutiveErrors++;
+        if (consecutiveErrors > 5) {
+          throw err;
+        }
+      }
 
       completed++;
       options.progress?.(completed, maxProgress);
