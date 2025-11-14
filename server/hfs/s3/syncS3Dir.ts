@@ -127,6 +127,7 @@ export async function upSyncS3Directory(
   const maxProgress = uploadFiles.length + deleteBucketFiles.length;
   let completed = 0;
   let consecutiveErrors = 0;
+  let lastPushError: unknown | null = null;
 
   for (const { localFilePath, objectName, mTime } of uploadFiles) {
     try {
@@ -153,6 +154,7 @@ export async function upSyncS3Directory(
         }
 
         consecutiveErrors++;
+        lastPushError = err;
         if (consecutiveErrors > 5) {
           throw err;
         }
@@ -163,6 +165,8 @@ export async function upSyncS3Directory(
     options.progress?.(completed, maxProgress);
   }
   consecutiveErrors = 0;
+
+  let lastDeleteError: unknown | null = null;
 
   if (options.deleteRemote) {
     // delete the files that are in the bucket but not in the local directory
@@ -182,6 +186,7 @@ export async function upSyncS3Directory(
         }
 
         consecutiveErrors++;
+        lastDeleteError = err;
         if (consecutiveErrors > 5) {
           throw err;
         }
@@ -197,5 +202,7 @@ export async function upSyncS3Directory(
     localFiles,
     uploadFiles,
     deleteBucketFiles,
+    lastPushError,
+    lastDeleteError,
   };
 }
