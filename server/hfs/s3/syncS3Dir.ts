@@ -142,6 +142,8 @@ export async function upSyncS3Directory(
 
       const fStream = createReadStream(localFilePath);
 
+      options.log?.(`Size: ${fStat.size}`);
+
       await client.putObject(bucket, objectName, fStream, fStat.size, {
         struxtLastModified: mTime.toISOString(),
       });
