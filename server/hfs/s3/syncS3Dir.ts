@@ -2,6 +2,7 @@ import { Client } from "minio";
 import { readdir, stat } from "node:fs/promises";
 import { join, relative } from "node:path";
 import { listS3Files } from "./listS3Files";
+import { createReadStream } from "node:fs";
 
 /**
  * Sync a local directory to an S3 bucket.
@@ -34,7 +35,7 @@ export async function upSyncS3Directory(
   // list the files already in the bucket
   const bucketFiles = await listS3Files(client, bucket, prefix);
   options.log?.(
-    `Files in bucket "${bucket}" with prefix "${prefix}": ${bucketFiles.length}`
+    `Bucket Count "${bucket}" with prefix "${prefix}": ${bucketFiles.length}`
   );
 
   // get the list of files in the local directory
@@ -55,7 +56,7 @@ export async function upSyncS3Directory(
         relativePath,
       };
     });
-  options.log?.(`Files in local directory "${localDir}": ${localFiles.length}`);
+  options.log?.(`Local Count "${localDir}": ${localFiles.length}`);
 
   // check which files need to be uploaded
   const uploadFiles: {
@@ -98,7 +99,7 @@ export async function upSyncS3Directory(
       });
     }
   }
-  options.log?.(`Files to upload: ${uploadFiles.length}`);
+  options.log?.(`Upload Count: ${uploadFiles.length}`);
 
   // check which files need to be downloaded
   const deleteBucketFiles: {
@@ -120,7 +121,7 @@ export async function upSyncS3Directory(
         });
       }
     }
-    options.log?.(`Files to delete from bucket: ${deleteBucketFiles.length}`);
+    options.log?.(`Delete Count: ${deleteBucketFiles.length}`);
   }
 
   // upload the files that are not in the bucket
@@ -131,8 +132,17 @@ export async function upSyncS3Directory(
 
   for (const { localFilePath, objectName, mTime } of uploadFiles) {
     try {
-      options.log?.(`Uploading file: ${objectName} (${localFilePath})`);
-      await client.fPutObject(bucket, objectName, localFilePath, {
+      options.log?.(`Uploading: ${objectName} (${localFilePath})`);
+
+      // open a file stream to upload the file
+      const fStat = await stat(localFilePath);
+      if (fStat.size === 0) {
+        throw new Error(`File ${localFilePath} is empty.`);
+      }
+
+      const fStream = createReadStream(localFilePath);
+
+      await client.putObject(bucket, objectName, fStream, fStat.size, {
         struxtLastModified: mTime.toISOString(),
       });
 
@@ -143,7 +153,7 @@ export async function upSyncS3Directory(
         err.message.includes("no such file or directory")
       ) {
         options.log?.(
-          `Skipping file: ${objectName} (${localFilePath}) - file does not exist.`
+          `Skipping: ${objectName} (${localFilePath}) - file does not exist.`
         );
       } else {
         // log the error
@@ -171,7 +181,7 @@ export async function upSyncS3Directory(
   if (options.deleteRemote) {
     // delete the files that are in the bucket but not in the local directory
     for (const { objectName } of deleteBucketFiles) {
-      options.log?.(`Deleting file from bucket: ${objectName}`);
+      options.log?.(`Deleting Remote: ${objectName}`);
 
       try {
         await client.removeObject(bucket, objectName);
