@@ -1,7 +1,7 @@
 {
   "name": "struxt",
   "private": true,
-  "version": "1.0.1",
+  "version": "1.0.1-pre.4",
   "type": "module",
   "scripts": {
     "test": "vitest",
@@ -88,7 +88,7 @@
     "is-valid-domain": "^0.1.6",
     "keycloak-connect": "^26.1.1",
     "langchain": "^0.3.30",
-    "minio": "^8.0.5",
+    "minio": "^8.0.6",
     "mongodb": "^6.15.0",
     "multer": "^2.0.2",
     "mysql2": "^3.13.0",

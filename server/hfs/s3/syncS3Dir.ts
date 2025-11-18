@@ -34,7 +34,7 @@ export async function upSyncS3Directory(
   // list the files already in the bucket
   const bucketFiles = await listS3Files(client, bucket, prefix);
   options.log?.(
-    `Files in bucket "${bucket}" with prefix "${prefix}": ${bucketFiles.length}`
+    `Bucket Count "${bucket}" with prefix "${prefix}": ${bucketFiles.length}`
   );
 
   // get the list of files in the local directory
@@ -55,7 +55,7 @@ export async function upSyncS3Directory(
         relativePath,
       };
     });
-  options.log?.(`Files in local directory "${localDir}": ${localFiles.length}`);
+  options.log?.(`Local Count "${localDir}": ${localFiles.length}`);
 
   // check which files need to be uploaded
   const uploadFiles: {
@@ -98,7 +98,7 @@ export async function upSyncS3Directory(
       });
     }
   }
-  options.log?.(`Files to upload: ${uploadFiles.length}`);
+  options.log?.(`Upload Count: ${uploadFiles.length}`);
 
   // check which files need to be downloaded
   const deleteBucketFiles: {
@@ -120,45 +120,95 @@ export async function upSyncS3Directory(
         });
       }
     }
-    options.log?.(`Files to delete from bucket: ${deleteBucketFiles.length}`);
+    options.log?.(`Delete Count: ${deleteBucketFiles.length}`);
   }
 
   // upload the files that are not in the bucket
   const maxProgress = uploadFiles.length + deleteBucketFiles.length;
   let completed = 0;
+  let consecutiveErrors = 0;
+  let lastPushError: unknown | null = null;
+
+  // setting the part size to something small to use less memory.
+  // with default settings, a 1GB file took over 600MB of memory.
+  const currentPartSize = client.partSize;
+  client.partSize = 24 * 1024 * 1024;
 
   for (const { localFilePath, objectName, mTime } of uploadFiles) {
     try {
-      options.log?.(`Uploading file: ${objectName} (${localFilePath})`);
+      options.log?.(`Uploading: ${objectName} (${localFilePath})`);
+
       await client.fPutObject(bucket, objectName, localFilePath, {
         struxtLastModified: mTime.toISOString(),
       });
+
+      consecutiveErrors = 0;
     } catch (err: unknown) {
       if (
         err instanceof Error &&
         err.message.includes("no such file or directory")
       ) {
         options.log?.(
-          `Skipping file: ${objectName} (${localFilePath}) - file does not exist.`
+          `Skipping: ${objectName} (${localFilePath}) - file does not exist.`
         );
       } else {
-        throw err;
+        // log the error
+        if (err instanceof Error) {
+          options.log?.(`${err.name}: ${err.message}\n${err.stack}`);
+        } else {
+          options.log?.(JSON.stringify(err));
+        }
+
+        consecutiveErrors++;
+        lastPushError = err;
+        if (consecutiveErrors > 5) {
+          throw err;
+        }
       }
     }
 
     completed++;
     options.progress?.(completed, maxProgress);
   }
+  client.partSize = currentPartSize;
+  consecutiveErrors = 0;
+
+  let lastDeleteError: unknown | null = null;
 
   if (options.deleteRemote) {
     // delete the files that are in the bucket but not in the local directory
     for (const { objectName } of deleteBucketFiles) {
-      options.log?.(`Deleting file from bucket: ${objectName}`);
-      await client.removeObject(bucket, objectName);
+      options.log?.(`Deleting Remote: ${objectName}`);
+
+      try {
+        await client.removeObject(bucket, objectName);
+
+        consecutiveErrors = 0;
+      } catch (err: unknown) {
+        if (err instanceof Error) {
+          // log the error
+          options.log?.(`${err.name}: ${err.message}\n${err.stack}`);
+        } else {
+          options.log?.(JSON.stringify(err));
+        }
+
+        consecutiveErrors++;
+        lastDeleteError = err;
+        if (consecutiveErrors > 5) {
+          throw err;
+        }
+      }
 
       completed++;
       options.progress?.(completed, maxProgress);
     }
+  }
+
+  if (lastPushError) {
+    throw lastPushError;
+  }
+  if (lastDeleteError) {
+    throw lastDeleteError;
   }
 
   return {
