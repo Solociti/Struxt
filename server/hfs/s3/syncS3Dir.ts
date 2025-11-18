@@ -2,7 +2,6 @@ import { Client } from "minio";
 import { readdir, stat } from "node:fs/promises";
 import { join, relative } from "node:path";
 import { listS3Files } from "./listS3Files";
-import { createReadStream } from "node:fs";
 
 /**
  * Sync a local directory to an S3 bucket.
