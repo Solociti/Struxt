@@ -130,21 +130,16 @@ export async function upSyncS3Directory(
   let consecutiveErrors = 0;
   let lastPushError: unknown | null = null;
 
+  // setting the part size to something small to use less memory.
+  // with default settings, a 1GB file took over 600MB of memory.
+  const currentPartSize = client.partSize;
+  client.partSize = 24 * 1024 * 1024;
+
   for (const { localFilePath, objectName, mTime } of uploadFiles) {
     try {
       options.log?.(`Uploading: ${objectName} (${localFilePath})`);
 
-      // open a file stream to upload the file
-      const fStat = await stat(localFilePath);
-      if (fStat.size === 0) {
-        throw new Error(`File ${localFilePath} is empty.`);
-      }
-
-      const fStream = createReadStream(localFilePath);
-
-      options.log?.(`Size: ${fStat.size}`);
-
-      await client.putObject(bucket, objectName, fStream, fStat.size, {
+      await client.fPutObject(bucket, objectName, localFilePath, {
         struxtLastModified: mTime.toISOString(),
       });
 
@@ -176,6 +171,7 @@ export async function upSyncS3Directory(
     completed++;
     options.progress?.(completed, maxProgress);
   }
+  client.partSize = currentPartSize;
   consecutiveErrors = 0;
 
   let lastDeleteError: unknown | null = null;
@@ -209,12 +205,17 @@ export async function upSyncS3Directory(
     }
   }
 
+  if (lastPushError) {
+    throw lastPushError;
+  }
+  if (lastDeleteError) {
+    throw lastDeleteError;
+  }
+
   return {
     bucketFiles,
     localFiles,
     uploadFiles,
     deleteBucketFiles,
-    lastPushError,
-    lastDeleteError,
   };
 }
