@@ -7,8 +7,12 @@ import { getPublishDir } from "server/utils/uploadDir";
  * Clean up the old publish files for a project
  *
  * @param projectId
+ * @param log
  */
-export async function cleanPublish(projectId: string) {
+export async function cleanPublish(
+  projectId: string,
+  log: (msg: string) => void
+) {
   // get the list of publishes that haven't been cleared yet
   const unclearedPublishes = await getUnclearedPublishes(projectId);
 
@@ -16,25 +20,37 @@ export async function cleanPublish(projectId: string) {
 
   // delete the publish files
   for (const publish of unclearedPublishes) {
-    const publishDir = getPublishDir(projectId, publish.siteEnv, publish.uuid);
-    await cleanDir(publishDir);
+    try {
+      const publishDir = getPublishDir(
+        projectId,
+        publish.siteEnv,
+        publish.uuid
+      );
+      await cleanDir(publishDir);
 
-    await collection.updateOne(
-      {
-        uuid: publish.uuid,
-      },
-      {
-        $set: {
-          cleared: {
-            active: true,
-            date: Math.floor(Date.now() / 1000),
+      await collection.updateOne(
+        {
+          uuid: publish.uuid,
+        },
+        {
+          $set: {
+            cleared: {
+              active: true,
+              date: Math.floor(Date.now() / 1000),
+            },
           },
         },
-      },
-      {
-        upsert: false,
+        {
+          upsert: false,
+        }
+      );
+    } catch (err) {
+      if (err instanceof Error) {
+        log(`${err.name}: ${err.message}`);
+      } else {
+        log(JSON.stringify(err));
       }
-    );
+    }
   }
 }
 
@@ -47,13 +63,15 @@ export async function cleanPublish(projectId: string) {
 async function getUnclearedPublishes(projectId: string) {
   const collection = await getCollection<PublishModel>("projects_published");
 
-  const cursor = await collection.find({
-    projectId,
-    "cleared.active": {
-      $ne: true,
-    },
-    isActive: false,
-  });
+  const cursor = await collection
+    .find({
+      projectId,
+      "cleared.active": {
+        $ne: true,
+      },
+      isActive: false,
+    })
+    .limit(10);
 
   const docs = await toArray(cursor);
 
