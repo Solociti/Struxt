@@ -3,6 +3,14 @@ import { DeepPartial, mergeDeep } from "../utils";
 import { EditorData } from "./editorDataTypes";
 import { EnvironmentTypes } from "./Environment";
 
+export interface EditorSnapshotListItem {
+  projectId: string;
+  snapshotTime: number;
+  eventType: EditorSnapshotModel["eventType"];
+  created: Omit<UserModelAction, "active">;
+  locked: UserModelAction;
+}
+
 export class EditorSnapshotModel extends Model {
   /**
    * The project id

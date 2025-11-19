@@ -70,7 +70,7 @@ export async function purgeEditorSnapshots(
   const monthlySnapshots = await getMonthlySnapshots(
     projectId,
     eventType,
-    purgeRule.monthlyRetentionMonths
+    purgeRule.monthlyRetentionMonths * 31
   );
   protectedDates.push(...monthlySnapshots);
   await log(`Monthly: ${monthlySnapshots.length}`);
@@ -119,7 +119,7 @@ async function getMostRecentSnapshots(
       },
       {
         sort: {
-          "created.date": -1,
+          snapshotTime: -1,
         },
         projection: {
           snapshotTime: 1,
@@ -154,7 +154,7 @@ async function getDailySnapshots(
       $match: {
         projectId,
         eventType,
-        "created.date": {
+        snapshotTime: {
           $gte: daysAgo(days),
         },
       },
@@ -163,9 +163,9 @@ async function getDailySnapshots(
       $group: {
         _id: {
           day: {
-            $dayOfYear: { $toDate: { $multiply: ["$created.date", 1000] } },
+            $dayOfYear: { $toDate: { $multiply: ["$snapshotTime", 1000] } },
           },
-          year: { $year: { $toDate: { $multiply: ["$created.date", 1000] } } },
+          year: { $year: { $toDate: { $multiply: ["$snapshotTime", 1000] } } },
         },
         snapshotTime: { $min: "$snapshotTime" },
       },
@@ -179,8 +179,12 @@ async function getDailySnapshots(
 async function getMonthlySnapshots(
   projectId: string,
   eventType: EditorSnapshotModel["eventType"],
-  months: number
+  days: number
 ) {
+  if (days === 0) {
+    return [];
+  }
+
   const collection = await getCollection<EditorSnapshotModel>(
     "editor_snapshots"
   );
@@ -190,8 +194,8 @@ async function getMonthlySnapshots(
       $match: {
         projectId,
         eventType,
-        "created.date": {
-          $gte: daysAgo(months * 31),
+        snapshotTime: {
+          $gte: daysAgo(days),
         },
       },
     },
@@ -199,10 +203,10 @@ async function getMonthlySnapshots(
       $group: {
         _id: {
           month: {
-            $month: { $toDate: { $multiply: ["$created.date", 1000] } },
+            $month: { $toDate: { $multiply: ["$snapshotTime", 1000] } },
           },
           year: {
-            $year: { $toDate: { $multiply: ["$created.date", 1000] } },
+            $year: { $toDate: { $multiply: ["$snapshotTime", 1000] } },
           },
         },
         snapshotTime: { $min: "$snapshotTime" },

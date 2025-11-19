@@ -8,8 +8,6 @@ setupWorker(
   snapshotQueues.prefix,
   snapshotQueues.name,
   async (job: Job) => {
-    console.log("Editor snapshot worker", job);
-
     switch (job.name) {
       case "schedule-purge":
         const projectIds = await getProjectIds();

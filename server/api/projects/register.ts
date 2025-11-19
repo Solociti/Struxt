@@ -12,6 +12,7 @@ import { customError } from "common/custom-error/custom-error";
 import { EditorData } from "common/models/projects/editorDataTypes";
 import { roles } from "common/models/user/Roles";
 import "server/api/domains/register";
+import "server/api/projects/snapshots/register";
 import { registerApi } from "server/api/registerApi";
 import { validateUserId } from "server/auth/user/getUser";
 import { validateEmailAddress } from "server/utils/validateEmailAddress";

@@ -13,7 +13,8 @@ export async function saveEditorSnapshot(
   projectId: string,
   eventType: EditorSnapshotModel["eventType"],
   editorData: EditorData,
-  user: { userId: string; displayName: string }
+  user: { userId: string; displayName: string },
+  snapshotTime?: number
 ) {
   if (!validEventTypes.includes(eventType)) {
     throw new Error(`Invalid event type: ${eventType}`);
@@ -23,7 +24,11 @@ export async function saveEditorSnapshot(
   }
 
   // get the snapshot time to use
-  const snapshotTime = getCompactDate(Date.now() / 1000);
+  if (typeof snapshotTime === "number" && snapshotTime > 0) {
+    snapshotTime = getCompactDate(snapshotTime);
+  } else {
+    snapshotTime = getCompactDate(Date.now() / 1000);
+  }
 
   // setup the new snapshot data
   const snapshot = new EditorSnapshotModel({
