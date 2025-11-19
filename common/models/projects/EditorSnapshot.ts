@@ -16,7 +16,7 @@ export class EditorSnapshotModel extends Model {
   /**
    * The project id
    *
-   * Use projectId + snapshotTime + publishType to create a unique key
+   * Use projectId + snapshotTime + eventType to create a unique key
    */
   public projectId: string = "";
 

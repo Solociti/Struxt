@@ -11,7 +11,7 @@ export const validEventTypes: EditorSnapshotModel["eventType"][] = [
   "production",
   "save",
   "restore",
-];
+] as const;
 
 interface PurgeRule {
   keepRecentCount: number;

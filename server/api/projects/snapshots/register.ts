@@ -25,7 +25,7 @@ registerApi<EditorSnapshotListApi>("/api/projects/:projectId/snapshots")
     ) {
       throw customError(
         403,
-        "You do not have permission to view this project snapshots."
+        "You do not have permission to view this project's snapshots."
       );
     }
 
@@ -45,16 +45,16 @@ registerApi<EditorSnapshotListApi>("/api/projects/:projectId/snapshots")
     ) {
       throw customError(
         403,
-        "You do not have permission to view this project snapshots."
+        "You do not have permission to edit snapshots for this project."
       );
     }
 
     const option1 = z.object({
-      key: z.string("locked.active"),
+      key: z.literal("locked.active"),
       value: z.boolean(),
     });
     const option2 = z.object({
-      key: z.string("userNote"),
+      key: z.literal("userNote"),
       value: z.string(),
     });
 
@@ -91,7 +91,7 @@ registerApi<EditorSnapshotRestoreApi>(
   ) {
     throw customError(
       403,
-      "You do not have permission to view this project snapshots."
+      "You do not have permission to restore snapshots for this project."
     );
   }
 
