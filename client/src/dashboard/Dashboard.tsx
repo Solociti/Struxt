@@ -20,6 +20,9 @@ const MetricsPage = lazy(() => import("client/dashboard/metrics/MetricsPage"));
 const AdminSettingsPage = lazy(
   () => import("client/dashboard/admin/AdminSettingsPage")
 );
+const SnapshotsContent = lazy(
+  () => import("client/dashboard/snapshots/EditorSnapshotsContent")
+);
 
 export default function DashboardApp() {
   useEffect(() => {
@@ -54,6 +57,7 @@ export default function DashboardApp() {
                 <Route path="/" element={<DashboardContent />} />
                 <Route path="/settings" element={<SettingsContent />} />
                 <Route path="/metrics" element={<MetricsPage />} />
+                <Route path="/snapshots" element={<SnapshotsContent />} />
                 <Route path="/admin" element={<AdminSettingsPage />} />
               </Routes>
             </Suspense>

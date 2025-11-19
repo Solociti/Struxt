@@ -1,5 +1,6 @@
 import "dotenv/config";
 
+import { HTTPStatus, StructuredError } from "common/custom-error/custom-error";
 import { roles } from "common/models/user/Roles";
 import express, { NextFunction, Request, Response } from "express";
 import { createServer } from "node:http";
@@ -29,7 +30,7 @@ import "server/utils/geoLocation";
 
 // imports for workers
 import "server/api/projects/queues/projectWorker";
-import { HTTPStatus, StructuredError } from "common/custom-error/custom-error";
+import "server/api/projects/snapshots/worker";
 
 // run init scripts and then start the server
 main();
