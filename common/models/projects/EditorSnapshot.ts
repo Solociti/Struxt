@@ -32,7 +32,7 @@ export class EditorSnapshotModel extends Model {
    *
    * If it's a save, set to "save"
    */
-  public eventType: EnvironmentTypes | "save" = "save";
+  public eventType: EnvironmentTypes | "save" | "restore" = "save";
 
   public created: Omit<UserModelAction, "active"> = {
     date: Math.floor(Date.now() / 1000),
@@ -90,5 +90,22 @@ export class EditorSnapshotModel extends Model {
   clone(): EditorSnapshotModel {
     const data = JSON.parse(JSON.stringify(this));
     return new EditorSnapshotModel(data);
+  }
+
+  /**
+   * Returns a copy of the snapshot as a list item
+   *
+   * @returns
+   */
+  getItem(): EditorSnapshotListItem {
+    const item = this.clone();
+
+    return {
+      projectId: item.projectId,
+      snapshotTime: item.snapshotTime,
+      eventType: item.eventType,
+      created: item.created,
+      locked: item.locked,
+    };
   }
 }

@@ -79,6 +79,11 @@ export async function purgeEditorSnapshots(
   protectedDates = [...new Set(protectedDates)];
   await log(`Unique: ${protectedDates.length}`);
 
+  if (protectedDates.length === 0) {
+    // if there are no protected dates, don't delete anything
+    return null;
+  }
+
   // purge the snapshots
   const deleteResult = await collection.deleteMany({
     projectId,

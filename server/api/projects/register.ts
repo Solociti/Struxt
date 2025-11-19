@@ -31,7 +31,7 @@ import {
   updateProjectRoles,
 } from "./roles/projectRoles";
 import { saveProjectEditorData } from "./saveProject";
-import { saveEditorSnapshot } from "./snapshots/saveEditorSnapshot";
+import { createEditorSnapshot } from "./snapshots/saveEditorSnapshot";
 import { updateProjectDetails } from "./updateProjectDetails";
 
 registerApi<ProjectListApi>("/api/projects").get([], async ({ user }) => {
@@ -117,10 +117,15 @@ registerApi<ProjectEditorApi>("/api/projects/:projectId/editor", {
     const response = await saveProjectEditorData(projectId, body.editorData);
 
     // save the project editor snapshot
-    await saveEditorSnapshot(projectId, "save", body.editorData as EditorData, {
-      userId: user.id,
-      displayName: user.name,
-    });
+    await createEditorSnapshot(
+      projectId,
+      "save",
+      body.editorData as EditorData,
+      {
+        userId: user.id,
+        displayName: user.name,
+      }
+    );
 
     return response;
   });

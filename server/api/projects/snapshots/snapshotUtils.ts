@@ -6,7 +6,12 @@ import { EditorSnapshotModel } from "common/models/projects/EditorSnapshot";
  */
 export const saveCompactMinutes = 15;
 
-export const validEventTypes = ["staging", "production", "save"];
+export const validEventTypes: EditorSnapshotModel["eventType"][] = [
+  "staging",
+  "production",
+  "save",
+  "restore",
+];
 
 interface PurgeRule {
   keepRecentCount: number;
@@ -30,6 +35,11 @@ export const purgeRules: Record<EditorSnapshotModel["eventType"], PurgeRule> = {
     dailyRetentionDays: 15,
     monthlyRetentionMonths: 0,
   },
+  restore: {
+    keepRecentCount: 3,
+    dailyRetentionDays: 10,
+    monthlyRetentionMonths: 0,
+  },
 };
 
 /**
@@ -38,10 +48,18 @@ export const purgeRules: Record<EditorSnapshotModel["eventType"], PurgeRule> = {
  * @param time
  * @returns
  */
-export function getCompactDate(time: number) {
+export function getCompactDate(
+  time: number,
+  eventType?: EditorSnapshotModel["eventType"]
+) {
+  let compactMinutes = saveCompactMinutes;
+  if (eventType === "restore") {
+    compactMinutes = 1;
+  }
+
   const date = epochToDate(time);
   date.setUTCMinutes(
-    Math.floor(date.getUTCMinutes() / saveCompactMinutes) * saveCompactMinutes
+    Math.floor(date.getUTCMinutes() / compactMinutes) * compactMinutes
   );
   date.setUTCSeconds(0, 0);
   return dateToEpoch(date);

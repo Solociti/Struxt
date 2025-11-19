@@ -1,13 +1,16 @@
 import { useLoadAsync } from "client/api/useLoadAsync";
 import IconButton from "client/components/IconButton";
 import MaterialIcon from "client/components/MaterialIcon";
+import { useAsyncCallback } from "client/components/useAsyncCallback";
 import { useCurrentProject } from "client/projects/ProjectContext";
 import { formatDate } from "common/format/date";
 import { EditorSnapshotListItem } from "common/models/projects/EditorSnapshot";
 import Card from "react-bootstrap/Card";
 import Container from "react-bootstrap/Container";
 import Popover from "react-bootstrap/Popover";
+import { editEditorSnapshot } from "./editEditorSnapshot";
 import { getEditorSnapshots } from "./getEditorSnapshots";
+import { restoreEditorSnapshot } from "./restoreEditorSnapshot";
 
 function getSnapshotTitle(snapshot: EditorSnapshotListItem) {
   switch (snapshot.eventType) {
@@ -40,6 +43,36 @@ export default function SettingsContent() {
     return await getEditorSnapshots(project.projectId);
   }, [project.projectId]);
 
+  const restoreCallback = useAsyncCallback(
+    async (item: EditorSnapshotListItem) => {
+      const result = await restoreEditorSnapshot(
+        item.projectId,
+        item.snapshotTime,
+        item.eventType
+      );
+      if (result.success) {
+        refreshList();
+      }
+    }
+  );
+
+  const lockCallback = useAsyncCallback(
+    async (item: EditorSnapshotListItem) => {
+      const result = await editEditorSnapshot(
+        item.projectId,
+        item.snapshotTime,
+        item.eventType,
+        {
+          key: "locked.active",
+          value: !item.locked.active,
+        }
+      );
+      if (result.success) {
+        refreshList();
+      }
+    }
+  );
+
   if (project.projectId === "*") {
     return (
       <Container className="py-4">
@@ -61,7 +94,17 @@ export default function SettingsContent() {
   if (snapshotList) {
     return (
       <Container>
-        <h1 className="fw-bold mb-4">Snapshots</h1>
+        <div className="mb-4 d-flex align-items-center justify-content-between">
+          <h1 className="fw-bold mb-0">Snapshots</h1>
+          <IconButton
+            variant="secondary"
+            icon="refresh"
+            onClick={refreshList}
+            spinner={loadingList}
+          >
+            Refresh
+          </IconButton>
+        </div>
 
         <div className="d-flex flex-wrap">
           {snapshotList.map((snapshot, index) => (
@@ -84,16 +127,18 @@ export default function SettingsContent() {
                 <div className="mb-2">
                   {formatDate(snapshot.created.date, true)}
                 </div>
-                <div className="mb-2">
-                  {formatDate(snapshot.snapshotTime, true)}
-                </div>
               </Card.Body>
               <Card.Footer className="d-flex justify-content-between">
-                <IconButton className="btn btn-primary" icon="restore">
+                <IconButton
+                  variant="outline-primary"
+                  icon="restore"
+                  disabled={restoreCallback.isLoading}
+                  onClick={() => restoreCallback.callback(snapshot)}
+                >
                   Restore
                 </IconButton>
                 <IconButton
-                  className="btn btn-secondary"
+                  variant="outline-secondary"
                   icon={snapshot.locked.active ? "lock_open" : "lock"}
                   tooltip={
                     <Popover>
@@ -102,6 +147,8 @@ export default function SettingsContent() {
                       </Popover.Body>
                     </Popover>
                   }
+                  disabled={lockCallback.isLoading}
+                  onClick={() => lockCallback.callback(snapshot)}
                 >
                   {snapshot.locked.active ? "Unlock" : "Lock"}
                 </IconButton>
