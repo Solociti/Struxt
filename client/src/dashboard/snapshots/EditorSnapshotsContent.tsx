@@ -9,13 +9,13 @@ import { EditorSnapshotListApi } from "common/api/projects/editorSnapshots";
 import { formatDate } from "common/format/date";
 import { EditorSnapshotListItem } from "common/models/projects/EditorSnapshot";
 import { useState } from "react";
+import Badge from "react-bootstrap/Badge";
 import Card from "react-bootstrap/Card";
 import Container from "react-bootstrap/Container";
 import Popover from "react-bootstrap/Popover";
 import { editEditorSnapshot } from "./editEditorSnapshot";
 import { getEditorSnapshots } from "./getEditorSnapshots";
 import { restoreEditorSnapshot } from "./restoreEditorSnapshot";
-import Badge from "react-bootstrap/Badge";
 
 function getSnapshotTitle(snapshot: EditorSnapshotListItem) {
   switch (snapshot.eventType) {
