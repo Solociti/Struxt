@@ -9,6 +9,7 @@ import {
   ProjectRolesInviteApi,
 } from "common/api/projects/projectRoles";
 import { customError } from "common/custom-error/custom-error";
+import { EditorData } from "common/models/projects/editorDataTypes";
 import { roles } from "common/models/user/Roles";
 import "server/api/domains/register";
 import { registerApi } from "server/api/registerApi";
@@ -29,6 +30,7 @@ import {
   updateProjectRoles,
 } from "./roles/projectRoles";
 import { saveProjectEditorData } from "./saveProject";
+import { saveEditorSnapshot } from "./snapshots/saveEditorSnapshot";
 import { updateProjectDetails } from "./updateProjectDetails";
 
 registerApi<ProjectListApi>("/api/projects").get([], async ({ user }) => {
@@ -112,6 +114,13 @@ registerApi<ProjectEditorApi>("/api/projects/:projectId/editor", {
 
     // save the project editor data
     const response = await saveProjectEditorData(projectId, body.editorData);
+
+    // save the project editor snapshot
+    await saveEditorSnapshot(projectId, "save", body.editorData as EditorData, {
+      userId: user.id,
+      displayName: user.name,
+    });
+
     return response;
   });
 

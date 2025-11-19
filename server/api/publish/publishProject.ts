@@ -23,6 +23,7 @@ import { getAssetDir, getPublishDir } from "server/utils/uploadDir";
 import { getProjectData } from "../projects/getProject";
 import { schedulePublishScreenshot } from "../projects/projectScreenshots";
 import { saveProject } from "../projects/saveProject";
+import { saveEditorSnapshot } from "../projects/snapshots/saveEditorSnapshot";
 import { savePublish, setActivePublish } from "./savePublish";
 import { updateProjectProxy } from "./updateProxy";
 
@@ -157,6 +158,8 @@ export async function publishProject(
 
   // set the active publish
   await setActivePublish(publishId);
+
+  await saveEditorSnapshot(projectId, projectEnv, project.editorData, user);
 
   await schedulePublishScreenshot(publishId, projectEnv, projectId);
 
