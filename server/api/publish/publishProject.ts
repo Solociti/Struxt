@@ -26,6 +26,7 @@ import { saveProject } from "../projects/saveProject";
 import { createEditorSnapshot } from "../projects/snapshots/saveEditorSnapshot";
 import { savePublish, setActivePublish } from "./savePublish";
 import { updateProjectProxy } from "./updateProxy";
+import { scheduleCleanPublish } from "./queue";
 
 /**
  * Publish the given project to the given environment.
@@ -162,6 +163,7 @@ export async function publishProject(
   await createEditorSnapshot(projectId, projectEnv, project.editorData, user);
 
   await schedulePublishScreenshot(publishId, projectEnv, projectId);
+  await scheduleCleanPublish(projectId);
 
   return {
     publishId,

@@ -1,4 +1,4 @@
-import { Model, UserModelAction } from "common/models/Model";
+import { Model, ModelAction, UserModelAction } from "common/models/Model";
 import { DeepPartial, mergeDeep } from "common/models/utils";
 import { EnvironmentTypes } from "./Environment";
 
@@ -33,6 +33,14 @@ export class PublishModel extends Model {
     date: Math.floor(Date.now() / 1000),
     userId: "",
     displayName: "",
+  };
+
+  /**
+   * Tells if this publish has been cleared already
+   */
+  public cleared: ModelAction = {
+    active: false,
+    date: 0,
   };
 
   constructor(data?: DeepPartial<PublishModel>) {
