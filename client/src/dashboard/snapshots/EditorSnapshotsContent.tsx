@@ -1,16 +1,21 @@
 import { useLoadAsync } from "client/api/useLoadAsync";
+import { AutosizeTextArea } from "client/components/AutosizeTextArea";
 import IconButton from "client/components/IconButton";
 import MaterialIcon from "client/components/MaterialIcon";
+import SimpleModal from "client/components/modals/SimpleModal";
 import { useAsyncCallback } from "client/components/useAsyncCallback";
 import { useCurrentProject } from "client/projects/ProjectContext";
+import { EditorSnapshotListApi } from "common/api/projects/editorSnapshots";
 import { formatDate } from "common/format/date";
 import { EditorSnapshotListItem } from "common/models/projects/EditorSnapshot";
+import { useState } from "react";
 import Card from "react-bootstrap/Card";
 import Container from "react-bootstrap/Container";
 import Popover from "react-bootstrap/Popover";
 import { editEditorSnapshot } from "./editEditorSnapshot";
 import { getEditorSnapshots } from "./getEditorSnapshots";
 import { restoreEditorSnapshot } from "./restoreEditorSnapshot";
+import Badge from "react-bootstrap/Badge";
 
 function getSnapshotTitle(snapshot: EditorSnapshotListItem) {
   switch (snapshot.eventType) {
@@ -20,6 +25,8 @@ function getSnapshotTitle(snapshot: EditorSnapshotListItem) {
       return "Published Production";
     case "save":
       return "Project Saved";
+    case "restore":
+      return "Restored Snapshot";
   }
 
   return snapshot.eventType;
@@ -56,22 +63,31 @@ export default function SettingsContent() {
     }
   );
 
-  const lockCallback = useAsyncCallback(
-    async (item: EditorSnapshotListItem) => {
+  const editCallback = useAsyncCallback(
+    async (
+      item: EditorSnapshotListItem,
+      change: EditorSnapshotListApi["PostBody"]["update"]
+    ) => {
       const result = await editEditorSnapshot(
         item.projectId,
         item.snapshotTime,
         item.eventType,
-        {
-          key: "locked.active",
-          value: !item.locked.active,
-        }
+        change
       );
       if (result.success) {
         refreshList();
+
+        if (change.key === "locked.active" && result.item.locked.active) {
+          setEditSnapshotNote(result.item);
+        } else if (change.key === "userNote") {
+          setEditSnapshotNote(null);
+        }
       }
     }
   );
+
+  const [editSnapshotNote, setEditSnapshotNote] =
+    useState<EditorSnapshotListItem | null>(null);
 
   if (project.projectId === "*") {
     return (
@@ -121,12 +137,15 @@ export default function SettingsContent() {
                 {snapshot.locked.active && <MaterialIcon>lock</MaterialIcon>}
               </Card.Header>
               <Card.Body>
-                <div className="mb-2">
-                  Created by {snapshot.created.displayName}
+                <div className="d-flex gap-1 mb-3">
+                  <Badge bg="secondary">
+                    {formatDate(snapshot.created.date, true)}
+                  </Badge>
+                  <Badge bg="secondary">{snapshot.created.displayName}</Badge>
                 </div>
-                <div className="mb-2">
-                  {formatDate(snapshot.created.date, true)}
-                </div>
+
+                {snapshot.userNote && <hr className="my-2" />}
+                <div className="text-muted">{snapshot.userNote}</div>
               </Card.Body>
               <Card.Footer className="d-flex justify-content-between">
                 <IconButton
@@ -147,8 +166,12 @@ export default function SettingsContent() {
                       </Popover.Body>
                     </Popover>
                   }
-                  disabled={lockCallback.isLoading}
-                  onClick={() => lockCallback.callback(snapshot)}
+                  onClick={() =>
+                    editCallback.callback(snapshot, {
+                      key: "locked.active",
+                      value: !snapshot.locked.active,
+                    })
+                  }
                 >
                   {snapshot.locked.active ? "Unlock" : "Lock"}
                 </IconButton>
@@ -156,6 +179,50 @@ export default function SettingsContent() {
             </Card>
           ))}
         </div>
+
+        <SimpleModal
+          title="Notes"
+          onHide={() => setEditSnapshotNote(null)}
+          show={Boolean(editSnapshotNote)}
+          footer={
+            <>
+              <IconButton
+                variant="secondary"
+                icon="close"
+                onClick={() => setEditSnapshotNote(null)}
+              >
+                Cancel
+              </IconButton>
+              <IconButton
+                variant="primary"
+                icon="check"
+                onClick={() => {
+                  if (editSnapshotNote) {
+                    editCallback.callback(editSnapshotNote, {
+                      key: "userNote",
+                      value: editSnapshotNote.userNote,
+                    });
+                  }
+                }}
+              >
+                Save
+              </IconButton>
+            </>
+          }
+        >
+          <div>
+            <AutosizeTextArea
+              className="form-control"
+              value={editSnapshotNote?.userNote || ""}
+              onRealChange={(value) =>
+                setEditSnapshotNote({
+                  ...editSnapshotNote,
+                  userNote: value,
+                } as EditorSnapshotListItem)
+              }
+            />
+          </div>
+        </SimpleModal>
       </Container>
     );
   }

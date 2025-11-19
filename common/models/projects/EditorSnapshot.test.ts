@@ -39,6 +39,7 @@ describe("EditorSnapshotModel", () => {
         userId: "",
       },
       snapshotTime: 0,
+      userNote: "",
     });
   });
 
@@ -79,6 +80,7 @@ describe("EditorSnapshotModel", () => {
         userId: "",
       },
       snapshotTime: 0,
+      userNote: "",
     });
   });
 

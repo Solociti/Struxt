@@ -49,14 +49,20 @@ registerApi<EditorSnapshotListApi>("/api/projects/:projectId/snapshots")
       );
     }
 
+    const option1 = z.object({
+      key: z.string("locked.active"),
+      value: z.boolean(),
+    });
+    const option2 = z.object({
+      key: z.string("userNote"),
+      value: z.string(),
+    });
+
     const { eventType, snapshotTime, update } = z
       .object({
         snapshotTime: z.number().gt(0),
         eventType: z.enum(validEventTypes),
-        update: z.object({
-          key: z.enum(["locked.active"]),
-          value: z.boolean(),
-        }),
+        update: option1.or(option2),
       })
       .parse(body);
 
@@ -64,7 +70,7 @@ registerApi<EditorSnapshotListApi>("/api/projects/:projectId/snapshots")
       projectId,
       snapshotTime,
       eventType as EditorSnapshotModel["eventType"],
-      update,
+      update as EditorSnapshotListApi["PostBody"]["update"],
       { userId: user.id, displayName: user.name }
     );
 

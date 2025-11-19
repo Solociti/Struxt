@@ -45,6 +45,10 @@ export async function editSnapshot(
       }
       break;
 
+    case "userNote":
+      snapshot.userNote = change.value;
+      break;
+
     default:
       throw customError(400, "Invalid update key.");
   }

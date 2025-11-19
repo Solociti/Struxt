@@ -51,6 +51,7 @@ export async function getEditorSnapshotsList(projectId: string) {
     eventType: 1,
     created: 1,
     locked: 1,
+    userNote: 1,
   };
 
   const cursor = await collection.find(

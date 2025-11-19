@@ -17,10 +17,12 @@ export interface EditorSnapshotListApi extends Api {
     snapshotTime: number;
     eventType: EditorSnapshotListItem["eventType"];
 
-    update: {
-      key: "locked.active";
-      value: boolean;
-    };
+    update:
+      | {
+          key: "locked.active";
+          value: boolean;
+        }
+      | { key: "userNote"; value: string };
   };
   PostResponse: {
     success: boolean;

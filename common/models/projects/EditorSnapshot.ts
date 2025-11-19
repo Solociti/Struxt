@@ -9,6 +9,7 @@ export interface EditorSnapshotListItem {
   eventType: EditorSnapshotModel["eventType"];
   created: Omit<UserModelAction, "active">;
   locked: UserModelAction;
+  userNote: string;
 }
 
 export class EditorSnapshotModel extends Model {
@@ -69,6 +70,11 @@ export class EditorSnapshotModel extends Model {
     },
   };
 
+  /**
+   * Allows the user to add a note to the snapshot
+   */
+  public userNote: string = "";
+
   constructor(data?: DeepPartial<EditorSnapshotModel>) {
     super();
 
@@ -106,6 +112,7 @@ export class EditorSnapshotModel extends Model {
       eventType: item.eventType,
       created: item.created,
       locked: item.locked,
+      userNote: item.userNote,
     };
   }
 }
