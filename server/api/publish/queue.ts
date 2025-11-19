@@ -24,6 +24,9 @@ export async function scheduleCleanPublish(projectId: string) {
     },
     {
       delay: 5 * 60 * 1000,
+      removeOnComplete: true,
+      removeOnFail: true,
+      jobId: `clean-publish-${projectId}`,
     }
   );
 }
