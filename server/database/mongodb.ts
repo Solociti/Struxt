@@ -1,5 +1,6 @@
 import { DataPropsOnly } from "common/models/Model";
 import {
+  AggregationCursor,
   Collection,
   CreateIndexesOptions,
   Db,
@@ -100,7 +101,9 @@ export async function getCollection<T>(
  * @param cursor
  * @returns
  */
-export async function toArray<T>(cursor: FindCursor<T>): Promise<T[]> {
+export async function toArray<T>(
+  cursor: FindCursor<T> | AggregationCursor<T>
+): Promise<T[]> {
   const results: T[] = [];
   for await (const doc of cursor) {
     results.push(doc);

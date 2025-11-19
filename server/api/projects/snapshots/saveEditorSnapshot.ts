@@ -37,7 +37,9 @@ export async function saveEditorSnapshot(
   });
 
   // save the snapshot to database
-  const collection = await getCollection("editor_snapshots");
+  const collection = await getCollection<EditorSnapshotModel>(
+    "editor_snapshots"
+  );
 
   const result = await collection.updateOne(
     {
