@@ -15,6 +15,7 @@ describe("PublishModel", () => {
       isActive: false,
       screenshotUrl: "",
       created: { date: 0, userId: "", displayName: "" },
+      cleared: { active: false, date: 0 },
     });
   });
 
@@ -33,6 +34,7 @@ describe("PublishModel", () => {
       isActive: false,
       screenshotUrl: "",
       created: { date: 1234, userId: "", displayName: "" },
+      cleared: { active: false, date: 0 },
     });
   });
 

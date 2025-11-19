@@ -31,6 +31,7 @@ import "server/utils/geoLocation";
 // imports for workers
 import "server/api/projects/queues/projectWorker";
 import "server/api/projects/snapshots/worker";
+import "server/api/publish/worker";
 
 // run init scripts and then start the server
 main();
