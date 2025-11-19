@@ -8,7 +8,7 @@ setupWorker(
   async (job) => {
     switch (job.name) {
       case "clean-publish":
-        return await cleanPublish(job.data.projectId);
+        return await cleanPublish(job.data.projectId, (msg) => job.log(msg));
 
       default:
         throw new Error("Invalid job name");
