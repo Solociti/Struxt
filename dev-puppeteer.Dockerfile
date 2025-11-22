@@ -1,4 +1,4 @@
-FROM node:22.17  AS dev
+FROM node:22.21.1  AS dev
 
 # Configure default locale (important for chrome-headless-shell).
 ENV LANG=en_US.UTF-8
