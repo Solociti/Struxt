@@ -24,7 +24,7 @@
     "@babel/preset-env": "^7.28.5",
     "@babel/preset-typescript": "^7.28.5",
     "@grapesjs/studio-sdk": "^1.0.56",
-    "@grapesjs/studio-sdk-plugins": "^1.0.30",
+    "@grapesjs/studio-sdk-plugins": "^1.0.31",
     "@types/connect-mongodb-session": "^2.4.8",
     "@types/express": "^5.0.5",
     "@types/express-session": "^1.18.2",
