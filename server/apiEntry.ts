@@ -27,6 +27,7 @@ import { setupWsServer } from "./ws/setupWs";
 import "server/api/register";
 import "server/core/cronQueue";
 import "server/utils/geoLocation";
+import "server/routines/queue/queue";
 
 // imports for workers
 import "server/api/projects/queues/projectWorker";

@@ -136,6 +136,33 @@ services:
     networks:
       - struxt-net
 
+  function-runner:
+    build:
+      context: .
+      dockerfile: dev.Dockerfile
+    user: "1000:1000"
+    environment:
+      - IS_DOCKER=true
+      - CONTAINER_NAME=function-runner
+    command: bash -c "sleep 10 && nodemon --delay 2 server/routinesEntry.js"
+    healthcheck:
+      test: curl --fail http://localhost:3000/hc --max-time 5 --connect-timeout 5 || exit 1
+      interval: 1m
+      timeout: 6s
+      retries: 5
+      start_period: 30s
+    volumes:
+      - ./node_modules/:/app/node_modules
+      - ./package.json:/app/package.json
+      - ./package-lock.json:/app/package-lock.json
+      - ./dist-server/common:/app/common
+      - ./dist-server/server:/app/server
+    depends_on:
+      - dragonfly
+      - ts-build
+    networks:
+      - struxt-runner-net
+
   core:
     build:
       context: .
