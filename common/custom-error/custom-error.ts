@@ -9,6 +9,7 @@ export const ErrorNames = {
   ProjectNotFound: "Project Not Found",
   Unauthorized: "Unauthorized",
   PaymentRequired: "Payment Required",
+  ExecutionError: "Execution Error",
 };
 
 export type HTTPStatus = 400 | 401 | 402 | 403 | 404 | 500;
@@ -24,6 +25,7 @@ declare global {
 /**
  * Create a custom error with the provided status, message, and name.
  *
+ * `400 Bad Request`
  * `401 Unauthorized`
  * `402 Payment Required`
  * `403 Forbidden`

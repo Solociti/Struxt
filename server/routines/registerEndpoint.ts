@@ -1,40 +1,15 @@
-import express from "express";
-import { getIp } from "server/utils/requests";
-import z from "zod";
-import { runUnsafeFunction } from "./runners";
+import { FunctionRunnerRoutes } from "server/utils/internal/internalRoutes";
+import { setupInternalRoute } from "server/utils/internal/setupInternalRoute";
+import { runUnsafeFunction } from "./isolate/runners";
 
-export const router = express.Router();
+setupInternalRoute<FunctionRunnerRoutes>(
+  "/routines/exec",
+  async (inputBody, { req, res }) => {
+    const result = await runUnsafeFunction({ body: inputBody });
 
-router.post("/routines/exec", async (req, res) => {
-  const ip = getIp(req);
-
-  console.log("Received request from IP:", ip);
-
-  // ensure that the request is from a trusted source
-  if (ip !== "127.0.0.1") {
-    res.status(403).json({
-      status: "error",
-      message: "Request not from trusted source",
-    });
-    return;
+    return {
+      success: true,
+      result,
+    };
   }
-
-  try {
-    // check if the request has the correct shape
-    const body = z
-      .object({
-        exec: z.string(),
-        args: z.array(z.any()),
-        timeout: z.number().optional(),
-      })
-      .parse(req.body);
-
-    await runUnsafeFunction({ req, res, body, ip });
-  } catch (error) {
-    res.status(400).json({
-      status: "error",
-      message: "Invalid request",
-    });
-    return;
-  }
-});
+);

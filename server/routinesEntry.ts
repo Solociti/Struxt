@@ -1,8 +1,13 @@
-import "dotenv/config";
-
+//! dot env isn't imported intentionally to avoid exposing the keys
 import express from "express";
 import "server/routines/queue/worker";
-import { router as registerEndpointRouter } from "server/routines/registerEndpoint";
+import {
+  internalExpressPort,
+  internalExpressSetup,
+} from "./utils/internal/internalExpressSetup";
+import { internalRouter } from "./utils/internal/setupInternalRoute";
+
+import "server/routines/registerEndpoint";
 
 // run init scripts and then start the server
 main();
@@ -10,15 +15,11 @@ main();
 async function main() {
   console.log("Starting server...");
   const app = express();
-  const port = 3000;
+  const port = internalExpressPort;
 
-  app.get("/hc", (req, res) => {
-    res.json({
-      status: "ok",
-    });
-  });
+  await internalExpressSetup(app);
 
-  app.use(registerEndpointRouter);
+  app.use(internalRouter);
 
   const server = app.listen(port, () => {
     console.log(`Server listening at http://localhost:${port}`);

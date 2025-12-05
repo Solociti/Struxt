@@ -135,6 +135,7 @@ services:
       - "127.0.0.1:3000:3000"
     networks:
       - struxt-net
+      - struxt-runner-net
 
   function-runner:
     build:
@@ -160,6 +161,9 @@ services:
     depends_on:
       - dragonfly
       - ts-build
+    ports:
+      - "127.0.0.1:3001:3030"
+
     networks:
       - struxt-runner-net
 
