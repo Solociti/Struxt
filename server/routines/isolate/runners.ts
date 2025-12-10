@@ -15,9 +15,17 @@ if (process.env.CONTAINER_NAME !== "function-runner") {
  * @param param0
  * @returns
  */
-export async function runUnsafeFunction({ body }: { body: any }) {
-  // TODO: handle server restart requests durning execution.
-
+export async function runUnsafeFunction({
+  exec,
+  executionId,
+  entryPoint,
+  timeout,
+}: {
+  exec: string;
+  executionId: string;
+  entryPoint: string;
+  timeout: number;
+}) {
   const isolate = new ivm.Isolate({
     memoryLimit: 128,
     onCatastrophicError: (err) => {
@@ -31,6 +39,8 @@ export async function runUnsafeFunction({ body }: { body: any }) {
     isolate.dispose();
   };
 
+  let startTime = Date.now();
+
   try {
     const context = await isolate.createContext();
     const jail = context.global;
@@ -40,11 +50,19 @@ export async function runUnsafeFunction({ body }: { body: any }) {
     const cns = await jail.get("console");
     await cns.set("console", cns.derefInto());
 
-    await cns.set("log", (...args: any[]) => console.log(...args));
-    await cns.set("warn", (...args: any[]) => console.warn(...args));
-    await cns.set("error", (...args: any[]) => console.error(...args));
-    await cns.set("info", (...args: any[]) => console.info(...args));
-    await cns.set("debug", (...args: any[]) => console.debug(...args));
+    await cns.set("log", (...args: any[]) => console.log(executionId, ...args));
+    await cns.set("warn", (...args: any[]) =>
+      console.warn(executionId, ...args)
+    );
+    await cns.set("error", (...args: any[]) =>
+      console.error(executionId, ...args)
+    );
+    await cns.set("info", (...args: any[]) =>
+      console.info(executionId, ...args)
+    );
+    await cns.set("debug", (...args: any[]) =>
+      console.debug(executionId, ...args)
+    );
 
     await jail.set("fetch", (url: string, options?: any) => {
       // TODO: implement this function
@@ -59,8 +77,24 @@ export async function runUnsafeFunction({ body }: { body: any }) {
       // this is a good place to add rate limiting.
     });
 
+    // 1. Create a Reference to your host function
+    const waitCallback = new ivm.Reference(async (ms: number) => {
+      return new Promise((resolve) => setTimeout(resolve, ms));
+    });
+
+    // 2. Set the reference on the global object (e.g. as 'waitRef')
+    await jail.set("waitRef", waitCallback);
+
+    // 3. Evaluate a script in the isolate to create the 'wait' function wrapper
+    //    This wrapper calls 'waitRef.apply' and handles the promise result.
+    await context.eval(`
+      global.wait = function(ms) {
+        return waitRef.apply(undefined, [ms], { result: { promise: true } });
+      };
+    `);
+
     // compile the code
-    const module = await isolate.compileModule(body.exec);
+    const module = await isolate.compileModule(exec);
 
     await module.instantiate(context, (specifier, referrer) => {
       throw new Error(`Imports are not allowed: ${specifier}`);
@@ -78,19 +112,30 @@ export async function runUnsafeFunction({ body }: { body: any }) {
     }
 
     // determine which method to run
-    const methodToRun = body.entryPoint;
-    const fnRef = await defaultExport.get(methodToRun, { reference: true });
+    const fnRef = await defaultExport.get(entryPoint, { reference: true });
 
     if (!fnRef || fnRef.typeof !== "function") {
-      throw customError(400, `Method '${methodToRun}' is not a function.`);
+      throw customError(400, `Method '${entryPoint}' is not a function.`);
     }
 
     const result = await fnRef.apply(undefined, [], {
       result: { promise: true, copy: true },
-      timeout: body.timeout,
+      timeout,
     });
 
-    return result;
+    // get the execution time
+    // the returned time is in nanoseconds and we need to convert it to milliseconds
+    const wallExecutionTimeMs = Number(isolate.wallTime) / 1e6;
+    const cpuExecutionTimeMs = Number(isolate.cpuTime) / 1e6;
+
+    const wallTimeMs = Date.now() - startTime;
+
+    return {
+      result,
+      wallExecutionTimeMs,
+      cpuExecutionTimeMs,
+      wallTimeMs,
+    };
   } catch (err) {
     if (err instanceof Error && err.status) {
       throw err;

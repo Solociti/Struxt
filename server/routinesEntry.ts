@@ -25,7 +25,11 @@ async function main() {
     console.log(`Server listening at http://localhost:${port}`);
   });
 
-  process.on("SIGTERM", () => {
+  const onShutdown = () => {
+    console.log("Shutting down server...");
     server.close();
-  });
+  };
+
+  process.on("SIGTERM", onShutdown);
+  process.on("SIGINT", onShutdown);
 }

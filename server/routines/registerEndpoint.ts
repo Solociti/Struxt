@@ -4,12 +4,12 @@ import { runUnsafeFunction } from "./isolate/runners";
 
 setupInternalRoute<FunctionRunnerRoutes>(
   "/routines/exec",
-  async (inputBody, { req, res }) => {
-    const result = await runUnsafeFunction({ body: inputBody });
+  async (inputBody) => {
+    const result = await runUnsafeFunction(inputBody);
 
     return {
+      ...result,
       success: true,
-      result,
     };
   }
 );

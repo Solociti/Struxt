@@ -11,7 +11,7 @@ export async function execRoutine() {
         console.log("Get called");
         return { test: Math.round(Math.random() * 10) };
       },
-      post: (req) => {
+      post: async (req) => {
         console.log("Post called");
         return { test: Math.round(Math.random() * 10) };
       }
@@ -27,7 +27,8 @@ export async function execRoutine() {
         entryPoint: "post",
         timeout: 500,
         executionId: "123",
-      }
+      },
+      600
     );
 
     console.log({ response });
