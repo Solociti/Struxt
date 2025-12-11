@@ -1,7 +1,7 @@
 import { customError, ErrorNames } from "common/custom-error/custom-error";
 import ivm from "isolated-vm";
 
-if (process.env.CONTAINER_NAME !== "function-runner") {
+if (process.env.CONTAINER_NAME !== "function-runner" && !process.env.VITEST) {
   throw new Error(
     "This file should only be imported in the function runner container"
   );
@@ -15,17 +15,28 @@ if (process.env.CONTAINER_NAME !== "function-runner") {
  * @param param0
  * @returns
  */
-export async function runUnsafeFunction({
-  exec,
-  executionId,
-  entryPoint,
-  timeout,
-}: {
-  exec: string;
-  executionId: string;
-  entryPoint: string;
-  timeout: number;
-}) {
+export async function runUnsafeFunction(
+  {
+    exec,
+    executionId,
+    entryPoint,
+    timeout,
+  }: {
+    exec: string;
+    executionId: string;
+    entryPoint: string;
+    timeout: number;
+  },
+  consoleRecorder: (
+    type: "log" | "info" | "warn" | "error" | "debug",
+    args: any[]
+  ) => void,
+  timeRecorder: (
+    wallExecutionTimeMs: number,
+    cpuExecutionTimeMs: number,
+    wallTimeMs: number
+  ) => void
+) {
   const isolate = new ivm.Isolate({
     memoryLimit: 128,
     onCatastrophicError: (err) => {
@@ -36,6 +47,16 @@ export async function runUnsafeFunction({
   });
 
   const cleanup = () => {
+    // get the execution time
+    // the returned time is in nanoseconds and we need to convert it to milliseconds
+    const wallExecutionTimeMs = Number(isolate.wallTime) / 1e6;
+    const cpuExecutionTimeMs = Number(isolate.cpuTime) / 1e6;
+
+    const wallTimeMs = Date.now() - startTime;
+
+    timeRecorder(wallExecutionTimeMs, cpuExecutionTimeMs, wallTimeMs);
+
+    // clean up the used resources
     isolate.dispose();
   };
 
@@ -50,19 +71,11 @@ export async function runUnsafeFunction({
     const cns = await jail.get("console");
     await cns.set("console", cns.derefInto());
 
-    await cns.set("log", (...args: any[]) => console.log(executionId, ...args));
-    await cns.set("warn", (...args: any[]) =>
-      console.warn(executionId, ...args)
-    );
-    await cns.set("error", (...args: any[]) =>
-      console.error(executionId, ...args)
-    );
-    await cns.set("info", (...args: any[]) =>
-      console.info(executionId, ...args)
-    );
-    await cns.set("debug", (...args: any[]) =>
-      console.debug(executionId, ...args)
-    );
+    await cns.set("log", (...args: any[]) => consoleRecorder("log", args));
+    await cns.set("warn", (...args: any[]) => consoleRecorder("warn", args));
+    await cns.set("error", (...args: any[]) => consoleRecorder("error", args));
+    await cns.set("info", (...args: any[]) => consoleRecorder("info", args));
+    await cns.set("debug", (...args: any[]) => consoleRecorder("debug", args));
 
     await jail.set("fetch", (url: string, options?: any) => {
       // TODO: implement this function
@@ -123,19 +136,7 @@ export async function runUnsafeFunction({
       timeout,
     });
 
-    // get the execution time
-    // the returned time is in nanoseconds and we need to convert it to milliseconds
-    const wallExecutionTimeMs = Number(isolate.wallTime) / 1e6;
-    const cpuExecutionTimeMs = Number(isolate.cpuTime) / 1e6;
-
-    const wallTimeMs = Date.now() - startTime;
-
-    return {
-      result,
-      wallExecutionTimeMs,
-      cpuExecutionTimeMs,
-      wallTimeMs,
-    };
+    return result;
   } catch (err) {
     if (err instanceof Error && err.status) {
       throw err;
