@@ -58,7 +58,11 @@ export default function DashboardContent() {
     return <div>No project found</div>;
   }
 
-  return projectList.map((project) => (
-    <ShowProject key={project.projectId} project={project} />
-  ));
+  return (
+    <div className="p-3">
+      {projectList.map((project) => (
+        <ShowProject key={project.projectId} project={project} />
+      ))}
+    </div>
+  );
 }

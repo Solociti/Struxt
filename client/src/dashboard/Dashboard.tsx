@@ -17,6 +17,7 @@ const SettingsContent = lazy(
   () => import("client/dashboard/settings/SettingsContent")
 );
 const MetricsPage = lazy(() => import("client/dashboard/metrics/MetricsPage"));
+const RoutinesPage = lazy(() => import("client/routines/RoutinesPage"));
 const AdminSettingsPage = lazy(
   () => import("client/dashboard/admin/AdminSettingsPage")
 );
@@ -39,29 +40,42 @@ export default function DashboardApp() {
       <ProjectProvider>
         <DashboardSidebar />
 
-        <div className="d-flex flex-column flex-grow-1">
+        <div
+          className="d-flex flex-column flex-grow-1"
+          style={{ height: "100vh" }}
+        >
           <DashboardHeader />
 
           {/* Content Area */}
-          <div className="p-3">
-            <Suspense
-              fallback={
-                <div className="d-flex flex-column justify-content-center align-items-center my-5">
-                  <Spinner animation="border" variant="secondary" />
+          <Suspense
+            fallback={
+              <div className="d-flex flex-column justify-content-center align-items-center p-3 my-5">
+                <Spinner animation="border" variant="secondary" />
 
-                  <span className="ms-2 text-muted">Loading Page...</span>
-                </div>
-              }
-            >
-              <Routes>
-                <Route path="/" element={<DashboardContent />} />
-                <Route path="/settings" element={<SettingsContent />} />
-                <Route path="/metrics" element={<MetricsPage />} />
-                <Route path="/snapshots" element={<SnapshotsContent />} />
-                <Route path="/admin" element={<AdminSettingsPage />} />
-              </Routes>
-            </Suspense>
-          </div>
+                <span className="ms-2 text-muted">Loading Page...</span>
+              </div>
+            }
+          >
+            <Routes>
+              <Route
+                path="*"
+                element={
+                  <div className="d-flex flex-column align-items-center my-5 text-muted">
+                    <h1>Page Not Found</h1>
+
+                    <p>The page you are looking for does not exist.</p>
+                  </div>
+                }
+              />
+
+              <Route path="/" element={<DashboardContent />} />
+              <Route path="/settings" element={<SettingsContent />} />
+              <Route path="/routines" element={<RoutinesPage />} />
+              <Route path="/metrics" element={<MetricsPage />} />
+              <Route path="/snapshots" element={<SnapshotsContent />} />
+              <Route path="/admin" element={<AdminSettingsPage />} />
+            </Routes>
+          </Suspense>
         </div>
 
         {/* Add the error snack bar */}

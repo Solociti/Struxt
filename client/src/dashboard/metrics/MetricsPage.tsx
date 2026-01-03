@@ -21,7 +21,7 @@ export default function MetricsPage() {
 
   if (project.projectId === "*") {
     return (
-      <Container>
+      <Container className="p-3">
         <h1 className="fw-bold mb-4">Metrics</h1>
         <p className="text-muted py-3">Please select a project.</p>
       </Container>
@@ -29,7 +29,7 @@ export default function MetricsPage() {
   }
 
   return (
-    <Container>
+    <Container className="p-3">
       <h1 className="fw-bold mb-4">Metrics</h1>
       <h3 className="fw-bold mb-4">{project && project.name}</h3>
 

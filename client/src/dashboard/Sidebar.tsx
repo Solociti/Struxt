@@ -1,5 +1,6 @@
 import { useCurrentUser } from "client/auth/userCurrentUser";
 import IconButton from "client/components/IconButton";
+import MaterialIcon from "client/components/MaterialIcon";
 import { usePromptModal } from "client/components/modals/usePromptModal";
 import { useCurrentProject } from "client/projects/ProjectContext";
 import { createNewProject } from "client/projects/projects";
@@ -81,8 +82,22 @@ export function DashboardSidebar() {
               href="#/"
               active={location.pathname === "/"}
             >
-              <i className="fas fa-home me-2"></i>
+              <MaterialIcon>home</MaterialIcon>
               Projects
+            </Nav.Link>
+          </Nav.Item>
+
+          <Nav.Item className="">
+            <Nav.Link
+              className={
+                "text-light" +
+                (location.pathname === "/routines" ? " bg-primary bg-600" : "")
+              }
+              href="#/routines"
+              active={location.pathname === "/routines"}
+            >
+              <MaterialIcon>automation</MaterialIcon>
+              Routines
             </Nav.Link>
           </Nav.Item>
 
@@ -95,7 +110,7 @@ export function DashboardSidebar() {
               href="#/metrics"
               active={location.pathname === "/metrics"}
             >
-              <i className="fas fa-cog me-2"></i>
+              <MaterialIcon>analytics</MaterialIcon>
               Metrics
             </Nav.Link>
           </Nav.Item>
@@ -109,7 +124,7 @@ export function DashboardSidebar() {
               href="#/snapshots"
               active={location.pathname === "/snapshots"}
             >
-              <i className="fas fa-cog me-2"></i>
+              <MaterialIcon>heap_snapshot_large</MaterialIcon>
               Snapshots
             </Nav.Link>
           </Nav.Item>
@@ -123,7 +138,7 @@ export function DashboardSidebar() {
               href="#/settings"
               active={location.pathname === "/settings"}
             >
-              <i className="fas fa-cog me-2"></i>
+              <MaterialIcon>settings</MaterialIcon>
               Settings
             </Nav.Link>
           </Nav.Item>
@@ -132,7 +147,7 @@ export function DashboardSidebar() {
 
           <Nav.Item>
             <Nav.Link className="text-light" href="/auth/logout">
-              <i className="fas fa-sign-out-alt me-2"></i>
+              <MaterialIcon>logout</MaterialIcon>
               Logout
             </Nav.Link>
           </Nav.Item>
@@ -150,6 +165,7 @@ export function DashboardSidebar() {
                   href="#/admin"
                   active={location.pathname === "/admin"}
                 >
+                  <MaterialIcon>admin_panel_settings</MaterialIcon>
                   Admin
                 </Nav.Link>
               </Nav.Item>

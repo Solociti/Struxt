@@ -34,7 +34,7 @@ export default function SettingsContent() {
 
   if (project.projectId === "*") {
     return (
-      <Container className="py-4">
+      <Container className="p-4">
         <h1 className="fw-bold mb-3">Settings</h1>
         <p>Please select a project to continue...</p>
       </Container>
@@ -43,7 +43,7 @@ export default function SettingsContent() {
 
   if (loadingProjectDetails && !projectDetails) {
     return (
-      <Container className="py-4">
+      <Container className="p-4">
         <h1 className="fw-bold mb-3">Settings</h1>
         <p>Loading...</p>
       </Container>
@@ -52,7 +52,7 @@ export default function SettingsContent() {
 
   if (projectDetails) {
     return (
-      <Container>
+      <Container className="p-3">
         <h1 className="fw-bold mb-4">Settings</h1>
 
         <Card className="my-4">
