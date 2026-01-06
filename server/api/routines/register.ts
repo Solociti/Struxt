@@ -65,7 +65,13 @@ registerApi<RoutinesFilesCreateApi>(
   };
 });
 
-registerApi<RoutinesFilesEditApi>("/api/routines/:projectId/file")
+registerApi<RoutinesFilesEditApi>("/api/routines/:projectId/file", {
+  bodySanitization: {
+    "routine.contents": {
+      skipSanitize: true,
+    },
+  },
+})
   .get([roles.struxt.editor], async ({ user, params, query }) => {
     if (!user.hasProjectPermission(params.projectId, roles.projects.edit)) {
       throw customError(
