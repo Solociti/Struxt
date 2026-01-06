@@ -1,5 +1,5 @@
+import { AssetApi, AssetDeleteApi } from "common/api/assets/assets";
 import { postApi } from "../api/api";
-import { Asset } from "grapesjs";
 
 /**
  * Upload the given files as assets to the project
@@ -14,7 +14,10 @@ export async function uploadAssets(projectId: string, files: File[]) {
     body.append("files", file);
   }
 
-  const response = await postApi(`/api/assets/upload/${projectId}`, body);
+  const response = await postApi<AssetApi>(
+    ["/api/assets/upload", projectId],
+    body
+  );
 
   return response;
 }
@@ -26,10 +29,16 @@ export async function uploadAssets(projectId: string, files: File[]) {
  * @param assets
  * @returns
  */
-export async function deleteAssets(projectId: string, assets: Asset[]) {
-  const response = await postApi(`/api/assets/delete/${projectId}`, {
-    assets,
-  });
+export async function deleteAssets(
+  projectId: string,
+  assets: AssetDeleteApi["PostBody"]["assets"]
+) {
+  const response = await postApi<AssetDeleteApi>(
+    ["/api/assets/delete", projectId],
+    {
+      assets,
+    }
+  );
 
   return response;
 }

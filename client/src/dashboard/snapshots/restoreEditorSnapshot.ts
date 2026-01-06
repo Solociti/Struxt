@@ -20,7 +20,7 @@ export async function restoreEditorSnapshot(
     eventType,
   };
 
-  const response: EditorSnapshotRestoreApi["PostResponse"] = await postApi(
+  const response = await postApi<EditorSnapshotRestoreApi>(
     ["/api/projects/", projectId, "/snapshots/restore"],
     body
   );

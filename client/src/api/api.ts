@@ -1,23 +1,24 @@
+import { Api } from "common/api/api";
 import { deStructureError } from "common/custom-error/custom-error";
 
-type Params = URLSearchParams | Record<string, string>;
+type QueryParams = URLSearchParams | Record<string, string>;
 
 /**
  * Build the url to use for the api request
  *
  * @param url
- * @param params
+ * @param query
  * @returns
  */
-function buildUrl(url: string | string[] | URL, params?: Params) {
+function buildUrl(url: string | string[] | URL, query?: QueryParams) {
   url = Array.isArray(url) ? url.join("/") : url;
   url = new URL(url.toString(), window.location.origin);
 
-  if (params) {
-    if (params instanceof URLSearchParams) {
-      url.search = params.toString();
+  if (query) {
+    if (query instanceof URLSearchParams) {
+      url.search = query.toString();
     } else {
-      url.search = new URLSearchParams(params).toString();
+      url.search = new URLSearchParams(query).toString();
     }
   }
   return url;
@@ -47,7 +48,7 @@ interface ApiOptions {
   /**
    * The query parameters to add to the request
    */
-  params?: Params;
+  query?: QueryParams;
 
   /**
    * The body to send with the request
@@ -66,7 +67,7 @@ export async function callApi(
   url: string | string[] | URL,
   options: ApiOptions
 ) {
-  const fetchUrl = buildUrl(url, options.params);
+  const fetchUrl = buildUrl(url, options.query);
 
   // setup the abort controller for timeouts
   const controller = new AbortController();
@@ -134,14 +135,14 @@ export async function callApi(
  * @param options
  * @returns
  */
-export async function getApi(
-  url: string | string[] | URL,
-  params?: Params,
-  options?: Omit<ApiOptions, "body" | "params">
-) {
+export async function getApi<D extends Api>(
+  url: D["Endpoint"] | D["EndpointParts"] | URL,
+  params?: D["GetQuery"],
+  options?: Omit<ApiOptions, "body" | "method" | "query">
+): Promise<D["GetResponse"]> {
   return await callApi(url, {
     method: "GET",
-    params,
+    query: params,
     ...options,
   });
 }
@@ -154,11 +155,11 @@ export async function getApi(
  * @param options
  * @returns
  */
-export async function postApi(
-  url: string | string[] | URL,
-  body: any,
-  options?: Omit<ApiOptions, "body">
-) {
+export async function postApi<D extends Api>(
+  url: D["Endpoint"] | D["EndpointParts"] | URL,
+  body: D["PostBody"],
+  options?: Omit<ApiOptions, "body" | "method">
+): Promise<D["PostResponse"]> {
   return await callApi(url, {
     method: "POST",
     body,
@@ -174,11 +175,11 @@ export async function postApi(
  * @param options
  * @returns
  */
-export async function putApi(
-  url: string | string[] | URL,
-  body: any,
-  options?: Omit<ApiOptions, "body">
-) {
+export async function putApi<D extends Api>(
+  url: D["Endpoint"] | D["EndpointParts"] | URL,
+  body: D["PutBody"],
+  options?: Omit<ApiOptions, "body" | "method">
+): Promise<D["PutResponse"]> {
   return await callApi(url, {
     method: "PUT",
     body,
@@ -193,14 +194,14 @@ export async function putApi(
  * @param options
  * @returns
  */
-export async function deleteApi(
-  url: string | string[] | URL,
-  params?: Params,
-  options?: Omit<ApiOptions, "body" | "method">
-) {
+export async function deleteApi<D extends Api>(
+  url: D["Endpoint"] | D["EndpointParts"] | URL,
+  query?: D["DeleteQuery"],
+  options?: Omit<ApiOptions, "body" | "method" | "query">
+): Promise<D["DeleteResponse"]> {
   return await callApi(url, {
     method: "DELETE",
-    params,
+    query,
     ...options,
   });
 }

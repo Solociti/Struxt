@@ -10,7 +10,7 @@ import { PromptOverrides } from "common/models/aiPilot/tools/PromptOverrides";
 export async function getAiPilotPrompts(): Promise<
   AiPilotPromptsApi["GetResponse"]
 > {
-  const response: AiPilotPromptsApi["GetResponse"] = await getApi([
+  const response = await getApi<AiPilotPromptsApi>([
     "/api/aiPilot/prompts",
   ]);
 
@@ -34,7 +34,7 @@ export async function saveAiPilotPromptOverride(override: PromptOverrides) {
     prompt: override,
   };
 
-  const response: AiPilotPromptsApi["PostResponse"] = await postApi(
+  const response = await postApi<AiPilotPromptsApi>(
     ["/api/aiPilot/prompts"],
     body
   );

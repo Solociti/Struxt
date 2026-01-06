@@ -21,6 +21,7 @@ export interface DomainInfoApi extends Api {
 
 export interface DomainRegisterApi extends Api {
   Endpoint: "/api/projects/:projectId/domains/register";
+  EndpointParts: ["/api/projects", string, "domains/register"];
 
   UrlParams: {
     projectId: string;
@@ -82,6 +83,11 @@ export interface DomainRegisterApi extends Api {
 
 export interface DomainDnsVerifyApi extends Api {
   Endpoint: "/api/projects/:projectId/domains/verify-dns";
+  EndpointParts: ["/api/projects", string, "domains/verify-dns"];
+
+  UrlParams: {
+    projectId: string;
+  };
 
   PostBody: {
     /**
@@ -119,6 +125,7 @@ export interface DomainDnsVerifyApi extends Api {
 
 export interface DomainUpdateApi extends Api {
   Endpoint: "/api/projects/:projectId/domains/update";
+  EndpointParts: ["/api/projects", string, "domains/update"];
 
   UrlParams: {
     projectId: string;

@@ -5,10 +5,11 @@
  */
 export interface Api {
   Endpoint: string;
+  EndpointParts: string[];
 
   UrlParams: Record<string, string>;
 
-  GetQuery: object;
+  GetQuery: Record<string, string>;
   GetResponse: object;
 
   PostBody: object;
@@ -17,6 +18,6 @@ export interface Api {
   PutBody: object;
   PutResponse: object;
 
-  DeleteQuery: object;
+  DeleteQuery: Record<string, string>;
   DeleteResponse: object;
 }

@@ -8,7 +8,7 @@ import { EditorSnapshotListApi } from "common/api/projects/editorSnapshots";
  * @returns
  */
 export async function getEditorSnapshots(projectId: string) {
-  const response: EditorSnapshotListApi["GetResponse"] = await getApi([
+  const response = await getApi<EditorSnapshotListApi>([
     "/api/projects/",
     projectId,
     "/snapshots",

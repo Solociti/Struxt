@@ -20,7 +20,7 @@ export async function publishSite(
       files,
     };
 
-    const result = await postApi(["/api/publish", projectId], body);
+    const result = await postApi<PublishApi>(["/api/publish", projectId], body);
 
     if (result.success) {
       showToastTop(`Published ${type}.`, "check", "success", 2500);

@@ -23,7 +23,7 @@ export async function editEditorSnapshot(
     update: change,
   };
 
-  const response: EditorSnapshotListApi["PostResponse"] = await postApi(
+  const response = await postApi<EditorSnapshotListApi>(
     ["/api/projects/", projectId, "/snapshots"],
     body
   );
