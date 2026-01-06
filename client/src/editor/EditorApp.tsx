@@ -233,11 +233,15 @@ function CustomEditor({
             storageType: "self",
             // Provide a custom upload handler for assets
             onUpload: async ({ files }) => {
-              return await uploadAssets(projectId, files);
+              const { assets } = await uploadAssets(projectId, files);
+              return assets;
             },
             // Provide a custom handler for deleting assets
             onDelete: async ({ assets }) => {
-              return await deleteAssets(projectId, assets);
+              await deleteAssets(
+                projectId,
+                assets.map((a) => ({ type: a.getType(), src: a.getSrc() }))
+              );
             },
           },
           storage: {

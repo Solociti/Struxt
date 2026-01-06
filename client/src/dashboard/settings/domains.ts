@@ -13,7 +13,7 @@ import { EnvironmentTypes } from "common/models/projects/Environment";
  * @returns
  */
 export async function getDomainInfo() {
-  const result: DomainInfoApi["GetResponse"] = await getApi([
+  const result = await getApi<DomainInfoApi>([
     "/api/projects/domains/info",
   ]);
 
@@ -46,7 +46,7 @@ export async function checkDomainAvailability(
     return false;
   }
 
-  const result: DomainRegisterApi["GetResponse"] = await getApi(
+  const result = await getApi<DomainRegisterApi>(
     ["/api/projects", projectId, "domains/register"],
     query
   );
@@ -75,7 +75,7 @@ export async function registerDomain(
     freeSubdomain,
   };
 
-  const result: DomainRegisterApi["PostResponse"] = await postApi(
+  const result = await postApi<DomainRegisterApi>(
     ["/api/projects", projectId, "domains/register"],
     body
   );
@@ -101,7 +101,7 @@ export async function verifyDomainDns(
     domain,
   };
 
-  const result: DomainDnsVerifyApi["PostResponse"] = await postApi(
+  const result = await postApi<DomainDnsVerifyApi>(
     ["/api/projects", projectId, "domains/verify-dns"],
     body
   );
@@ -126,7 +126,7 @@ export async function updateDomainDetails(
     changes,
   };
 
-  const result: DomainUpdateApi["PostResponse"] = await postApi(
+  const result = await postApi<DomainUpdateApi>(
     ["/api/projects", projectId, "domains/update"],
     body
   );
@@ -153,7 +153,7 @@ export async function deleteDomain(
   };
 
   // send the request to delete the domain
-  const response: DomainUpdateApi["DeleteResponse"] = await deleteApi(
+  const response = await deleteApi<DomainUpdateApi>(
     [`/api/projects/${projectId}/domains/update`],
     params
   );

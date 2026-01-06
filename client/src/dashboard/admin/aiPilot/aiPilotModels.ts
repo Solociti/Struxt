@@ -6,7 +6,7 @@ import { AiPilotModel } from "common/models/aiPilot/AiPilotModels";
  * Get the complete list of AI Pilot models from the server
  */
 export async function getAiPilotModels(): Promise<AiPilotModel[]> {
-  const response: AiPilotModels["GetResponse"] = await getApi([
+  const response = await getApi<AiPilotModels>([
     "/api/aiPilot/models",
   ]);
 

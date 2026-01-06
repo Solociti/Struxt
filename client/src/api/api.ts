@@ -1,3 +1,4 @@
+import { Api } from "common/api/api";
 import { deStructureError } from "common/custom-error/custom-error";
 
 type Params = URLSearchParams | Record<string, string>;
@@ -134,11 +135,11 @@ export async function callApi(
  * @param options
  * @returns
  */
-export async function getApi(
-  url: string | string[] | URL,
-  params?: Params,
+export async function getApi<D extends Api>(
+  url: D["Endpoint"] | D["EndpointParts"] | URL,
+  params?: D["GetQuery"],
   options?: Omit<ApiOptions, "body" | "params">
-) {
+): Promise<D["GetResponse"]> {
   return await callApi(url, {
     method: "GET",
     params,
@@ -154,11 +155,11 @@ export async function getApi(
  * @param options
  * @returns
  */
-export async function postApi(
-  url: string | string[] | URL,
-  body: any,
+export async function postApi<D extends Api>(
+  url: D["Endpoint"] | D["EndpointParts"] | URL,
+  body: D["PostBody"],
   options?: Omit<ApiOptions, "body">
-) {
+): Promise<D["PostResponse"]> {
   return await callApi(url, {
     method: "POST",
     body,
@@ -174,11 +175,11 @@ export async function postApi(
  * @param options
  * @returns
  */
-export async function putApi(
-  url: string | string[] | URL,
-  body: any,
+export async function putApi<D extends Api>(
+  url: D["Endpoint"] | D["EndpointParts"] | URL,
+  body: D["PutBody"],
   options?: Omit<ApiOptions, "body">
-) {
+): Promise<D["PutResponse"]> {
   return await callApi(url, {
     method: "PUT",
     body,
@@ -193,11 +194,11 @@ export async function putApi(
  * @param options
  * @returns
  */
-export async function deleteApi(
-  url: string | string[] | URL,
-  params?: Params,
+export async function deleteApi<D extends Api>(
+  url: D["Endpoint"] | D["EndpointParts"] | URL,
+  params?: D["DeleteQuery"],
   options?: Omit<ApiOptions, "body" | "method">
-) {
+): Promise<D["DeleteResponse"]> {
   return await callApi(url, {
     method: "DELETE",
     params,

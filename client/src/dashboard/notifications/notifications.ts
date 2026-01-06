@@ -10,7 +10,7 @@ import { ProjectRolesInviteModel } from "common/models/projects/ProjectRolesInvi
  */
 export async function getNotifications() {
   const params: NotificationsApi["GetQuery"] = {};
-  const response: NotificationsApi["GetResponse"] = await getApi(
+  const response = await getApi<NotificationsApi>(
     "/api/notifications",
     params
   );
@@ -27,7 +27,7 @@ export async function getNotifications() {
 export async function acceptProjectInvite(inviteId: string) {
   const body: ProjectInvitesApi["PostBody"] = {};
 
-  const response: ProjectInvitesApi["PostResponse"] = await postApi(
+  const response = await postApi<ProjectInvitesApi>(
     ["/api/projects/invites", inviteId],
     body
   );
@@ -42,7 +42,7 @@ export async function acceptProjectInvite(inviteId: string) {
  * @returns
  */
 export async function declineProjectInvite(inviteId: string) {
-  const response: ProjectInvitesApi["DeleteResponse"] = await deleteApi([
+  const response = await deleteApi<ProjectInvitesApi>([
     "/api/projects/invites",
     inviteId,
   ]);
