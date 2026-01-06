@@ -13,7 +13,7 @@ import { ProjectRoleTypes } from "common/models/user/Roles";
  * @returns
  */
 export async function getProjectRoleDocs(projectId: string) {
-  const response: ProjectRolesApi["GetResponse"] = await getApi([
+  const response = await getApi<ProjectRolesApi>([
     "/api/projects",
     projectId,
     "roles",
@@ -39,7 +39,7 @@ export async function updateProjectRoles(
     roles,
   };
 
-  const response: ProjectRolesApi["PostResponse"] = await postApi(
+  const response = await postApi<ProjectRolesApi>(
     ["/api/projects", projectId, "roles"],
     body
   );
@@ -55,7 +55,7 @@ export async function updateProjectRoles(
  * @returns
  */
 export async function removeProjectUser(projectId: string, userId: string) {
-  const response: ProjectRolesApi["DeleteResponse"] = await deleteApi(
+  const response = await deleteApi<ProjectRolesApi>(
     ["/api/projects", projectId, "roles"],
     {
       userId,
@@ -86,7 +86,7 @@ export async function inviteUser(
     message,
   };
 
-  const response: ProjectRolesInviteApi["PostResponse"] = await postApi(
+  const response = await postApi<ProjectRolesInviteApi>(
     ["/api/projects", projectId, "roles/invite"],
     body
   );
@@ -101,7 +101,7 @@ export async function inviteUser(
  * @returns
  */
 export async function getProjectInvitesList(projectId: string) {
-  const response: ProjectRolesInviteApi["GetResponse"] = await getApi([
+  const response = await getApi<ProjectRolesInviteApi>([
     "/api/projects",
     projectId,
     "roles/invite",
@@ -117,7 +117,7 @@ export async function getProjectInvitesList(projectId: string) {
  * @returns
  */
 export async function cancelUserInvite(projectId: string, inviteId: string) {
-  const response: ProjectRolesInviteApi["DeleteResponse"] = await deleteApi(
+  const response = await deleteApi<ProjectRolesInviteApi>(
     ["/api/projects", projectId, "roles/invite"],
     {
       inviteId,

@@ -11,7 +11,7 @@ import { TokenWallet } from "common/models/aiPilot/TokenWallet";
 export async function getTokenWallet(projectId: string): Promise<TokenWallet> {
   const params: AiPilotTokenWallet["GetQuery"] = { projectId };
 
-  const response: AiPilotTokenWallet["GetResponse"] = await getApi(
+  const response = await getApi<AiPilotTokenWallet>(
     "/api/aiPilot/tokens",
     params
   );

@@ -18,10 +18,7 @@ export async function createNewProject(name: string) {
   };
 
   // create a new project on the server
-  const response: ProjectCreateApi["PostResponse"] = await postApi(
-    "/api/projects/new",
-    body
-  );
+  const response = await postApi<ProjectCreateApi>("/api/projects/new", body);
 
   return response;
 }
@@ -34,9 +31,11 @@ export async function createNewProject(name: string) {
  */
 export async function getProject(projectId: string) {
   // load the project data from the server
-  const response: ProjectEditorApi["GetResponse"] = await getApi(
-    `/api/projects/${projectId}/editor`
-  );
+  const response = await getApi<ProjectEditorApi>([
+    "/api/projects",
+    projectId,
+    "editor",
+  ]);
 
   return response;
 }
@@ -64,7 +63,7 @@ export async function saveProject(projectId: string, editorData: any) {
  * @returns
  */
 export async function getAvailableProjects() {
-  const response: ProjectListApi["GetResponse"] = await getApi(`/api/projects`);
+  const response = await getApi<ProjectListApi>(`/api/projects`);
   return response;
 }
 
@@ -76,7 +75,7 @@ export async function getAvailableProjects() {
  */
 export async function getProjectDetails(projectId: string) {
   // load the project details from the server
-  const response: ProjectDetailsApi["GetResponse"] = await getApi([
+  const response = await getApi<ProjectDetailsApi>([
     "/api/projects",
     projectId,
     "details",
@@ -102,7 +101,7 @@ export async function updateProjectDetails(
     value,
   };
 
-  const response: ProjectDetailsApi["PostResponse"] = await postApi(
+  const response = await postApi<ProjectDetailsApi>(
     ["/api/projects", projectId, "details"],
     body
   );

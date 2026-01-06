@@ -1,3 +1,4 @@
+import { UserApi } from "common/api/auth/user";
 import { CurrentUserModel } from "common/models/user/CurrentUserModel";
 import { getApi } from "../api/api";
 
@@ -80,7 +81,7 @@ export async function loadCurrentUser() {
   try {
     loadStarted = true;
 
-    const response = await getApi(`/api/auth/user`);
+    const response = await getApi<UserApi>(`/api/auth/user`);
 
     const user = new CurrentUserModel(response.user);
     currentUser = user;

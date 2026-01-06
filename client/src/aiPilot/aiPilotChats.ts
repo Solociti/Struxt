@@ -10,7 +10,7 @@ import { AiPilotChatList, AiPilotNewChat } from "common/api/aiPilot/chatApi";
 export async function loadChatList(projectId: string) {
   const query: AiPilotChatList["GetQuery"] = { projectId };
 
-  const response: AiPilotChatList["GetResponse"] = await getApi(
+  const response = await getApi<AiPilotChatList>(
     "/api/aiPilot/chat/list",
     query
   );
@@ -26,10 +26,7 @@ export async function loadChatList(projectId: string) {
 export async function createNewChat(projectId: string) {
   const body: AiPilotNewChat["PostBody"] = { projectId };
 
-  const response: AiPilotNewChat["PostResponse"] = await postApi(
-    "/api/aiPilot/chat/new",
-    body
-  );
+  const response = await postApi<AiPilotNewChat>("/api/aiPilot/chat/new", body);
 
   return response;
 }

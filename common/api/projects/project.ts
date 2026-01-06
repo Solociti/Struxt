@@ -15,6 +15,8 @@ export interface ProjectListApi extends Api {
 
 export interface ProjectEditorApi extends Api {
   Endpoint: "/api/projects/:projectId/editor";
+  EndpointParts: ["/api/projects", string, "editor"];
+
   UrlParams: {
     projectId: string;
   };
