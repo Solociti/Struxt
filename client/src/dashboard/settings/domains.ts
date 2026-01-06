@@ -13,9 +13,7 @@ import { EnvironmentTypes } from "common/models/projects/Environment";
  * @returns
  */
 export async function getDomainInfo() {
-  const result = await getApi<DomainInfoApi>([
-    "/api/projects/domains/info",
-  ]);
+  const result = await getApi<DomainInfoApi>(["/api/projects/domains/info"]);
 
   return result;
 }
@@ -154,7 +152,7 @@ export async function deleteDomain(
 
   // send the request to delete the domain
   const response = await deleteApi<DomainUpdateApi>(
-    [`/api/projects/${projectId}/domains/update`],
+    ["/api/projects", projectId, "domains/update"],
     params
   );
 
