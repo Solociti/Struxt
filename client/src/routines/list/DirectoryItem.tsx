@@ -4,6 +4,7 @@ import { RoutineListItem } from "common/models/routines/Routine";
 import { useState } from "react";
 import Collapse from "react-bootstrap/Collapse";
 import { DirectoryNode, DirectoryView } from "./DirectoryView";
+import { NewRoutineModal } from "./NewRoutineModal";
 
 /**
  * Renders a single directory item with collapse functionality.
@@ -24,6 +25,9 @@ export function DirectoryItem({
   handleEdit: (item: RoutineListItem) => void;
 }) {
   const [open, setOpen] = useState(Boolean(defaultOpen));
+
+  const [showNew, setShowNew] = useState(false);
+  const [newBasePath, setNewBasePath] = useState("");
 
   return (
     <div className="dir-section">
@@ -46,11 +50,18 @@ export function DirectoryItem({
             onClick={(event) => {
               event.stopPropagation();
 
-              //TODO: Create a new file
+              // show the modal to create a new file
+              setShowNew(true);
+              setNewBasePath(dir.path);
             }}
           />
         </div>
       </div>
+      <NewRoutineModal
+        show={showNew}
+        onHide={() => setShowNew(false)}
+        defaultPath={newBasePath}
+      />
 
       <Collapse in={open}>
         <div

@@ -4,6 +4,7 @@ import { RoutineListItem } from "common/models/routines/Routine";
 import { useMemo } from "react";
 import Spinner from "react-bootstrap/Spinner";
 import { DirectoryNode, DirectoryView } from "./DirectoryView";
+import { getRoutineList } from "./routineApis";
 
 interface RoutinesListProps {
   projectId: string;
@@ -28,52 +29,27 @@ export function RoutineList({ projectId, handleEdit }: RoutinesListProps) {
       return null;
     }
 
-    //TODO: Load the list of routines
-
-    const list: RoutineListItem[] = [];
-
-    let fileCount = 5;
-
-    for (const dir of [
-      "/public/",
-      "/routines/",
-      "/routines/",
-      "/public/test3/",
-    ]) {
-      fileCount = Math.floor(Math.random() * 5) + 2;
-
-      for (let i = 0; i < fileCount; i++) {
-        list.push({
-          uuid: Math.random().toString(),
-          name: `Routine-${i}.js`,
-          path: `${dir}`,
-          updated: {
-            userId: "123",
-            displayName: "Test User",
-            date: Math.floor(Date.now() / 1000),
-          },
-        });
-      }
-    }
-
-    return list;
+    return await getRoutineList(projectId);
   }, [projectId]);
 
   const fileTree = useMemo(() => {
     if (!routineList) return null;
     const root: DirectoryNode = {
       name: "root",
+      path: "/",
       subDirectories: {
         public: {
           files: [],
           subDirectories: {},
           name: "public",
+          path: "/public/",
           defaultOpen: true,
         },
         routines: {
           files: [],
           subDirectories: {},
           name: "routines",
+          path: "/routines/",
           defaultOpen: true,
         },
       },
@@ -87,6 +63,7 @@ export function RoutineList({ projectId, handleEdit }: RoutinesListProps) {
         if (!current.subDirectories[part]) {
           current.subDirectories[part] = {
             name: part,
+            path: item.path,
             subDirectories: {},
             files: [],
           };

@@ -4,6 +4,8 @@ import { useLoadAsync } from "client/api/useLoadAsync";
 import { useState } from "react";
 import { RoutineListItem, RoutineModel } from "common/models/routines/Routine";
 import { CodeEditor } from "./codeEditor/CodeEditor";
+import { getRoutine } from "./list/routineApis";
+import ErrorBoundary from "client/components/ErrorBoundary";
 
 /**
  * Show the routines lists and editor
@@ -24,21 +26,9 @@ export default function RoutinesPage() {
       return null;
     }
 
-    //TODO: Load the current selected routine
+    const r = await getRoutine(project.projectId, selectedRoutine.uuid);
 
-    const routine = new RoutineModel({
-      ...selectedRoutine,
-      contents: `console.log('Starting application...');
-
-function greet(name) {
-  return \`Hello, \${name}!\`;
-}
-
-const user = 'World';
-console.log(greet(user));`,
-    });
-
-    setEditRoutine(routine);
+    setEditRoutine(r);
     return null;
   }, [project.projectId, selectedRoutine]);
 
@@ -64,16 +54,20 @@ console.log(greet(user));`,
 
   return (
     <div className="d-flex h-100" style={{ overflowY: "hidden" }}>
-      {/* show a sidebar with the list of files */}
-      <RoutineList
-        projectId={project.projectId}
-        handleEdit={(file) => setSelectedRoutine(file)}
-      />
+      <ErrorBoundary>
+        {/* show a sidebar with the list of files */}
+        <RoutineList
+          projectId={project.projectId}
+          handleEdit={(file) => setSelectedRoutine(file)}
+        />
 
-      {/* Show the code editor */}
-      {editRoutine && <CodeEditor routine={editRoutine} />}
+        {/* Show the code editor */}
+        <ErrorBoundary>
+          {editRoutine && <CodeEditor routine={editRoutine} />}
+        </ErrorBoundary>
 
-      {/* show the ai chat on the right side */}
+        {/* show the ai chat on the right side */}
+      </ErrorBoundary>
     </div>
   );
 }

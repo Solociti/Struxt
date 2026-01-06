@@ -3,9 +3,11 @@ import { DeepPartial, mergeDeep } from "../utils";
 
 export interface RoutineListItem {
   uuid: string;
+
   name: string;
   path: string;
-  updated: Omit<UserModelAction, "active">;
+
+  updated: RoutineModel["updated"];
 }
 
 export class RoutineModel extends Model {
@@ -13,6 +15,11 @@ export class RoutineModel extends Model {
    * The unique identifier for the routine.
    */
   public uuid: string = "";
+
+  /**
+   * The project identifier that the routine belongs to.
+   */
+  public projectId: string = "";
 
   /**
    * The name of the routine.
@@ -39,6 +46,16 @@ export class RoutineModel extends Model {
     date: Math.floor(Date.now() / 1000),
   };
 
+  /**
+   * When a routine is archived, it is no longer available for use.
+   */
+  public archived: UserModelAction = {
+    active: false,
+    date: 0,
+    userId: "",
+    displayName: "",
+  };
+
   public updated: Omit<UserModelAction, "active"> = {
     userId: "",
     displayName: "",
@@ -55,5 +72,19 @@ export class RoutineModel extends Model {
 
   assign(data: DeepPartial<RoutineModel>) {
     mergeDeep(this, data);
+  }
+
+  /**
+   * Create a list item for the routine.
+   *
+   * @returns
+   */
+  getListItem(): RoutineListItem {
+    return {
+      uuid: this.uuid,
+      name: this.name,
+      path: this.path,
+      updated: this.updated,
+    };
   }
 }

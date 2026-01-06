@@ -63,6 +63,8 @@ export type CollectionNames =
   | "project_members"
   | "projects_published"
   | "projects"
+  | "published_routines"
+  | "routines"
   | "users";
 
 /**

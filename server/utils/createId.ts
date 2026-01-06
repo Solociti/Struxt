@@ -8,7 +8,8 @@ export type IdCounterName =
   | "project"
   | "publish"
   | "invite"
-  | "file";
+  | "file"
+  | "routine";
 
 async function counter(name: IdCounterName) {
   const collection = await getCollection<{ value: number; name: string }>(
