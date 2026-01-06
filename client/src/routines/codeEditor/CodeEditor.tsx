@@ -1,9 +1,10 @@
 import CodeMirror, { ViewUpdate } from "@uiw/react-codemirror";
 import { javascript, javascriptLanguage } from "@codemirror/lang-javascript";
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { RoutineModel } from "common/models/routines/Routine";
 import { useTheme } from "client/bootstrap/Theme";
 import { autocompletion, CompletionContext } from "@codemirror/autocomplete";
+import { saveRoutine } from "../list/routineApis";
 
 function myCompletions(context: CompletionContext) {
   const word = context.matchBefore(/\w*/);
@@ -34,9 +35,20 @@ export function CodeEditor({ routine }: { routine: RoutineModel }) {
     setValue(routine.contents);
   }, [routine]);
 
+  const _saveTimeout = useRef<NodeJS.Timeout | null>(null);
+
   const onChange = useCallback((val: string, viewUpdate: ViewUpdate) => {
-    console.log("val:", val);
+    routine.contents = val;
     setValue(val);
+
+    if (_saveTimeout.current) {
+      clearTimeout(_saveTimeout.current);
+    }
+
+    _saveTimeout.current = setTimeout(async () => {
+      _saveTimeout.current = null;
+      await saveRoutine(routine);
+    }, 1000);
   }, []);
 
   const { theme } = useTheme();

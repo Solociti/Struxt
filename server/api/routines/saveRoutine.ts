@@ -1,4 +1,3 @@
-import { customError } from "common/custom-error/custom-error";
 import { RoutineModel } from "common/models/routines/Routine";
 import { getCollection } from "server/database/mongodb";
 
@@ -21,12 +20,8 @@ export async function saveRoutine(routine: RoutineModel) {
     { upsert: true }
   );
 
-  if (!result.upsertedCount && !result.modifiedCount) {
-    throw customError(404, "Routine not found.");
-  }
-
   return {
-    success: true,
+    success: result.matchedCount > 0,
     routine,
   };
 }

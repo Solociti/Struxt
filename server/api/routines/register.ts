@@ -88,6 +88,13 @@ registerApi<RoutinesFilesEditApi>("/api/routines/:projectId/file")
 
     const routine = new RoutineModel(body.routine);
 
+    routine.updated = {
+      ...routine.updated,
+      date: Math.floor(Date.now() / 1000),
+      userId: user.id,
+      displayName: user.name,
+    };
+
     // save the routine to database
     const result = await saveRoutine(routine);
     if (!result.success) {
