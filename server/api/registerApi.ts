@@ -108,7 +108,10 @@ export function registerApi<T extends Api>(
             res,
             user,
             params: sanitizeObject(req.params),
-            query: sanitizeObject(req.query, getOptions.querySanitization),
+            query: sanitizeObject(
+              req.query,
+              getOptions.querySanitization
+            ) as T["GetQuery"],
           };
 
           // process the request.
@@ -226,7 +229,10 @@ export function registerApi<T extends Api>(
             res,
             user,
             params: sanitizeObject(req.params),
-            query: sanitizeObject(req.query, deleteOptions.querySanitization),
+            query: sanitizeObject(
+              req.query,
+              deleteOptions.querySanitization
+            ) as T["DeleteQuery"],
           };
 
           // process the request.
