@@ -1,11 +1,14 @@
-import { useCurrentProject } from "client/projects/ProjectContext";
-import { RoutineList } from "./list/RoutineList";
 import { useLoadAsync } from "client/api/useLoadAsync";
-import { useState } from "react";
-import { RoutineListItem, RoutineModel } from "common/models/routines/Routine";
-import { CodeEditor } from "./codeEditor/CodeEditor";
-import { getRoutine } from "./list/routineApis";
 import ErrorBoundary from "client/components/ErrorBoundary";
+import MaterialIcon from "client/components/MaterialIcon";
+import { useCurrentProject } from "client/projects/ProjectContext";
+import { RoutineListItem, RoutineModel } from "common/models/routines/Routine";
+import { useState } from "react";
+import Nav from "react-bootstrap/Nav";
+import { CodeEditor } from "./codeEditor/CodeEditor";
+import { FileIcon } from "./list/FileIcon";
+import { getRoutine } from "./list/routineApis";
+import { RoutineList } from "./list/RoutineList";
 
 /**
  * Show the routines lists and editor
@@ -15,6 +18,11 @@ import ErrorBoundary from "client/components/ErrorBoundary";
 export default function RoutinesPage() {
   const { project } = useCurrentProject();
 
+  /**
+   * The list of routines that are open in the editor
+   */
+  const [openRoutines, setOpenRoutines] = useState<RoutineListItem[]>([]);
+
   const [selectedRoutine, setSelectedRoutine] =
     useState<RoutineListItem | null>(null);
 
@@ -23,6 +31,7 @@ export default function RoutinesPage() {
   // const { isLoading: loadingRoutine, error: routineError } =
   useLoadAsync(async () => {
     if (project.projectId === "*" || !selectedRoutine) {
+      setEditRoutine(null);
       return null;
     }
 
@@ -52,19 +61,107 @@ export default function RoutinesPage() {
     );
   }
 
+  /**
+   * Handle when a file is opened in the editor.
+   *
+   * @param file
+   * @returns
+   */
+  const handleOpenRoutine = (file: RoutineListItem) => {
+    setSelectedRoutine(file);
+
+    // add the file to the open routines list if it's not already there
+    const index = openRoutines.findIndex((f) => f.uuid === file.uuid);
+    if (index >= 0) {
+      if (openRoutines[index] !== file) {
+        setOpenRoutines((open) => [
+          ...open.filter((f) => f.uuid !== file.uuid),
+          file,
+        ]);
+      }
+
+      return;
+    }
+    setOpenRoutines((open) => [...open, file]);
+  };
+
+  /**
+   * Handle when a file is closed in the editor.
+   *
+   * @param file
+   */
+  const handleCloseRoutine = (file: RoutineListItem) => {
+    setOpenRoutines((open) => {
+      // get the current index as a starting point
+      const currentIndex = open.findIndex((f) => f.uuid === file.uuid);
+
+      // remove the file from the list
+      const list = open.filter((f) => f.uuid !== file.uuid);
+      const newIndex = Math.max(Math.min(currentIndex - 1, list.length - 1), 0);
+
+      if (list[newIndex]) {
+        setSelectedRoutine(list[newIndex]);
+      } else {
+        setSelectedRoutine(null);
+      }
+
+      return list;
+    });
+  };
+
   return (
     <div className="d-flex h-100" style={{ overflowY: "hidden" }}>
       <ErrorBoundary>
         {/* show a sidebar with the list of files */}
         <RoutineList
           projectId={project.projectId}
-          handleEdit={(file) => setSelectedRoutine(file)}
+          handleEdit={handleOpenRoutine}
         />
 
         {/* Show the code editor */}
-        <ErrorBoundary>
-          {editRoutine && <CodeEditor routine={editRoutine} />}
-        </ErrorBoundary>
+        <div className="h-100 w-100" style={{ overflow: "hidden" }}>
+          <ErrorBoundary>
+            <Nav
+              variant="tabs"
+              activeKey={selectedRoutine?.uuid || ""}
+              onSelect={(uuid) => {
+                const file = openRoutines.find((f) => f.uuid === uuid);
+                if (file) {
+                  handleOpenRoutine(file);
+                }
+              }}
+            >
+              {openRoutines.map((routine) => {
+                const isActive = selectedRoutine?.uuid === routine.uuid;
+                const extension = routine.name.split(".").pop() || "";
+
+                return (
+                  <Nav.Item className="ps-1" key={routine.uuid}>
+                    <Nav.Link
+                      eventKey={routine.uuid}
+                      className="d-flex align-items-center"
+                    >
+                      <FileIcon extension={extension} />
+                      {routine.name}
+                      {isActive && (
+                        <MaterialIcon
+                          style={{ fontSize: "1.15em" }}
+                          className="ms-1 cursor-pointer"
+                          onClick={() => handleCloseRoutine(routine)}
+                        >
+                          close
+                        </MaterialIcon>
+                      )}
+                    </Nav.Link>
+                  </Nav.Item>
+                );
+              })}
+            </Nav>
+
+            {/* show the editor for the selected routine */}
+            {editRoutine && <CodeEditor routine={editRoutine} />}
+          </ErrorBoundary>
+        </div>
 
         {/* show the ai chat on the right side */}
       </ErrorBoundary>

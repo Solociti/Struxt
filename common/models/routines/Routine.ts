@@ -74,6 +74,10 @@ export class RoutineModel extends Model {
     mergeDeep(this, data);
   }
 
+  clone(): RoutineModel {
+    return new RoutineModel(JSON.parse(JSON.stringify(this)));
+  }
+
   /**
    * Create a list item for the routine.
    *
