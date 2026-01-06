@@ -3,7 +3,7 @@ import promBundle from "express-prom-bundle";
 import promCl from "prom-client";
 import { geoipLookup } from "server/utils/geoLocation";
 import { UAParser } from "ua-parser-js";
-import { isAIBot, isBot } from "ua-parser-js/helpers";
+import { isAIAssistant, isAICrawler, isBot } from "ua-parser-js/bot-detection";
 import { getIp } from "../utils/requests";
 import { rateLimit } from "./RateLimit";
 
@@ -161,8 +161,10 @@ export function setupSiteLogs(
     let clientType = "browser";
     if (userAgent && isBot(userAgent)) {
       clientType = "bot";
-    } else if (userAgent && isAIBot(userAgent)) {
-      clientType = "ai-bot";
+    } else if (userAgent && isAICrawler(userAgent)) {
+      clientType = "ai-crawler";
+    } else if (userAgent && isAIAssistant(userAgent)) {
+      clientType = "ai-assistant";
     }
     if (ua.device && ua.device.type) {
       clientType = ua.device.type;
