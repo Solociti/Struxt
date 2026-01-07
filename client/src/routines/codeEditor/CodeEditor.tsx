@@ -28,6 +28,11 @@ function myCompletions(context: CompletionContext) {
   };
 }
 
+/**
+ *
+ * @param param0
+ * @returns
+ */
 export function CodeEditor({ routine }: { routine: RoutineModel }) {
   const [value, setValue] = useState(routine.contents);
 

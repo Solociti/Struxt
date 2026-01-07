@@ -123,6 +123,7 @@ export default function RoutinesPage() {
           <ErrorBoundary>
             <Nav
               variant="tabs"
+              className="px-1"
               activeKey={selectedRoutine?.uuid || ""}
               onSelect={(uuid) => {
                 const file = openRoutines.find((f) => f.uuid === uuid);
@@ -136,10 +137,11 @@ export default function RoutinesPage() {
                 const extension = routine.name.split(".").pop() || "";
 
                 return (
-                  <Nav.Item className="ps-1" key={routine.uuid}>
+                  <Nav.Item key={routine.uuid}>
                     <Nav.Link
                       eventKey={routine.uuid}
-                      className="d-flex align-items-center"
+                      className="d-flex px-2 align-items-center cursor-pointer"
+                      as="div"
                     >
                       <FileIcon extension={extension} />
                       {routine.name}
