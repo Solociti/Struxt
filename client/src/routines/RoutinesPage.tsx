@@ -1,14 +1,17 @@
 import { useLoadAsync } from "client/api/useLoadAsync";
 import ErrorBoundary from "client/components/ErrorBoundary";
 import MaterialIcon from "client/components/MaterialIcon";
+import { ShowError } from "client/components/ShowError";
 import { useCurrentProject } from "client/projects/ProjectContext";
 import { RoutineListItem, RoutineModel } from "common/models/routines/Routine";
-import { useState } from "react";
+import { lazy, Suspense, useState } from "react";
 import Nav from "react-bootstrap/Nav";
-import { CodeEditor } from "./codeEditor/CodeEditor";
+import Spinner from "react-bootstrap/Spinner";
 import { FileIcon } from "./list/FileIcon";
 import { getRoutine } from "./list/routineApis";
 import { RoutineList } from "./list/RoutineList";
+
+const CodeEditor = lazy(() => import("./codeEditor/CodeEditor"));
 
 /**
  * Show the routines lists and editor
@@ -28,18 +31,18 @@ export default function RoutinesPage() {
 
   // load the current selected routine to display in the editor
   const [editRoutine, setEditRoutine] = useState<RoutineModel | null>(null);
-  // const { isLoading: loadingRoutine, error: routineError } =
-  useLoadAsync(async () => {
-    if (project.projectId === "*" || !selectedRoutine) {
-      setEditRoutine(null);
+  const { isLoading: loadingRoutine, error: routineError } =
+    useLoadAsync(async () => {
+      if (project.projectId === "*" || !selectedRoutine) {
+        setEditRoutine(null);
+        return null;
+      }
+
+      const r = await getRoutine(project.projectId, selectedRoutine.uuid);
+
+      setEditRoutine(r);
       return null;
-    }
-
-    const r = await getRoutine(project.projectId, selectedRoutine.uuid);
-
-    setEditRoutine(r);
-    return null;
-  }, [project.projectId, selectedRoutine]);
+    }, [project.projectId, selectedRoutine]);
 
   // setup the ai chat context
   const {} = useLoadAsync(async () => {
@@ -119,11 +122,14 @@ export default function RoutinesPage() {
         />
 
         {/* Show the code editor */}
-        <div className="h-100 w-100" style={{ overflow: "hidden" }}>
+        <div
+          className="d-flex flex-column h-100 flex-grow-1"
+          style={{ overflow: "hidden", minWidth: 0 }}
+        >
           <ErrorBoundary>
             <Nav
               variant="tabs"
-              className="px-1"
+              className="px-1 flex-shrink-0"
               activeKey={selectedRoutine?.uuid || ""}
               onSelect={(uuid) => {
                 const file = openRoutines.find((f) => f.uuid === uuid);
@@ -161,7 +167,46 @@ export default function RoutinesPage() {
             </Nav>
 
             {/* show the editor for the selected routine */}
-            {editRoutine && <CodeEditor routine={editRoutine} />}
+            {routineError && (
+              <div className="p-5">
+                <ShowError error={routineError} />
+              </div>
+            )}
+
+            {!editRoutine && !loadingRoutine && (
+              <div className="d-flex flex-column align-items-center justify-content-center flex-grow-1 text-muted">
+                <MaterialIcon style={{ fontSize: "4rem" }}>code</MaterialIcon>
+                <p className="mt-3">Select a routine to start editing</p>
+              </div>
+            )}
+
+            {!editRoutine && loadingRoutine && (
+              <div className="d-flex align-items-center justify-content-center flex-grow-1 text-muted">
+                <Spinner variant="border" />
+                <span className="ms-2">Loading routine...</span>
+              </div>
+            )}
+
+            {editRoutine && (
+              <Suspense
+                fallback={
+                  <div className="text-muted p-5 text-center">
+                    <Spinner variant="border" />
+                    <div>Loading Editor</div>
+                  </div>
+                }
+              >
+                <div
+                  className="flex-grow-1"
+                  style={{ minHeight: 0, position: "relative" }}
+                >
+                  <CodeEditor
+                    routine={editRoutine}
+                    openRoutines={openRoutines}
+                  />
+                </div>
+              </Suspense>
+            )}
           </ErrorBoundary>
         </div>
 
