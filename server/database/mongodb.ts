@@ -54,6 +54,7 @@ export type CollectionNames =
   | "ai_pilot_prompts"
   | "ai_pilot_token_wallet"
   | "ai_pilot_token_transactions"
+  | "assets"
   | "editor_snapshots"
   | "form_settings"
   | "form_submissions"

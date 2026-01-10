@@ -2,6 +2,7 @@ import { customError } from "common/custom-error/custom-error";
 import { ModelAsDocument } from "common/models/Model";
 import { ProjectModel } from "common/models/projects/ProjectModel";
 import { getCollection } from "server/database/mongodb";
+import { getEditorAssets } from "../assets/getAssets";
 
 /**
  * Get the project editor data from server
@@ -24,10 +25,18 @@ export async function getProjectEditorData(projectId: string) {
     throw customError(404, "Project not found", "ProjectNotFound");
   }
 
+  // load the assets for the project
+  const assets = await getEditorAssets(projectId);
+
+  const editorData = {
+    ...doc.editorData,
+    assets,
+  };
+
   return {
     projectId: doc.projectId,
     name: doc.name,
-    editorData: doc.editorData,
+    editorData: editorData,
   };
 }
 

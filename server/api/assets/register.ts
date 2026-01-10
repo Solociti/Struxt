@@ -2,28 +2,72 @@ import { customError } from "common/custom-error/custom-error";
 import { roles } from "common/models/user/Roles";
 import express from "express";
 import multer from "multer";
-import { existsSync, renameSync } from "node:fs";
-import { basename, extname, join } from "node:path";
+import { existsSync, realpathSync, renameSync } from "node:fs";
+import { basename, extname, join, normalize, relative, sep } from "node:path";
 import { protectEndpoint } from "../../auth/protectEndpoint";
 import { mkDirRecursive } from "../../utils/mkDir";
-import { getAssetDir, getUploadDir } from "../../utils/uploadDir";
+import {
+  getAssetDir,
+  getProjectFilesDir,
+  getProjectsParentDir,
+  getUploadDir,
+} from "../../utils/uploadDir";
 import { userFromReq } from "../auth/userFromReq";
 
-// Get the upload directory
-const uploadDir = getAssetDir();
+const projectsParentDir = getProjectsParentDir();
 const saveDir = getUploadDir("temp");
 
 const upload = multer({ dest: saveDir });
 
-// setup the static files for assets
-export const staticFiles = express.static(uploadDir, {
-  setHeaders: (res) => {
-    // cache the assets for 7 days
-    res.setHeader("Cache-Control", "public, max-age=604000");
-  },
+/**
+ * Router for serving project files with permission checks
+ */
+export const staticFilesRouter = express.Router();
+
+staticFilesRouter.use(protectEndpoint([roles.struxt.editor]));
+
+staticFilesRouter.get("/:projectId/*filePath", async (req, res) => {
+  const projectId = req.params.projectId;
+  const pathParts = (req.params as any).filePath as string[];
+
+  const user = await userFromReq(req);
+  if (!user.hasProjectPermission(projectId, [roles.projects.edit])) {
+    throw customError(
+      403,
+      "You do not have permission to access this project.",
+      "Forbidden"
+    );
+  }
+
+  const projectFilesDir = getProjectFilesDir(projectId);
+  const requestedFile = normalize(join(projectFilesDir, ...pathParts));
+
+  // check for path traversal attacks.
+  // Path-to-RegExp in express should already catch this, but just in case.
+  const relativePath = relative(projectFilesDir, requestedFile);
+  if (relativePath.startsWith("..")) {
+    throw customError(400, "Invalid file path.");
+  }
+
+  // check if the file exists before symlink checks,
+  // as symlinks would throw a 500 error if the file doesn't exist
+  if (!existsSync(requestedFile)) {
+    throw customError(404, "File not found.");
+  }
+
+  // protect against symlink attacks
+  const realRequestedFile = realpathSync(requestedFile);
+  if (!realRequestedFile.startsWith(`${projectFilesDir}${sep}`)) {
+    throw customError(400, "Invalid file path.");
+  }
+
+  res.setHeader("Cache-Control", "public, max-age=604000");
+  res.sendFile(requestedFile);
 });
 
-// setup a api endpoint for assets
+/**
+ * Router for asset upload and management endpoints
+ */
 export const router = express.Router();
 
 router.use(protectEndpoint(["struxt.editor"]));
@@ -54,7 +98,7 @@ router.post(
      */
     const uploaded: { src: string }[] = [];
 
-    await mkDirRecursive(join(uploadDir, projectId));
+    await mkDirRecursive(join(projectsParentDir, projectId));
 
     for (const file of files) {
       const ext = extname(file.originalname);

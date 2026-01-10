@@ -6,7 +6,7 @@ import express, { NextFunction, Request, Response } from "express";
 import { createServer } from "node:http";
 import {
   router as assetsRouter,
-  staticFiles as assetStaticFiles,
+  staticFilesRouter as assetStaticFiles,
 } from "server/api/assets/register";
 import { userFromReq } from "server/api/auth/userFromReq";
 import { protectEndpoint } from "server/auth/protectEndpoint";
