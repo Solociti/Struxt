@@ -1,14 +1,11 @@
 import { StrictMode } from "react";
 import { createRoot } from "react-dom/client";
+import { ThemeProvider } from "./bootstrap/Theme";
 import ErrorBoundary from "./components/ErrorBoundary";
 import DashboardApp from "./dashboard/Dashboard";
-import { registerServiceWorker } from "./registerSW";
-import { ThemeProvider } from "./bootstrap/Theme";
+import "./sw/registerSW";
 
 import "./style.css";
-
-// Register Service Worker
-registerServiceWorker();
 
 // mount the application
 const root = createRoot(document.getElementById("app") as any);

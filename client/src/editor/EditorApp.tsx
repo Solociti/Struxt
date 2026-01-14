@@ -2,14 +2,15 @@ import { rteProseMirror } from "@grapesjs/studio-sdk-plugins";
 import StudioEditor from "@grapesjs/studio-sdk/react";
 import { useCurrentUser } from "client/auth/userCurrentUser";
 import { useTheme } from "client/bootstrap/Theme";
-import { registerServiceWorker } from "client/registerSW";
 import { ErrorNames } from "common/custom-error/custom-error";
 import customCodePlugin from "grapesjs-custom-code";
 import parserPostCSS from "grapesjs-parser-postcss";
 import { useEffect, useState } from "react";
+import Spinner from "react-bootstrap/Spinner";
 import { loadCurrentUser } from "../auth/user";
 import { deleteAssets, uploadAssets } from "../projects/assets";
 import { getProject, saveProject } from "../projects/projects";
+import { useServiceWorker } from "../sw/useServiceWorker";
 import { canvasTweaksPlugin } from "./components/canvasTweaks";
 import { customLayout, setupStruxtPlugin } from "./plugin";
 
@@ -21,10 +22,8 @@ const licenseKey = location.hostname.includes("staging.struxt")
   ? "1ec0231ce53b49dfa4d36dd2520cd5f288a40e1e231e4acca3d6c0bb59ba5f39"
   : "39b0a964ef184394a659bb8015cc8822efcbe5c371a44a9f86883d45806f1065";
 
-// ensure the that service worker is registered
-registerServiceWorker();
-
 export function EditorApp() {
+  const { isReady: swReady, error: swError, isRegistering: swRegistering } = useServiceWorker();
   const [projectId, setProjectId] = useState<string | null>(null);
   const [loggedIn, setLoggedIn] = useState(false);
   const [error, setError] = useState<Error | null>(null);
@@ -54,10 +53,6 @@ export function EditorApp() {
         }
       });
 
-    // TODO: ensure that the service worker is registered and ready before loading the content
-    // TODO: add a proper loading indicator
-    // TODO: Add an error page for when a service worker can't be registered
-
     if (projectId) {
       setProjectId(projectId);
     } else {
@@ -71,17 +66,27 @@ export function EditorApp() {
   }, []);
 
   useEffect(() => {
-    // Register the project ID with the Service Worker for the main window (previews)
-    navigator.serviceWorker.controller?.postMessage({
+    if (!swReady || !projectId) {
+      return;
+    }
+
+    const controller = navigator.serviceWorker.controller;
+    if (!controller) {
+      return;
+    }
+
+    controller.postMessage({
       type: "SET_PROJECT",
       projectId,
       context: "parent",
     });
 
-    // Listen for new service worker claim
-
     const controllerChangeListener = () => {
-      navigator.serviceWorker.controller?.postMessage({
+      const controller = navigator.serviceWorker.controller;
+      if (!controller) {
+        return;
+      }
+      controller.postMessage({
         type: "SET_PROJECT",
         projectId,
         context: "parent",
@@ -99,9 +104,21 @@ export function EditorApp() {
         controllerChangeListener
       );
     };
-  }, [projectId]);
+  }, [projectId, swReady]);
 
-  if (!loggedIn || !projectId || error) {
+  if (swRegistering) {
+    return (
+      <div
+        className="d-flex flex-column justify-content-center align-items-center"
+        style={{ height: "100vh" }}
+      >
+        <Spinner animation="border" variant="secondary" />
+        <span className="ms-2 text-muted">Loading Editor...</span>
+      </div>
+    );
+  }
+
+  if (!loggedIn || !projectId || error || swError) {
     return (
       <>
         <style>
@@ -157,6 +174,22 @@ export function EditorApp() {
         </style>
 
         <div className="error-content">
+          {swError && (
+            <section>
+              <h3>
+                {swError.message.includes("not supported")
+                  ? "Browser Not Supported"
+                  : "Editor Initialization Failed"}
+              </h3>
+
+              <p>{swError.message}</p>
+
+              <button onClick={() => window.location.reload()}>
+                Refresh Page
+              </button>
+            </section>
+          )}
+
           {error && (
             <section>
               <h3>{error.name}</h3>
