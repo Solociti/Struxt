@@ -5,8 +5,12 @@ import { createRoot } from "react-dom/client";
 import { ThemeProvider } from "./bootstrap/Theme";
 import ErrorBoundary from "./components/ErrorBoundary";
 import { EditorApp } from "./editor/EditorApp";
+import { registerServiceWorker } from "./registerSW";
 
 import "./style.css";
+
+// Register Service Worker
+registerServiceWorker();
 
 // mount the application
 const root = createRoot(document.getElementById("app") as any);

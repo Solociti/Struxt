@@ -2,6 +2,7 @@ import { rteProseMirror } from "@grapesjs/studio-sdk-plugins";
 import StudioEditor from "@grapesjs/studio-sdk/react";
 import { useCurrentUser } from "client/auth/userCurrentUser";
 import { useTheme } from "client/bootstrap/Theme";
+import { registerServiceWorker } from "client/registerSW";
 import { ErrorNames } from "common/custom-error/custom-error";
 import customCodePlugin from "grapesjs-custom-code";
 import parserPostCSS from "grapesjs-parser-postcss";
@@ -9,6 +10,7 @@ import { useEffect, useState } from "react";
 import { loadCurrentUser } from "../auth/user";
 import { deleteAssets, uploadAssets } from "../projects/assets";
 import { getProject, saveProject } from "../projects/projects";
+import { canvasTweaksPlugin } from "./components/canvasTweaks";
 import { customLayout, setupStruxtPlugin } from "./plugin";
 
 // @ts-ignore
@@ -18,6 +20,9 @@ import "client/bootstrap/bootstrap.scss";
 const licenseKey = location.hostname.includes("staging.struxt")
   ? "1ec0231ce53b49dfa4d36dd2520cd5f288a40e1e231e4acca3d6c0bb59ba5f39"
   : "39b0a964ef184394a659bb8015cc8822efcbe5c371a44a9f86883d45806f1065";
+
+// ensure the that service worker is registered
+registerServiceWorker();
 
 export function EditorApp() {
   const [projectId, setProjectId] = useState<string | null>(null);
@@ -49,6 +54,10 @@ export function EditorApp() {
         }
       });
 
+    // TODO: ensure that the service worker is registered and ready before loading the content
+    // TODO: add a proper loading indicator
+    // TODO: Add an error page for when a service worker can't be registered
+
     if (projectId) {
       setProjectId(projectId);
     } else {
@@ -60,6 +69,37 @@ export function EditorApp() {
       _mounted = false;
     };
   }, []);
+
+  useEffect(() => {
+    // Register the project ID with the Service Worker for the main window (previews)
+    navigator.serviceWorker.controller?.postMessage({
+      type: "SET_PROJECT",
+      projectId,
+      context: "parent",
+    });
+
+    // Listen for new service worker claim
+
+    const controllerChangeListener = () => {
+      navigator.serviceWorker.controller?.postMessage({
+        type: "SET_PROJECT",
+        projectId,
+        context: "parent",
+      });
+    };
+
+    navigator.serviceWorker.addEventListener(
+      "controllerchange",
+      controllerChangeListener
+    );
+
+    return () => {
+      navigator.serviceWorker.removeEventListener(
+        "controllerchange",
+        controllerChangeListener
+      );
+    };
+  }, [projectId]);
 
   if (!loggedIn || !projectId || error) {
     return (
@@ -218,17 +258,14 @@ function CustomEditor({
             parserPostCSS,
             customCodePlugin,
             rteProseMirror?.init({
-              // plugins: ({ plugins }) => [
-              //   ...plugins,
-              // ],
               toolbar({ items }) {
                 return items.filter((item) => item.id !== "image");
               },
             }),
             setupStruxtPlugin,
+            canvasTweaksPlugin(projectId),
           ],
           layout: customLayout(projectId, hasPermission),
-
           assets: {
             storageType: "self",
             // Provide a custom upload handler for assets
