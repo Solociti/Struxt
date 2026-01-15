@@ -1,9 +1,12 @@
 import { customError } from "common/custom-error/custom-error";
+import { AssetModel } from "common/models/assets/AssetModel";
+import { EditorAsset } from "common/models/assets/EditorAsset";
 import { roles } from "common/models/user/Roles";
 import express from "express";
 import multer from "multer";
 import { existsSync, realpathSync, renameSync } from "node:fs";
 import { basename, extname, join, normalize, relative, sep } from "node:path";
+import { createSimpleId } from "server/utils/createId";
 import { protectEndpoint } from "../../auth/protectEndpoint";
 import { mkDirRecursive } from "../../utils/mkDir";
 import {
@@ -13,6 +16,7 @@ import {
   getUploadDir,
 } from "../../utils/uploadDir";
 import { userFromReq } from "../auth/userFromReq";
+import { saveAsset } from "./saveAsset";
 
 const projectsParentDir = getProjectsParentDir();
 const saveDir = getUploadDir("temp");
@@ -96,7 +100,7 @@ router.post(
     /**
      * The list of uploaded files
      */
-    const uploaded: { src: string }[] = [];
+    const uploaded: EditorAsset[] = [];
 
     await mkDirRecursive(join(projectsParentDir, projectId));
 
@@ -116,17 +120,28 @@ router.post(
 
       renameSync(file.path, join(getAssetDir(projectId), newFileName));
 
-      uploaded.push({
-        src: `/assets/${projectId}/${newFileName}`,
+      const uuid = await createSimpleId("asset");
+      const asset = new AssetModel({
+        uuid,
+        projectId: projectId,
+        path: `/assets/${newFileName}`,
+        displayName: newFileName,
+        isExternalSrc: false,
+        created: {
+          date: Math.floor(Date.now() / 1000),
+          userId: user.id,
+          displayName: user.name,
+        },
+        updated: {
+          date: Math.floor(Date.now() / 1000),
+          userId: user.id,
+          displayName: user.name,
+        },
       });
 
-      // save the asset to database
-      // getTable("site_assets").insert({
-      //   file_path: `/assets/${projectId}/${newFileName}`,
-      //   original_name: file.originalname,
-      //   site_id: projectId,
-      //   updated_by: "1",
-      // });
+      await saveAsset(asset);
+
+      uploaded.push(asset.getEditorAsset());
     }
 
     res.json(uploaded);

@@ -1,6 +1,7 @@
 import { Model, UserModelAction } from "../Model";
 import { DeepPartial, mergeDeep } from "../utils";
-import { isTextFile } from "./FileExtensions";
+import { EditorAsset } from "./EditorAsset";
+import { getFileType, isTextFile } from "./FileExtensions";
 
 /**
  * Keeps track of assets and their metadata.
@@ -80,6 +81,22 @@ export class AssetModel extends Model {
   clone(): AssetModel {
     const data = JSON.parse(JSON.stringify(this));
     return new AssetModel(data);
+  }
+
+  getEditorAsset(): EditorAsset {
+    const item: EditorAsset = {
+      uuid: this.uuid,
+      type: getFileType(this.getFileExtension()),
+      src: this.path,
+      name: this.displayName,
+    };
+
+    if (this.dimensions.width > 0 && this.dimensions.height > 0) {
+      item.width = this.dimensions.width;
+      item.height = this.dimensions.height;
+    }
+
+    return item;
   }
 
   /**

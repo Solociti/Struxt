@@ -106,6 +106,7 @@ async function moveAssets() {
           updated: {
             date: Math.floor(Date.now() / 1000),
           },
+          size: stats.size,
         });
         assets.push(asset);
 
@@ -121,15 +122,14 @@ async function moveAssets() {
         editorAsset.src.startsWith("https://")
       ) {
         const fullPath = editorAsset.src;
-        const isExternalSrc = true;
         const uuid = await createSimpleId("asset");
 
         const asset = new AssetModel({
           uuid,
-          projectId: projectId,
+          projectId,
           path: fullPath,
           displayName: "",
-          isExternalSrc,
+          isExternalSrc: true,
           created: { date: Math.floor(Date.now() / 1000) },
           updated: {
             date: Math.floor(Date.now() / 1000),
@@ -177,7 +177,9 @@ async function moveAssets() {
             updated: {
               date: Math.floor(Date.now() / 1000),
             },
+            size: stats.size,
           });
+
           assets.push(asset);
         } catch (err) {
           console.log(err);

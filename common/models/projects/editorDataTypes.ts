@@ -1,3 +1,5 @@
+import { EditorAsset } from "../assets/EditorAsset";
+
 interface Asset {
   type: string;
   src: string;
@@ -94,7 +96,7 @@ interface ProjectSettings {
 }
 
 export interface EditorData {
-  assets: Asset[];
+  assets: (EditorAsset | Asset)[];
   styles: Style[];
   pages: Page[];
   symbols: Symbol[];
