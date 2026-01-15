@@ -11,6 +11,8 @@ export async function getEditorAssets(projectId: string) {
   const collection = await getCollection<AssetModel>("assets");
   const cursor = collection.find({
     projectId,
+    "deleted.active": false,
+    $or: [{ isExternalSrc: true }, { path: { $regex: /^\/assets\// } }],
   });
 
   const list = await toArray(cursor);

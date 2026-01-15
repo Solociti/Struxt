@@ -4,9 +4,10 @@ import { EditorAsset } from "common/models/assets/EditorAsset";
 import { roles } from "common/models/user/Roles";
 import express from "express";
 import multer from "multer";
-import { existsSync, realpathSync, renameSync } from "node:fs";
+import { existsSync, lstatSync, realpathSync, renameSync } from "node:fs";
 import { basename, extname, join, normalize, relative, sep } from "node:path";
 import { createSimpleId } from "server/utils/createId";
+import z from "zod";
 import { protectEndpoint } from "../../auth/protectEndpoint";
 import { mkDirRecursive } from "../../utils/mkDir";
 import {
@@ -16,7 +17,10 @@ import {
   getUploadDir,
 } from "../../utils/uploadDir";
 import { userFromReq } from "../auth/userFromReq";
+import { registerApi } from "../registerApi";
 import { saveAsset } from "./saveAsset";
+import { AssetDeleteApi, AssetSaveExternalApi } from "common/api/assets/assets";
+import { deleteAsset } from "./deleteAsset";
 
 const projectsParentDir = getProjectsParentDir();
 const saveDir = getUploadDir("temp");
@@ -118,6 +122,8 @@ router.post(
         newFileName = `${originalName}-${count}${ext}`;
       }
 
+      const stats = await lstatSync(file.path);
+
       renameSync(file.path, join(getAssetDir(projectId), newFileName));
 
       const uuid = await createSimpleId("asset");
@@ -127,6 +133,7 @@ router.post(
         path: `/assets/${newFileName}`,
         displayName: newFileName,
         isExternalSrc: false,
+        size: stats.size,
         created: {
           date: Math.floor(Date.now() / 1000),
           userId: user.id,
@@ -148,8 +155,97 @@ router.post(
   }
 );
 
-router.delete("/", async (req, res) => {
-  // Handle the deletion of assets
-  // req.body contains the list of assets to delete
-  res.json({});
+registerApi<AssetSaveExternalApi>(
+  "/api/assets/save-external-asset/:projectId"
+).post([roles.struxt.editor], async ({ body, user, params }) => {
+  const { projectId } = z
+    .object({
+      projectId: z.string(),
+    })
+    .parse(params);
+
+  const { assetSrc } = z
+    .object({
+      assetSrc: z.string().startsWith("https://"),
+    })
+    .parse(body);
+
+  // check if the user has permission to edit the project
+  if (!user.hasProjectPermission(projectId, [roles.projects.edit])) {
+    throw customError(
+      403,
+      "You do not have permission to modify this project."
+    );
+  }
+
+  const uuid = await createSimpleId("asset");
+  const asset = new AssetModel({
+    uuid,
+    projectId,
+    path: assetSrc,
+    displayName: AssetModel.getFileName(assetSrc),
+    isExternalSrc: true,
+    size: 0,
+    created: {
+      date: Math.floor(Date.now() / 1000),
+      userId: user.id,
+      displayName: user.name,
+    },
+    updated: {
+      date: Math.floor(Date.now() / 1000),
+      userId: user.id,
+      displayName: user.name,
+    },
+  });
+  const success = await saveAsset(asset);
+
+  if (!success) {
+    throw customError(500, "Failed to save asset.");
+  }
+
+  return {
+    success,
+    asset: asset.getEditorAsset(),
+  };
 });
+
+registerApi<AssetDeleteApi>("/api/assets/delete/:projectId").post(
+  [roles.struxt.editor],
+  async ({ params, user, body }) => {
+    const { projectId } = z
+      .object({
+        projectId: z.string(),
+      })
+      .parse(params);
+
+    // check if the user has permission to edit the project
+    if (!user.hasProjectPermission(projectId, [roles.projects.edit])) {
+      throw customError(
+        403,
+        "You do not have permission to modify this project."
+      );
+    }
+
+    // parse the body
+    const { assets } = z
+      .object({
+        assets: z.array(
+          z.object({
+            uuid: z.string(),
+          })
+        ),
+      })
+      .parse(body);
+
+    for (const asset of assets) {
+      await deleteAsset(asset.uuid, projectId, {
+        userId: user.id,
+        displayName: user.name,
+      });
+    }
+
+    return {
+      success: true,
+    };
+  }
+);

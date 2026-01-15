@@ -1,5 +1,7 @@
 import { rteProseMirror } from "@grapesjs/studio-sdk-plugins";
+import { Editor } from "@grapesjs/studio-sdk-plugins/dist/types.js";
 import StudioEditor from "@grapesjs/studio-sdk/react";
+import { saveExternalAsset } from "client/assets/saveAssets";
 import { useCurrentUser } from "client/auth/userCurrentUser";
 import { useTheme } from "client/bootstrap/Theme";
 import { ErrorNames } from "common/custom-error/custom-error";
@@ -17,13 +19,18 @@ import { customLayout, setupStruxtPlugin } from "./plugin";
 // @ts-ignore
 import "@grapesjs/studio-sdk/style";
 import "client/bootstrap/bootstrap.scss";
+import { EditorAsset } from "common/models/assets/EditorAsset";
 
 const licenseKey = location.hostname.includes("staging.struxt")
   ? "1ec0231ce53b49dfa4d36dd2520cd5f288a40e1e231e4acca3d6c0bb59ba5f39"
   : "39b0a964ef184394a659bb8015cc8822efcbe5c371a44a9f86883d45806f1065";
 
 export function EditorApp() {
-  const { isReady: swReady, error: swError, isRegistering: swRegistering } = useServiceWorker();
+  const {
+    isReady: swReady,
+    error: swError,
+    isRegistering: swRegistering,
+  } = useServiceWorker();
   const [projectId, setProjectId] = useState<string | null>(null);
   const [loggedIn, setLoggedIn] = useState(false);
   const [error, setError] = useState<Error | null>(null);
@@ -297,6 +304,23 @@ function CustomEditor({
             }),
             setupStruxtPlugin,
             canvasTweaksPlugin(projectId),
+            // handle adding external assets
+            (editor: Editor) => {
+              editor.on("asset:add", (item) => {
+                let src = item.getSrc();
+                if (src.startsWith("http://")) {
+                  src = src.replace("http://", "https://");
+                }
+                if (src.startsWith("https://")) {
+                  saveExternalAsset(projectId, src).then((asset) => {
+                    editor.Assets.remove(item);
+                    editor.Assets.add({
+                      ...asset,
+                    });
+                  });
+                }
+              });
+            },
           ],
           layout: customLayout(projectId, hasPermission),
           assets: {
@@ -310,7 +334,9 @@ function CustomEditor({
             onDelete: async ({ assets }) => {
               await deleteAssets(
                 projectId,
-                assets.map((a) => ({ type: a.getType(), src: a.getSrc() }))
+                assets.map((a) => ({
+                  uuid: (a.attributes as EditorAsset).uuid,
+                }))
               );
             },
           },
