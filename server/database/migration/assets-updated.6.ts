@@ -30,10 +30,10 @@ export async function up() {
     {
       projectId: 1,
       path: 1,
-      name: 1,
     },
     {
       name: "unique-file-path",
+      unique: true,
     },
     false
   );
@@ -94,11 +94,14 @@ async function moveAssets() {
         await rename(oldPath, newAssetPath);
 
         const uuid = await createSimpleId("asset");
+        const fullPath = `/assets/${file}`;
+
         const asset = new AssetModel({
           uuid,
           projectId: projectId,
-          path: `/assets/`,
-          name: file,
+          path: fullPath,
+          displayName: file,
+          isExternalSrc: false,
           created: { date },
           updated: {
             date: Math.floor(Date.now() / 1000),
@@ -109,6 +112,33 @@ async function moveAssets() {
         updateAssetUrl(asset, editorData);
       } catch (err) {
         console.log(err);
+      }
+    }
+
+    for (const editorAsset of editorData.assets) {
+      if (
+        editorAsset.src.startsWith("http://") ||
+        editorAsset.src.startsWith("https://")
+      ) {
+        const fullPath = editorAsset.src;
+        const isExternalSrc = true;
+        const uuid = await createSimpleId("asset");
+
+        const asset = new AssetModel({
+          uuid,
+          projectId: projectId,
+          path: fullPath,
+          displayName: "",
+          isExternalSrc,
+          created: { date: Math.floor(Date.now() / 1000) },
+          updated: {
+            date: Math.floor(Date.now() / 1000),
+          },
+        });
+
+        asset.displayName = asset.getFileName();
+
+        assets.push(asset);
       }
     }
 
@@ -133,11 +163,16 @@ async function moveAssets() {
           await rename(oldPath, newFilePath);
 
           const uuid = await createSimpleId("asset");
+          const fullPath = `/${file}`;
+          const isExternalSrc =
+            fullPath.startsWith("http://") || fullPath.startsWith("https://");
+
           const asset = new AssetModel({
             uuid,
             projectId: projectId,
-            path: `/`,
-            name: file,
+            path: fullPath,
+            displayName: file,
+            isExternalSrc,
             created: { date },
             updated: {
               date: Math.floor(Date.now() / 1000),
@@ -173,7 +208,7 @@ function updateAssetUrl(
   asset: AssetModel,
   editorData: ProjectModel["editorData"]
 ) {
-  const currentUrl = `/assets/${asset.projectId}/${asset.name}`;
+  const currentUrl = `/assets/${asset.projectId}/${asset.displayName}`;
   const newUrl = asset.getUrl();
 
   if (currentUrl === newUrl) {

@@ -14,18 +14,24 @@ export class AssetModel extends Model {
   public projectId: string = "";
 
   /**
-   * The file name including the extension.
-   *
-   * The path + name must remain unique.
+   * The display name for the asset.
    */
-  public name: string = "";
+  public displayName: string = "";
 
   /**
-   * The parent path of the asset
+   * The full path including the filename, or the full external URL.
    *
-   * the path starts and ends with a slash
+   * For local assets: /assets/logo.png
+   * For external assets: https://example.com/image.png
+   *
+   * Must be unique per project.
    */
   public path: string = "";
+
+  /**
+   * If this assets is referencing an external source, path will be full the URL
+   */
+  public isExternalSrc: boolean = false;
 
   /**
    * The size of the asset in bytes
@@ -77,13 +83,38 @@ export class AssetModel extends Model {
   }
 
   /**
-   * Get the file extension from the name
+   * Get the file name from the path
+   *
+   * @returns
+   */
+  getFileName(): string {
+    return AssetModel.getFileName(this.path);
+  }
+
+  static getFileName(path: string): string {
+    if (!path) {
+      return "";
+    }
+
+    if (path.startsWith("http://") || path.startsWith("https://")) {
+      const url = new URL(path);
+      return decodeURIComponent(
+        url.pathname.split("/").filter(Boolean).pop() || ""
+      );
+    }
+
+    return path.split("/").filter(Boolean).pop() || "";
+  }
+
+  /**
+   * Get the file extension from the path
    *
    * @returns
    */
   getFileExtension(): string {
-    if (this.name.includes(".")) {
-      return this.name.split(".").pop() as string;
+    const fileName = this.getFileName();
+    if (fileName.includes(".")) {
+      return fileName.split(".").pop() as string;
     }
     return "";
   }
@@ -103,17 +134,6 @@ export class AssetModel extends Model {
    * @returns
    */
   getUrl(): string {
-    return AssetModel.createUrl(this.path, this.name);
-  }
-
-  static createUrl(path: string, name: string): string {
-    if (!path.startsWith("/")) {
-      path = `/${path}`;
-    }
-    if (!path.endsWith("/")) {
-      path = `${path}/`;
-    }
-
-    return `${path}${name}`;
+    return this.path;
   }
 }

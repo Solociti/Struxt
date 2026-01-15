@@ -22,8 +22,8 @@ export async function getEditorAssets(projectId: string) {
     const item: EditorAsset = {
       uuid: asset.uuid,
       type: getFileType(asset.getFileExtension()),
-      src: asset.getUrl(),
-      name: asset.name,
+      src: asset.path,
+      name: asset.displayName,
     };
 
     if (asset.dimensions.width > 0 && asset.dimensions.height > 0) {
