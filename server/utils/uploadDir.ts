@@ -1,5 +1,5 @@
 import { EnvironmentTypes } from "common/models/projects/Environment";
-import path from "node:path";
+import path, { join } from "node:path";
 import { env } from "node:process";
 
 /**
@@ -45,13 +45,48 @@ export function getCurrentBackupDir() {
 }
 
 /**
- * Get the asset directory for the given project
+ * Get the parent directory for the projects
+ *
+ * @returns
+ */
+export function getProjectsParentDir(...paths: string[]) {
+  return getUploadDir("projects", ...paths);
+}
+
+/**
+ * Get the files directory for the given project
+ *
+ * `.../projects/{projectId}/files`
  *
  * @param projectId
  * @returns
  */
-export function getAssetDir(projectId?: string) {
-  return getUploadDir("projects", projectId || "");
+export function getProjectFilesDir(projectId: string) {
+  return getProjectsParentDir(projectId, "files");
+}
+
+/**
+ * The directory that will be public when published for the given project
+ *
+ * `.../projects/{projectId}/files/public`
+ *
+ * @param projectId
+ * @returns
+ */
+export function getProjectPublicDir(projectId: string) {
+  return join(getProjectFilesDir(projectId), "public");
+}
+
+/**
+ * Get the asset directory for the given project
+ *
+ * `.../projects/{projectId}/files/public/assets`
+ *
+ * @param projectId
+ * @returns
+ */
+export function getAssetDir(projectId: string) {
+  return join(getProjectPublicDir(projectId), "assets");
 }
 
 /**

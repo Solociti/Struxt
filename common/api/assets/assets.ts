@@ -1,3 +1,4 @@
+import { EditorAsset } from "common/models/assets/EditorAsset";
 import { Api } from "../api";
 
 export interface AssetApi extends Api {
@@ -11,9 +12,25 @@ export interface AssetApi extends Api {
   PostBody: FormData;
 
   PostResponse: {
-    assets: {
-      src: string;
-    }[];
+    assets: EditorAsset[];
+  };
+}
+
+export interface AssetSaveExternalApi extends Api {
+  Endpoint: "/api/assets/save-external-asset/:projectId";
+  EndpointParts: ["/api/assets/save-external-asset", string];
+
+  UrlParams: {
+    projectId: string;
+  };
+
+  PostBody: {
+    assetSrc: string;
+  };
+
+  PostResponse: {
+    success: boolean;
+    asset: EditorAsset;
   };
 }
 
@@ -26,10 +43,7 @@ export interface AssetDeleteApi extends Api {
   };
 
   PostBody: {
-    assets: {
-      type: string;
-      src: string;
-    }[];
+    assets: { uuid: string }[];
   };
 
   PostResponse: {

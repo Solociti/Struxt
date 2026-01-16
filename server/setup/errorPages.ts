@@ -19,8 +19,13 @@ export function registerErrorPage(app: Express) {
 
   // Error handling middleware for general errors
   app.use((err: Error, req: Request, res: Response, next: NextFunction) => {
-    console.error(err.stack);
     const statusCode = err.status || err.statusCode || 500;
+
+    if ([400, 401, 402, 403, 404].includes(statusCode)) {
+      console.log(`[HTTP ${statusCode}]`, err.name, req.url);
+    } else {
+      console.error(`[HTTP ${statusCode}]`, req.url, err.stack);
+    }
 
     res.status(statusCode).render("error", {
       statusCode: statusCode,

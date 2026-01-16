@@ -1,10 +1,28 @@
 import react from "@vitejs/plugin-react";
 import { resolve } from "path";
 import { defineConfig } from "vite";
+import { VitePWA } from "vite-plugin-pwa";
 import svgLoader from "vite-svg-loader";
 
 export default defineConfig({
-  plugins: [react(), svgLoader()],
+  plugins: [
+    react(),
+    svgLoader(),
+    VitePWA({
+      strategies: "injectManifest",
+      srcDir: "src",
+      filename: "sw.ts",
+      injectRegister: false,
+      manifest: false,
+      injectManifest: {
+        injectionPoint: undefined,
+      },
+      devOptions: {
+        enabled: true,
+        type: "module",
+      },
+    }),
+  ],
   build: {
     sourcemap: true,
     rollupOptions: {
