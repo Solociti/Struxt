@@ -34,6 +34,7 @@ describe("AssetModel", () => {
         date: 0,
         displayName: "",
         userId: "",
+        originalPath: "",
       },
     });
   });
@@ -82,6 +83,7 @@ describe("AssetModel", () => {
         date: 0,
         displayName: "",
         userId: "",
+        originalPath: "",
       },
     });
   });
