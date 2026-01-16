@@ -166,9 +166,13 @@ router.post(
         uploaded.push(asset.getEditorAsset());
       } catch (err: Error | unknown) {
         if (renamed && !saved) {
-          unlink(newFilePath);
+          await unlink(newFilePath).catch((err) => {
+            console.error("Failed to cleanup temp file:", err);
+          });
         } else if (!renamed) {
-          unlink(file.path);
+          await unlink(file.path).catch((err) => {
+            console.error("Failed to cleanup temp file:", err);
+          });
         }
 
         if (err instanceof Error) {

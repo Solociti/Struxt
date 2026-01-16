@@ -6,7 +6,7 @@ import { join } from "node:path";
 import { getCollection, toArray } from "server/database/mongodb";
 import { getProjectFilesDir } from "server/utils/uploadDir";
 
-const RETENTION_DAYS = 0;
+const RETENTION_DAYS = 7;
 
 /**
  * Purge assets that have been deleted for more than RETENTION_DAYS
