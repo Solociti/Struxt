@@ -24,6 +24,7 @@ declare global {
 /**
  * Create a custom error with the provided status, message, and name.
  *
+ * `400 Bad Request`
  * `401 Unauthorized`
  * `402 Payment Required`
  * `403 Forbidden`

@@ -59,11 +59,12 @@ export class AssetModel extends Model {
     displayName: "",
   };
 
-  public deleted: UserModelAction = {
+  public deleted: UserModelAction & { originalPath: string } = {
     active: false,
     date: 0,
     userId: "",
     displayName: "",
+    originalPath: "",
   };
 
   constructor(data?: DeepPartial<AssetModel>) {
