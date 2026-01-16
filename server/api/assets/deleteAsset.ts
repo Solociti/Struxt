@@ -71,29 +71,42 @@ export async function restoreAsset(uuid: string, projectId: string) {
     throw customError(404, "Asset not found.");
   }
 
-  if (!asset.deleted.active || !asset.deleted.originalPath) {
+  if (!asset.deleted.active) {
     throw customError(400, "Could not restore file. Asset is not in trash.");
   }
 
-  // check if a file with the same name exists first
-  const filePath = join(
-    getProjectPublicDir(projectId),
-    asset.deleted.originalPath
-  );
-  const trashFilePath = join(getProjectFilesDir(projectId), asset.path);
+  if (!asset.isExternalSrc) {
+    if (!asset.deleted.originalPath) {
+      throw customError(
+        500,
+        "Could not restore file. Original path not found."
+      );
+    }
 
-  if (existsSync(filePath)) {
-    throw customError(400, "Could not restore file. Asset already exists.");
+    // check if a file with the same name exists first
+    const filePath = join(
+      getProjectPublicDir(projectId),
+      asset.deleted.originalPath
+    );
+    const trashFilePath = join(getProjectFilesDir(projectId), asset.path);
+
+    if (existsSync(filePath)) {
+      throw customError(400, "Could not restore file. Asset already exists.");
+    }
+
+    if (!existsSync(trashFilePath)) {
+      throw customError(
+        500,
+        "Could not restore file. Asset not found in trash."
+      );
+    }
+
+    // move the file back to the original location
+    await rename(trashFilePath, filePath);
+
+    asset.path = asset.deleted.originalPath;
   }
 
-  if (!existsSync(trashFilePath)) {
-    throw customError(400, "Could not restore file. Asset not found in trash.");
-  }
-
-  // move the file back to the original location
-  await rename(trashFilePath, filePath);
-
-  asset.path = asset.deleted.originalPath;
   asset.deleted.active = false;
   asset.deleted.originalPath = "";
 

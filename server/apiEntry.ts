@@ -29,6 +29,7 @@ import "server/core/cronQueue";
 import "server/utils/geoLocation";
 
 // imports for workers
+import "server/api/assets/worker";
 import "server/api/projects/queues/projectWorker";
 import "server/api/projects/snapshots/worker";
 import "server/api/publish/worker";
