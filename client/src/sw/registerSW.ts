@@ -17,7 +17,7 @@ export function isServiceWorkerSupported(): boolean {
 export function getRegistrationError(): Error | null {
   if (!isServiceWorkerSupported()) {
     return new Error(
-      "Service Worker API is not supported in this browser. Please use a modern browser."
+      "Service Worker API is not supported in this browser. Please use a modern browser.",
     );
   }
   return registrationError;
@@ -72,20 +72,18 @@ export async function waitForServiceWorker(): Promise<boolean> {
 async function registerServiceWorker(attempt: number = 0): Promise<void> {
   if (!isServiceWorkerSupported()) {
     registrationError = new Error(
-      "Service Worker API is not supported in this browser. Please use a modern browser."
+      "Service Worker API is not supported in this browser. Please use a modern browser.",
     );
     return;
   }
 
   try {
     registration = await navigator.serviceWorker.register(
-      import.meta.env.MODE === "production"
-        ? "/service-worker.js"
-        : "/dev-sw.js?dev-sw",
+      import.meta.env.MODE === "production" ? "/sw.js" : "/dev-sw.js?dev-sw",
       {
         type: import.meta.env.MODE === "production" ? "classic" : "module",
         scope: "/",
-      }
+      },
     );
 
     await navigator.serviceWorker.ready;
