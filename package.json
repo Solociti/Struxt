@@ -6,6 +6,7 @@
   "scripts": {
     "test": "vitest",
     "posttest": "npm run check-node-version",
+    "test:server-build": "docker build -f ./build.Dockerfile --progress=plain .",
     "predev": "npm run check-node-version",
     "dev": "cd client && vite",
     "build": "tsc && cd client && vite build",
@@ -42,6 +43,7 @@
     "@vitejs/plugin-react": "^4.7.0",
     "babel-plugin-module-extension-resolver": "^1.0.0",
     "babel-plugin-module-resolver": "^5.0.2",
+    "bootstrap": "^5.3.8",
     "chalk": "^5.6.2",
     "chart.js": "^4.5.1",
     "grapesjs-custom-code": "^1.0.2",
@@ -75,7 +77,6 @@
     "@langchain/openai": "^0.6.17",
     "@popperjs/core": "^2.11.8",
     "axios": "^1.13.2",
-    "bootstrap": "^5.3.8",
     "bullmq": "^5.66.5",
     "cheerio": "^1.1.2",
     "connect-mongodb-session": "^5.0.0",

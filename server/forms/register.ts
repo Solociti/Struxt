@@ -37,7 +37,7 @@ router.post(
     // this has to go though a proxy server
 
     const redirect = req.query.redirect as string | "";
-    const projectId = req.params.projectId;
+    const projectId = req.params.projectId as string;
     const projectEnv = req.params.projectEnv as "staging" | "production";
     const files = Array.isArray((req as any).files) ? (req as any).files : [];
 
@@ -118,7 +118,7 @@ router.post(
       "Form Name:",
       formName,
       "Project ID:",
-      projectId
+      projectId,
     );
 
     // schedule the email sending
@@ -129,5 +129,5 @@ router.post(
     } else {
       res.json({ message: "Form submission successful!", success: true });
     }
-  }
+  },
 );
