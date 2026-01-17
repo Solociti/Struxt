@@ -3,9 +3,10 @@ import { EditorSnapshotModel } from "./EditorSnapshot";
 
 describe("EditorSnapshotModel", () => {
   test("should initialize with default values", () => {
+    const date = Math.floor(Date.now() / 1000);
     const model = new EditorSnapshotModel();
 
-    expect(model.created.date).toBeLessThanOrEqual(Date.now() / 1000);
+    expect(model.created.date).toBeGreaterThanOrEqual(date);
 
     expect(model).toEqual({
       created: {

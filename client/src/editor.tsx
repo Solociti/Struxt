@@ -5,6 +5,7 @@ import { createRoot } from "react-dom/client";
 import { ThemeProvider } from "./bootstrap/Theme";
 import ErrorBoundary from "./components/ErrorBoundary";
 import { EditorApp } from "./editor/EditorApp";
+import "./sw/registerSW";
 
 import "./style.css";
 

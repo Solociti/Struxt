@@ -4,6 +4,7 @@ export type IdCounterName =
   | "ai_pilot"
   | "ai_pilot_chat"
   | "ai_pilot_prompt"
+  | "asset"
   | "submission"
   | "project"
   | "publish"

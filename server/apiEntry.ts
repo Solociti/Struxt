@@ -6,7 +6,7 @@ import express, { NextFunction, Request, Response } from "express";
 import { createServer } from "node:http";
 import {
   router as assetsRouter,
-  staticFiles as assetStaticFiles,
+  staticFilesRouter as assetStaticFiles,
 } from "server/api/assets/register";
 import { userFromReq } from "server/api/auth/userFromReq";
 import { protectEndpoint } from "server/auth/protectEndpoint";
@@ -30,6 +30,7 @@ import "server/utils/geoLocation";
 import "server/routines/queue/queue";
 
 // imports for workers
+import "server/api/assets/worker";
 import "server/api/projects/queues/projectWorker";
 import "server/api/projects/snapshots/worker";
 import "server/api/publish/worker";

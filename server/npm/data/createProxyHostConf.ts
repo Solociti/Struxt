@@ -11,7 +11,7 @@ import { ProxyHostUpdate } from "../types";
 export function getProxyForwardHostUrl(
   projectId: string,
   projectEnv: EnvironmentTypes,
-  publishId: string
+  publishId: string,
 ): string {
   return `http://web-host:3000/sites/${projectId}/${projectEnv}/${publishId}/`;
 }
@@ -110,6 +110,13 @@ export function createEditorProxyPaths() {
       advanced_config: ["# -- End of struxt config --"].join("\n"),
       forward_scheme: "http",
       forward_host: "web-host/dashboard",
+      forward_port: 3000,
+    },
+    {
+      path: "/sw.js",
+      advanced_config: ["# -- End of struxt config --"].join("\n"),
+      forward_scheme: "http",
+      forward_host: "web-host/sw.js",
       forward_port: 3000,
     },
     {
