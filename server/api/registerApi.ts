@@ -107,7 +107,7 @@ export function registerApi<T extends Api>(
             req,
             res,
             user,
-            params: sanitizeObject(req.params),
+            params: sanitizeObject(req.params) as T["UrlParams"],
             query: sanitizeObject(
               req.query,
               getOptions.querySanitization
@@ -149,8 +149,11 @@ export function registerApi<T extends Api>(
             req,
             res,
             user,
-            params: sanitizeObject(req.params),
-            body: sanitizeObject(req.body, postOptions.bodySanitization),
+            params: sanitizeObject(req.params) as T["UrlParams"],
+            body: sanitizeObject(
+              req.body,
+              postOptions.bodySanitization
+            ) as T["PostBody"],
           };
 
           // process the request.
@@ -188,8 +191,11 @@ export function registerApi<T extends Api>(
             req,
             res,
             user,
-            params: sanitizeObject(req.params),
-            body: sanitizeObject(req.body, putOptions.bodySanitization),
+            params: sanitizeObject(req.params) as T["UrlParams"],
+            body: sanitizeObject(
+              req.body,
+              putOptions.bodySanitization
+            ) as T["PutBody"],
           };
 
           // process the request.
@@ -228,7 +234,7 @@ export function registerApi<T extends Api>(
             req,
             res,
             user,
-            params: sanitizeObject(req.params),
+            params: sanitizeObject(req.params) as T["UrlParams"],
             query: sanitizeObject(
               req.query,
               deleteOptions.querySanitization

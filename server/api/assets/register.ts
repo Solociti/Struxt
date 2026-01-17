@@ -48,7 +48,7 @@ staticFilesRouter.get("/:projectId/*filePath", async (req, res) => {
     throw customError(
       403,
       "You do not have permission to access this project.",
-      "Forbidden"
+      "Forbidden",
     );
   }
 
@@ -94,7 +94,7 @@ router.post(
   "/upload/:projectId",
   upload.array("files", 25),
   async (req, res) => {
-    const projectId = req.params.projectId;
+    const projectId = req.params.projectId as string;
     const files = Array.isArray((req as any).files) ? (req as any).files : [];
 
     const user = await userFromReq(req);
@@ -102,7 +102,7 @@ router.post(
       throw customError(
         403,
         "You do not have permission to modify this project.",
-        "Forbidden"
+        "Forbidden",
       );
     }
 
@@ -190,11 +190,11 @@ router.post(
     };
 
     res.json(response);
-  }
+  },
 );
 
 registerApi<AssetSaveExternalApi>(
-  "/api/assets/save-external-asset/:projectId"
+  "/api/assets/save-external-asset/:projectId",
 ).post([roles.struxt.editor], async ({ body, user, params }) => {
   const { projectId } = z
     .object({
@@ -212,7 +212,7 @@ registerApi<AssetSaveExternalApi>(
   if (!user.hasProjectPermission(projectId, [roles.projects.edit])) {
     throw customError(
       403,
-      "You do not have permission to modify this project."
+      "You do not have permission to modify this project.",
     );
   }
 
@@ -260,7 +260,7 @@ registerApi<AssetDeleteApi>("/api/assets/delete/:projectId").post(
     if (!user.hasProjectPermission(projectId, [roles.projects.edit])) {
       throw customError(
         403,
-        "You do not have permission to modify this project."
+        "You do not have permission to modify this project.",
       );
     }
 
@@ -270,7 +270,7 @@ registerApi<AssetDeleteApi>("/api/assets/delete/:projectId").post(
         assets: z.array(
           z.object({
             uuid: z.string(),
-          })
+          }),
         ),
       })
       .parse(body);
@@ -285,5 +285,5 @@ registerApi<AssetDeleteApi>("/api/assets/delete/:projectId").post(
     return {
       success: true,
     };
-  }
+  },
 );
