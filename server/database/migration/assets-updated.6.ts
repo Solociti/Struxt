@@ -22,7 +22,7 @@ export async function up() {
       name: "unique",
       unique: true,
     },
-    false
+    false,
   );
 
   await createIndex(
@@ -35,7 +35,7 @@ export async function up() {
       name: "unique-file-path",
       unique: true,
     },
-    false
+    false,
   );
 
   // move all of the assets from the old directory to the new directory
@@ -53,11 +53,12 @@ async function moveAssets() {
     {},
     {
       projection: { projectId: 1, editorData: 1 },
-    }
+    },
   );
-  const projectList = await toArray<
-    Pick<ProjectModel, "projectId" | "editorData">
-  >(projectListCursor);
+  const projectList =
+    await toArray<Pick<ProjectModel, "projectId" | "editorData">>(
+      projectListCursor,
+    );
 
   const assetCollection = await getCollection<AssetModel>("assets");
 
@@ -196,7 +197,7 @@ async function moveAssets() {
         $set: {
           editorData,
         },
-      }
+      },
     );
 
     if (assets.length > 0) {
@@ -208,10 +209,10 @@ async function moveAssets() {
 
 function updateAssetUrl(
   asset: AssetModel,
-  editorData: ProjectModel["editorData"]
+  editorData: ProjectModel["editorData"],
 ) {
   const currentUrl = `/assets/${asset.projectId}/${asset.displayName}`;
-  const newUrl = asset.getUrl();
+  const newUrl = asset.path;
 
   if (currentUrl === newUrl) {
     return;

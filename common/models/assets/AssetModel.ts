@@ -31,7 +31,7 @@ export class AssetModel extends Model {
   /**
    * The full path including the filename, or the full external URL.
    *
-   * For local assets: /assets/logo.png
+   * For local assets: /public/assets/logo.png
    * For external assets: https://example.com/image.png
    *
    * Must be unique per project.
@@ -97,7 +97,7 @@ export class AssetModel extends Model {
     const item: EditorAsset = {
       uuid: this.uuid,
       type: getFileType(this.getFileExtension()),
-      src: this.path,
+      src: this.getPublicUrl(),
       name: this.displayName,
     };
 
@@ -156,12 +156,23 @@ export class AssetModel extends Model {
   }
 
   /**
-   * Get the URL for the asset
+   * Get the public facing URL for the asset.
+   * Assets that are not saved withing /public are going to return a blank string.
+   *
+   * This is used to get the URL for grapesjs.
    *
    * @returns
    */
-  getUrl(): string {
-    return this.path;
+  getPublicUrl(): string {
+    if (this.isExternalSrc) {
+      return this.path;
+    }
+
+    if (this.path.startsWith("/public")) {
+      return this.path.replace("/public", "");
+    }
+
+    return "";
   }
 
   /**
