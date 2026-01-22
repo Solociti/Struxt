@@ -97,6 +97,8 @@ assetFilesRouter.put("/:projectId/:uuid", async (req, res) => {
     throw customError(404, "Asset not found.");
   }
 
+  // TODO: check for external asset. Throw error if it's external.
+
   const projectFilesDir = getProjectFilesDir(projectId);
   const filePath = join(projectFilesDir, asset.path);
 

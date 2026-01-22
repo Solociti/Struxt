@@ -91,13 +91,13 @@ export function DashboardSidebar() {
             <Nav.Link
               className={
                 "text-light" +
-                (location.pathname === "/routines" ? " bg-primary bg-600" : "")
+                (location.pathname === "/assets" ? " bg-primary bg-600" : "")
               }
-              href="#/routines"
-              active={location.pathname === "/routines"}
+              href="#/assets"
+              active={location.pathname === "/assets"}
             >
-              <MaterialIcon>automation</MaterialIcon>
-              Routines
+              <MaterialIcon>snippet_folder</MaterialIcon>
+              Assets
             </Nav.Link>
           </Nav.Item>
 
