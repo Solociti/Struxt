@@ -5,4 +5,3 @@ import "server/api/projects/invites/register";
 import "server/api/projects/register";
 import "server/api/publish/register";
 import "server/api/aiPilot/register";
-import "server/api/routines/register";

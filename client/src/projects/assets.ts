@@ -1,4 +1,4 @@
-import { AssetApi, AssetDeleteApi } from "common/api/assets/assets";
+import { AssetUploadApi, AssetDeleteApi } from "common/api/assets/assets";
 import { postApi } from "../api/api";
 
 /**
@@ -14,9 +14,9 @@ export async function uploadAssets(projectId: string, files: File[]) {
     body.append("files", file);
   }
 
-  const response = await postApi<AssetApi>(
+  const response = await postApi<AssetUploadApi>(
     ["/api/assets/upload", projectId],
-    body
+    body,
   );
 
   return response;
@@ -31,13 +31,13 @@ export async function uploadAssets(projectId: string, files: File[]) {
  */
 export async function deleteAssets(
   projectId: string,
-  assets: AssetDeleteApi["PostBody"]["assets"]
+  assets: AssetDeleteApi["PostBody"]["assets"],
 ) {
   const response = await postApi<AssetDeleteApi>(
     ["/api/assets/delete", projectId],
     {
       assets,
-    }
+    },
   );
 
   return response;

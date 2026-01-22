@@ -3,6 +3,15 @@ import { DeepPartial, mergeDeep } from "../utils";
 import { EditorAsset } from "./EditorAsset";
 import { getFileType, isTextFile } from "./FileExtensions";
 
+export interface AssetListItem {
+  uuid: string;
+
+  displayName: string;
+  path: string;
+
+  updated: AssetModel["updated"];
+}
+
 /**
  * Keeps track of assets and their metadata.
  */
@@ -117,7 +126,7 @@ export class AssetModel extends Model {
     if (path.startsWith("http://") || path.startsWith("https://")) {
       const url = new URL(path);
       return decodeURIComponent(
-        url.pathname.split("/").filter(Boolean).pop() || ""
+        url.pathname.split("/").filter(Boolean).pop() || "",
       );
     }
 
@@ -153,5 +162,19 @@ export class AssetModel extends Model {
    */
   getUrl(): string {
     return this.path;
+  }
+
+  /**
+   * Create a list item for the routine.
+   *
+   * @returns
+   */
+  getListItem(): AssetListItem {
+    return {
+      uuid: this.uuid,
+      displayName: this.displayName,
+      path: this.path,
+      updated: this.updated,
+    };
   }
 }

@@ -1,5 +1,9 @@
-import { AssetModel } from "common/models/assets/AssetModel";
-import { getCollection, toArray } from "server/database/mongodb";
+import { AssetListItem, AssetModel } from "common/models/assets/AssetModel";
+import {
+  getCollection,
+  objectToProjection,
+  toArray,
+} from "server/database/mongodb";
 
 /**
  * Get the given asset from the database
@@ -40,4 +44,26 @@ export async function getEditorAssets(projectId: string) {
     const asset = new AssetModel(doc);
     return asset.getEditorAsset();
   });
+}
+
+/**
+ * Get the list of assets for the given project specifically for the visual editor
+ *
+ * @param projectId
+ * @returns
+ */
+export async function getAssetList(projectId: string) {
+  const collection = await getCollection<AssetModel>("assets");
+  const cursor = collection.find(
+    {
+      projectId,
+      isExternalSrc: false,
+    },
+    {
+      projection: objectToProjection(new AssetModel().getListItem()),
+    },
+  );
+
+  const list = await toArray(cursor);
+  return list as AssetListItem[];
 }

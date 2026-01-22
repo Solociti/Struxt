@@ -88,7 +88,7 @@ export function getMongoClient(): MongoClient {
  * Get the collection from the database
  */
 export async function getCollection<T>(
-  name: CollectionNames
+  name: CollectionNames,
 ): Promise<Collection<DataPropsOnly<T>>> {
   // get the database
   const db = await getDb();
@@ -105,7 +105,7 @@ export async function getCollection<T>(
  * @returns
  */
 export async function toArray<T>(
-  cursor: FindCursor<T> | AggregationCursor<T>
+  cursor: FindCursor<T> | AggregationCursor<T>,
 ): Promise<T[]> {
   const results: T[] = [];
   for await (const doc of cursor) {
@@ -118,7 +118,7 @@ export async function createIndex(
   name: CollectionNames,
   index: IndexSpecification,
   options: CreateIndexesOptions & { name: string },
-  replaceExisting?: boolean
+  replaceExisting?: boolean,
 ): Promise<string> {
   const db = await getDb();
 
@@ -149,4 +149,23 @@ export async function createIndex(
 
   // create the index
   return await collection.createIndex(index, options);
+}
+
+/**
+ * Convert an object to a projection
+ *
+ * @param obj
+ * @returns
+ */
+export function objectToProjection<T extends object>(
+  obj: T,
+): {
+  [P in keyof T]: 1 | -1;
+} {
+  const keys = Object.keys(obj) as (keyof T)[];
+  const projection: { [P in keyof T]: 1 | -1 } = {} as any;
+  for (const key of keys) {
+    projection[key] = 1;
+  }
+  return projection;
 }
