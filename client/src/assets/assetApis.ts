@@ -1,11 +1,11 @@
 import { getApi, postApi } from "client/api/api";
-import { AssetModel } from "common/models/assets/AssetModel";
 import {
   AssetApi,
-  AssetListFilesApi,
   AssetCreateApi,
+  AssetListFilesApi,
   AssetSaveExternalApi,
 } from "common/api/assets/assets";
+import { AssetModel } from "common/models/assets/AssetModel";
 
 /**
  * Get the asset metadata for the provided project and uuid.
@@ -63,13 +63,13 @@ export async function saveAssetContent(
  */
 export async function createNewAsset(
   projectId: string,
-  values: { displayName: string; path: string },
+  values: AssetCreateApi["PostBody"],
 ) {
   const response = await postApi<AssetCreateApi>(
     ["/api/assets/create", projectId],
     values,
   );
-  return response.asset;
+  return new AssetModel(response.asset);
 }
 
 export async function saveExternalAsset(projectId: string, assetSrc: string) {

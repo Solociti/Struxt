@@ -6,7 +6,7 @@ import { roles } from "common/models/user/Roles";
 import express from "express";
 import multer from "multer";
 import { existsSync, lstatSync, realpathSync } from "node:fs";
-import { rename, unlink } from "node:fs/promises";
+import { lstat, rename, unlink } from "node:fs/promises";
 import { basename, extname, join, normalize } from "node:path";
 import { pipeline } from "node:stream/promises";
 import { isPathInside } from "server/hfs/path";
@@ -18,15 +18,13 @@ import { mkDirRecursive } from "../../utils/mkDir";
 import {
   getAssetDir,
   getProjectFilesDir,
-  getProjectsParentDir,
   getUploadDir,
 } from "../../utils/uploadDir";
 import { userFromReq } from "../auth/userFromReq";
 import "./apiRegister";
 import { getAsset } from "./getAssets";
-import { saveAsset, updateUpdatedDate } from "./saveAsset";
+import { saveAsset } from "./saveAsset";
 
-const projectsParentDir = getProjectsParentDir();
 const saveDir = getUploadDir("temp");
 
 const upload = multer({ dest: saveDir });
@@ -98,6 +96,7 @@ assetFilesRouter.put("/:projectId/:uuid", async (req, res) => {
   }
 
   // TODO: check for external asset. Throw error if it's external.
+  // TODO: check for storage budget. Throw error if it's over the budget.
 
   const projectFilesDir = getProjectFilesDir(projectId);
   const filePath = join(projectFilesDir, asset.path);
@@ -108,13 +107,16 @@ assetFilesRouter.put("/:projectId/:uuid", async (req, res) => {
 
   await pipeline(req, writeStream);
 
+  const stats = await lstat(filePath);
+
   asset.updated = {
     ...asset.updated,
     date: Math.floor(Date.now() / 1000),
     userId: user.id,
     displayName: user.name,
   };
-  await updateUpdatedDate(uuid, projectId, asset.updated);
+  asset.size = stats.size;
+  await saveAsset(asset);
 
   res.json({
     success: true,
@@ -155,7 +157,7 @@ router.post(
     const uploaded: EditorAsset[] = [];
     const errors: Error[] = [];
 
-    await mkDirRecursive(join(projectsParentDir, projectId));
+    await mkDirRecursive(getProjectFilesDir(projectId));
 
     for (const file of files) {
       let renamed = false;
@@ -187,7 +189,7 @@ router.post(
         const asset = new AssetModel({
           uuid,
           projectId: projectId,
-          path: `/assets/${newFileName}`,
+          path: `/public/assets/${newFileName}`,
           displayName: newFileName,
           isExternalSrc: false,
           size: stats.size,

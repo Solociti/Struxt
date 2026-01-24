@@ -20,6 +20,9 @@ export interface AssetUploadApi extends Api {
   };
 }
 
+/**
+ * Gets the metadata for the given asset.
+ */
 export interface AssetApi extends Api {
   Endpoint: "/api/assets/model/:projectId";
   EndpointParts: ["/api/assets/model", string];
@@ -63,7 +66,7 @@ export interface AssetCreateApi extends Api {
     projectId: string;
   };
 
-  PostBody: Pick<AssetModel, "displayName" | "path">;
+  PostBody: Pick<AssetModel, "path">;
   PostResponse: {
     success: boolean;
     asset: AssetModel;

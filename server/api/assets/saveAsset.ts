@@ -1,6 +1,5 @@
 import { customError } from "common/custom-error/custom-error";
 import { AssetModel } from "common/models/assets/AssetModel";
-import { UserModelAction } from "common/models/Model";
 import { getCollection } from "server/database/mongodb";
 
 /**
@@ -37,34 +36,4 @@ export async function saveAsset(asset: AssetModel) {
     }
     throw err;
   }
-}
-
-/**
- * Update the updated date for the asset
- *
- * @param uuid
- * @param projectId
- * @param action
- * @returns
- */
-export async function updateUpdatedDate(
-  uuid: string,
-  projectId: string,
-  action: Omit<UserModelAction, "active">,
-) {
-  const collection = await getCollection<AssetModel>("assets");
-
-  const result = await collection.updateOne(
-    {
-      uuid,
-      projectId,
-    },
-    {
-      $set: {
-        updated: action,
-      },
-    },
-  );
-
-  return result.modifiedCount > 0;
 }

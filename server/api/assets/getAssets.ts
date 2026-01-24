@@ -57,7 +57,6 @@ export async function getAssetList(projectId: string) {
   const cursor = collection.find(
     {
       projectId,
-      isExternalSrc: false,
     },
     {
       projection: objectToProjection(new AssetModel().getListItem()),

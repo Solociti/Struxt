@@ -9,6 +9,8 @@ export interface AssetListItem {
   displayName: string;
   path: string;
 
+  isExternalSrc: boolean;
+
   updated: AssetModel["updated"];
 }
 
@@ -185,6 +187,7 @@ export class AssetModel extends Model {
       uuid: this.uuid,
       displayName: this.displayName,
       path: this.path,
+      isExternalSrc: this.isExternalSrc,
       updated: this.updated,
     };
   }

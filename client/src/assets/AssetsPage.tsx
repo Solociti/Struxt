@@ -4,8 +4,9 @@ import ErrorBoundary from "client/components/ErrorBoundary";
 import MaterialIcon from "client/components/MaterialIcon";
 import { ShowError } from "client/components/ShowError";
 import { useCurrentProject } from "client/projects/ProjectContext";
+import { centerTruncateText } from "common/format/text";
 import { AssetListItem, AssetModel } from "common/models/assets/AssetModel";
-import { isTextFile, getFileType } from "common/models/assets/FileExtensions";
+import { getFileType, isTextFile } from "common/models/assets/FileExtensions";
 import { Suspense, useState } from "react";
 import Nav from "react-bootstrap/Nav";
 import Spinner from "react-bootstrap/Spinner";
@@ -164,9 +165,10 @@ export default function AssetsPage() {
                       eventKey={asset.uuid}
                       className="d-flex px-2 align-items-center cursor-pointer"
                       as="div"
+                      title={asset.displayName}
                     >
                       <FileIcon extension={extension} />
-                      {asset.displayName}
+                      {centerTruncateText(asset.displayName, 15)}
                       {isActive && (
                         <MaterialIcon
                           style={{ fontSize: "1.15em" }}
@@ -222,36 +224,33 @@ export default function AssetsPage() {
                   }}
                 >
                   {/* Render based on type */}
-                  {editAsset.isExternalSrc ? (
-                    <div className="d-flex justify-content-center align-items-center h-100 flex-column">
-                      <MaterialIcon style={{ fontSize: "3rem" }}>
-                        link
-                      </MaterialIcon>
-                      <h4 className="mt-2">External Asset</h4>
-                      <p>
-                        <a
-                          href={editAsset.path}
-                          target="_blank"
-                          rel="noreferrer"
-                        >
-                          {editAsset.path}
-                        </a>
-                      </p>
-                    </div>
-                  ) : (
-                    (() => {
-                      const ext = editAsset.path.split(".").pop() || "";
-                      if (isTextFile(ext)) {
-                        return (
-                          <CodeEditor
-                            content={editContent}
-                            filePath={editAsset.path}
-                            onSave={handleSave}
-                          />
-                        );
-                      } else if (getFileType(ext) === "image") {
-                        return (
-                          <div className="d-flex justify-content-center align-items-center h-100 bg-light">
+                  {(() => {
+                    const ext = editAsset.getFileExtension();
+
+                    if (isTextFile(ext) && !editAsset.isExternalSrc) {
+                      return (
+                        <CodeEditor
+                          content={editContent}
+                          filePath={editAsset.path}
+                          onSave={handleSave}
+                        />
+                      );
+                    } else if (getFileType(ext) === "image") {
+                      return (
+                        <div className="d-flex flex-column h-100 p-2">
+                          {editAsset.isExternalSrc ? (
+                            <div className="d-flex p-2 align-items-center border rounded gap-1">
+                              <MaterialIcon>link</MaterialIcon>
+                              <a
+                                href={editAsset.path}
+                                target="_blank"
+                                rel="noreferrer"
+                              >
+                                {editAsset.path}
+                              </a>
+                            </div>
+                          ) : null}
+                          <div className="d-flex justify-content-center align-items-center h-100">
                             <img
                               src={getAssetUrl(editAsset, project.projectId)}
                               alt={editAsset.displayName}
@@ -262,21 +261,39 @@ export default function AssetsPage() {
                               }}
                             />
                           </div>
-                        );
-                      } else {
-                        return (
-                          <div className="d-flex justify-content-center align-items-center h-100 flex-column text-muted">
-                            <MaterialIcon style={{ fontSize: "3rem" }}>
-                              insert_drive_file
-                            </MaterialIcon>
-                            <p className="mt-2">
-                              Preview not available for this file type.
-                            </p>
-                          </div>
-                        );
-                      }
-                    })()
-                  )}
+                        </div>
+                      );
+                    } else if (editAsset.isExternalSrc) {
+                      return (
+                        <div className="d-flex justify-content-center align-items-center h-100 flex-column">
+                          <MaterialIcon style={{ fontSize: "3rem" }}>
+                            link
+                          </MaterialIcon>
+                          <h4 className="mt-2">External Asset</h4>
+                          <p>
+                            <a
+                              href={editAsset.path}
+                              target="_blank"
+                              rel="noreferrer"
+                            >
+                              {editAsset.path}
+                            </a>
+                          </p>
+                        </div>
+                      );
+                    } else {
+                      return (
+                        <div className="d-flex justify-content-center align-items-center h-100 flex-column text-muted">
+                          <MaterialIcon style={{ fontSize: "3rem" }}>
+                            insert_drive_file
+                          </MaterialIcon>
+                          <p className="mt-2">
+                            Preview not available for this file type.
+                          </p>
+                        </div>
+                      );
+                    }
+                  })()}
                 </div>
               </Suspense>
             )}

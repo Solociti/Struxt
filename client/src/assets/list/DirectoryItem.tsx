@@ -42,19 +42,21 @@ export function DirectoryItem({
         {dir.name}
 
         <div className="d-flex flex-grow-1 justify-content-end modify-dir-btns">
-          <IconButton
-            variant=""
-            size="sm"
-            className="p-0"
-            icon="note_add"
-            onClick={(event) => {
-              event.stopPropagation();
+          {!dir.isExternalSrc && (
+            <IconButton
+              variant=""
+              size="sm"
+              className="p-0"
+              icon="note_add"
+              onClick={(event) => {
+                event.stopPropagation();
 
-              // show the modal to create a new file
-              setShowNew(true);
-              setNewBasePath(dir.path);
-            }}
-          />
+                // show the modal to create a new file
+                setShowNew(true);
+                setNewBasePath(dir.path);
+              }}
+            />
+          )}
         </div>
       </div>
       <NewAssetModal

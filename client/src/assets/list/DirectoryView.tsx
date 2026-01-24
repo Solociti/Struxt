@@ -1,3 +1,4 @@
+import { centerTruncateText } from "common/format/text";
 import { AssetListItem } from "common/models/assets/AssetModel";
 import { DirectoryItem } from "./DirectoryItem";
 import { FileIcon } from "./FileIcon";
@@ -7,6 +8,7 @@ export interface DirectoryNode {
   path: string;
 
   defaultOpen?: boolean;
+  isExternalSrc?: boolean;
 
   subDirectories: Record<string, DirectoryNode>;
   files: AssetListItem[];
@@ -56,12 +58,13 @@ export function DirectoryView({
         return (
           <div
             key={file.uuid}
-            className="d-flex align-items-center file-item"
+            className="d-flex align-items-center file-item text-truncate"
             style={{ paddingLeft: level * 15, cursor: "pointer" }}
             onClick={() => handleEdit(file)}
+            title={file.displayName}
           >
             <FileIcon extension={extension} />
-            {file.displayName}
+            {centerTruncateText(file.displayName, 15)}
           </div>
         );
       })}

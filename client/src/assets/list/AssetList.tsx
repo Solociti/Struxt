@@ -3,8 +3,8 @@ import { ShowError } from "client/components/ShowError";
 import { AssetListItem } from "common/models/assets/AssetModel";
 import { useMemo } from "react";
 import Spinner from "react-bootstrap/Spinner";
-import { DirectoryNode, DirectoryView } from "./DirectoryView";
 import { getAssetList } from "../assetApis";
+import { DirectoryNode, DirectoryView } from "./DirectoryView";
 
 interface AssetListProps {
   projectId: string;
@@ -38,46 +38,52 @@ export function AssetList({ projectId, handleEdit }: AssetListProps) {
           path: "/public/",
           defaultOpen: true,
         },
-        assets: {
+        routines: {
           files: [],
           subDirectories: {},
-          name: "assets",
-          path: "/assets/",
-          defaultOpen: true,
+          name: "routines",
+          path: "/routines/",
+          defaultOpen: false,
         },
       },
       files: [],
     };
 
     for (const item of assetList) {
-      // item.path is typically /assets/filename.png or /assets/folder/file.js
-      // We want to tree-ify it.
-      // Remove leading slash
-      const cleanPath = item.path.startsWith("/")
-        ? item.path.substring(1)
-        : item.path;
-      const parts = cleanPath.split("/").filter((p: string) => p);
-      // Last part is filename (displayName usually matches or similar)
-      const fileName = parts.pop();
+      if (item.isExternalSrc) {
+        if (!root.subDirectories.external) {
+          root.subDirectories.external = {
+            name: "external",
+            path: "/external/",
+            isExternalSrc: true,
+            subDirectories: {},
+            files: [],
+          };
+        }
+
+        root.subDirectories.external.files.push(item);
+        continue;
+      }
+
+      const parts = item.path.split("/").filter(Boolean);
+      // remove the last part, which is the filename
+      parts.pop();
 
       let current = root;
-      // Navigate folders
+
       for (const part of parts) {
         if (!current.subDirectories[part]) {
           current.subDirectories[part] = {
             name: part,
-            path: current.path + part + "/",
+            path: `${current.path}${part}/`,
             subDirectories: {},
             files: [],
           };
         }
         current = current.subDirectories[part];
       }
-      // Add file
-      if (fileName) {
-        // Should always be true
-        current.files.push(item);
-      }
+
+      current.files.push(item);
     }
 
     return root;

@@ -1,5 +1,6 @@
 import {
   AssetApi,
+  AssetCreateApi,
   AssetDeleteApi,
   AssetListFilesApi,
   AssetSaveExternalApi,
@@ -7,9 +8,15 @@ import {
 import { customError } from "common/custom-error/custom-error";
 import { AssetModel } from "common/models/assets/AssetModel";
 import { roles } from "common/models/user/Roles";
+import { dirname, join, normalize } from "node:path";
+import { isPathInside } from "server/hfs/path";
+import { hfsWriteFile } from "server/hfs/writeFile";
 import { createSimpleId } from "server/utils/createId";
+import { mkDirRecursive } from "server/utils/mkDir";
+import { getProjectFilesDir } from "server/utils/uploadDir";
 import z from "zod";
 import { registerApi } from "../registerApi";
+import { isAssetPathUnique } from "./assetPathOps";
 import { deleteAsset } from "./deleteAsset";
 import { getAsset, getAssetList } from "./getAssets";
 import { saveAsset } from "./saveAsset";
@@ -42,6 +49,79 @@ registerApi<AssetApi>("/api/assets/model/:projectId").get(
     }
 
     return {
+      asset,
+    };
+  },
+);
+
+registerApi<AssetCreateApi>("/api/assets/create/:projectId").post(
+  [roles.struxt.editor],
+  async ({ body, user, params }) => {
+    const { projectId } = z
+      .object({
+        projectId: z.string(),
+      })
+      .parse(params);
+
+    const parsedBody = z
+      .object({
+        path: z.string(),
+      })
+      .parse(body);
+
+    if (!user.hasProjectPermission(projectId, [roles.projects.edit])) {
+      throw customError(
+        403,
+        "You do not have permission to modify this project.",
+        "Forbidden",
+      );
+    }
+
+    const path = normalize(parsedBody.path);
+    const uuid = await createSimpleId("asset");
+
+    // verify that the path is unique
+    if (!(await isAssetPathUnique(projectId, uuid, path))) {
+      throw customError(400, "Asset path is not unique.");
+    }
+
+    const asset = new AssetModel({
+      uuid,
+      projectId,
+      path: path,
+      isExternalSrc: false,
+      size: 0,
+      created: {
+        date: Math.floor(Date.now() / 1000),
+        userId: user.id,
+        displayName: user.name,
+      },
+      updated: {
+        date: Math.floor(Date.now() / 1000),
+        userId: user.id,
+        displayName: user.name,
+      },
+    });
+    asset.displayName = asset.getFileName();
+
+    // create a empty file on disk
+    const projectFilesDir = getProjectFilesDir(projectId);
+    const filePath = join(projectFilesDir, asset.path);
+    if (!isPathInside(filePath, projectFilesDir)) {
+      throw customError(400, "Invalid file path.");
+    }
+
+    const dir = dirname(filePath);
+
+    await mkDirRecursive(dir);
+    await hfsWriteFile(filePath, "", {
+      restrictedTo: projectFilesDir,
+    });
+
+    await saveAsset(asset);
+
+    return {
+      success: true,
       asset,
     };
   },

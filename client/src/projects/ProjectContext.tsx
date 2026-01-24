@@ -1,5 +1,5 @@
-import { createContext, useContext, useState } from "react";
 import { ProjectListItem } from "common/models/projects/ProjectItem";
+import { createContext, useContext, useState } from "react";
 
 export const AllProjectsData: ProjectListItem = {
   projectId: "*",
@@ -14,11 +14,13 @@ Object.freeze(AllProjectsData);
 const ProjectContext = createContext<{
   project: ProjectListItem;
   setProject: React.Dispatch<React.SetStateAction<ProjectListItem>>;
+  isSingleProject: boolean;
 }>({
   project: {
     ...AllProjectsData,
   },
   setProject: () => {},
+  isSingleProject: false,
 });
 
 /**
@@ -31,7 +33,13 @@ export function ProjectProvider({ children }: { children: React.ReactNode }) {
   const [project, setProject] = useState<ProjectListItem>(AllProjectsData);
 
   return (
-    <ProjectContext.Provider value={{ project, setProject }}>
+    <ProjectContext.Provider
+      value={{
+        project,
+        setProject,
+        isSingleProject: project.projectId !== "*" && project.projectId !== "",
+      }}
+    >
       {children}
     </ProjectContext.Provider>
   );
