@@ -44,27 +44,25 @@ export default function AssetsPage() {
         return null;
       }
 
-      // 1. Get Metadata
       const asset = await getAsset(project.projectId, selectedAsset.uuid);
-      setEditAsset(asset);
 
-      // 2. Get Content if text
       if (asset.isExternalSrc) {
-        // No content to fetch for external
         setEditContent("");
       } else {
-        // Check extension
-        const ext = asset.path.split(".").pop() || "";
-        if (isTextFile(ext)) {
+        if (asset.isTextFile()) {
           const url = getAssetUrl(asset, project.projectId);
           const res = await fetch(url);
-          if (!res.ok) throw new Error("Failed to fetch asset content");
+
+          if (!res.ok) {
+            throw new Error("Failed to fetch asset content");
+          }
           const text = await res.text();
           setEditContent(text);
         } else {
           setEditContent("");
         }
       }
+      setEditAsset(asset);
 
       return null;
     }, [project.projectId, selectedAsset]);
@@ -157,7 +155,10 @@ export default function AssetsPage() {
             >
               {openAssets.map((asset) => {
                 const isActive = selectedAsset?.uuid === asset.uuid;
-                const extension = asset.displayName.split(".").pop() || "";
+                const extension = new AssetModel({
+                  displayName: asset.displayName,
+                  path: asset.path,
+                }).getFileExtension();
 
                 return (
                   <Nav.Item key={asset.uuid}>

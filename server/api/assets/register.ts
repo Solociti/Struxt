@@ -95,7 +95,10 @@ assetFilesRouter.put("/:projectId/:uuid", async (req, res) => {
     throw customError(404, "Asset not found.");
   }
 
-  // TODO: check for external asset. Throw error if it's external.
+  if (asset.isExternalSrc) {
+    throw customError(400, "Cannot update external assets.");
+  }
+
   // TODO: check for storage budget. Throw error if it's over the budget.
 
   const projectFilesDir = getProjectFilesDir(projectId);
@@ -116,10 +119,10 @@ assetFilesRouter.put("/:projectId/:uuid", async (req, res) => {
     displayName: user.name,
   };
   asset.size = stats.size;
-  await saveAsset(asset);
+  const success = await saveAsset(asset);
 
   res.json({
-    success: true,
+    success,
   });
 });
 
