@@ -34,7 +34,6 @@ export async function isAssetPathUnique(
     path = path.slice(0, -1);
   }
 
-  // @ts-ignore
   const escapedPath = RegExp.escape(path);
   const regexStr = `^${escapedPath}\/`;
 
@@ -58,22 +57,3 @@ export async function isAssetPathUnique(
 
   return !doc;
 }
-
-// setTimeout(async () => {
-//   const testPaths = {
-//     "/public/assets/logo.png": true,
-//     "/public/assets": false,
-//     "/public/assets/bbq-chicken.jpg": false,
-//     "/routines/": false,
-//     "/external/": false,
-//     "/routines/test.js": true,
-//     "/.trash/test.js": false,
-//     "/.trash/": false,
-//   };
-
-//   for (const path in testPaths) {
-//     const result = await isAssetPathUnique("0008-mfptwsjw", "", path);
-//     // @ts-ignore
-//     console.log(testPaths[path] === result ? "PASS" : "FAIL", path);
-//   }
-// }, 5000);
