@@ -49,7 +49,13 @@ export const textFiles = [
   "svg",
 ];
 
-export type FileType = "image" | "video" | "audio" | "document" | "other";
+export type FileType =
+  | "text"
+  | "image"
+  | "video"
+  | "audio"
+  | "document"
+  | "other";
 
 /**
  * Get the file type based on the file extension
@@ -74,6 +80,10 @@ export function getFileType(extension: string): FileType {
 
   if (documents.includes(ext)) {
     return "document";
+  }
+
+  if (textFiles.includes(ext)) {
+    return "text";
   }
 
   return "other";
@@ -127,4 +137,18 @@ export function isAudio(extension: string): boolean {
  */
 export function isDocument(extension: string): boolean {
   return documents.includes(extension.toLowerCase());
+}
+
+/**
+ * Get the file extension from a file name
+ *
+ * @param fileName
+ * @returns
+ */
+export function getFileExtension(fileName: string): string {
+  const parts = fileName.split(".");
+  if (parts.length === 1) {
+    return "";
+  }
+  return parts.pop()?.toLowerCase() || "";
 }

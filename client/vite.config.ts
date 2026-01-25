@@ -53,6 +53,8 @@ export default defineConfig({
           "color-functions",
           "global-builtin",
           "import",
+          // @ts-ignore
+          "if-function",
         ],
       },
     },

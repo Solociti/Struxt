@@ -11,6 +11,7 @@ const createUri = (filePath: string) => {
 interface CodeEditorProps {
   content: string;
   filePath: string;
+  onChange?: (content: string) => void;
   onSave?: (content: string) => Promise<void>;
   readOnly?: boolean;
 }
@@ -18,6 +19,7 @@ interface CodeEditorProps {
 export default function CodeEditor({
   content,
   filePath,
+  onChange,
   onSave,
   readOnly = false,
 }: CodeEditorProps) {
@@ -26,7 +28,7 @@ export default function CodeEditor({
   const editorRef = useRef<monaco.editor.IStandaloneCodeEditor | null>(null);
   const monacoEl = useRef(null);
   const modelStates = useRef<Map<string, monaco.editor.ICodeEditorViewState>>(
-    new Map()
+    new Map(),
   );
 
   useEffect(() => {
@@ -39,7 +41,7 @@ export default function CodeEditor({
 
     if (!model) {
       model = monaco.editor.createModel(content, undefined, uri);
-    } 
+    }
 
     return model;
   }, [filePath, content]);
@@ -97,7 +99,7 @@ export default function CodeEditor({
       }
     } else {
       // Same model.
-      // If content prop changed and is different from model (e.g. external update), 
+      // If content prop changed and is different from model (e.g. external update),
       // we might want to update it.
       // For now, trusting the model state as primary.
     }
@@ -110,6 +112,7 @@ export default function CodeEditor({
     if (editor && onSave) {
       const disposable = editor.onDidChangeModelContent(() => {
         const val = editor.getValue();
+        onChange?.(val);
 
         if (_saveTimeout.current) {
           clearTimeout(_saveTimeout.current);

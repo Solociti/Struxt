@@ -1,32 +1,16 @@
-import { useLoadAsync } from "client/api/useLoadAsync";
 import { ShowError } from "client/components/ShowError";
-import { AssetListItem } from "common/models/assets/AssetModel";
 import { useMemo } from "react";
 import Spinner from "react-bootstrap/Spinner";
-import { getAssetList } from "../assetApis";
+import { useContentManager } from "../cm/contentManager";
 import { DirectoryNode, DirectoryView } from "./DirectoryView";
 
-interface AssetListProps {
-  projectId: string;
-  handleEdit: (item: AssetListItem) => void;
-}
+export function AssetList() {
+  const { assets, tabs } = useContentManager();
 
-export function AssetList({ projectId, handleEdit }: AssetListProps) {
-  // load the list of assets
-  const {
-    response: assetList,
-    isLoading: loadingList,
-    error: listError,
-  } = useLoadAsync(async () => {
-    if (projectId === "*") {
-      return null;
-    }
-
-    return await getAssetList(projectId);
-  }, [projectId]);
+  const { list, loading, error } = assets;
 
   const fileTree = useMemo(() => {
-    if (!assetList) return null;
+    if (!list) return null;
     const root: DirectoryNode = {
       name: "root",
       path: "/",
@@ -49,7 +33,7 @@ export function AssetList({ projectId, handleEdit }: AssetListProps) {
       files: [],
     };
 
-    for (const item of assetList) {
+    for (const item of list) {
       if (item.isExternalSrc) {
         if (!root.subDirectories.external) {
           root.subDirectories.external = {
@@ -87,7 +71,7 @@ export function AssetList({ projectId, handleEdit }: AssetListProps) {
     }
 
     return root;
-  }, [assetList]);
+  }, [list]);
 
   return (
     <div
@@ -119,13 +103,13 @@ export function AssetList({ projectId, handleEdit }: AssetListProps) {
           }
         `}
       </style>
-      <ShowError error={listError} />
+      <ShowError error={error} />
 
-      {loadingList && <Spinner animation="border" size="sm" />}
+      {loading && <Spinner animation="border" size="sm" />}
 
       <div>
         {fileTree && (
-          <DirectoryView node={fileTree} level={0} handleEdit={handleEdit} />
+          <DirectoryView node={fileTree} level={0} handleEdit={tabs.addTab} />
         )}
       </div>
     </div>

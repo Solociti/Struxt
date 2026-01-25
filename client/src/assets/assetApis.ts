@@ -5,7 +5,8 @@ import {
   AssetListFilesApi,
   AssetSaveExternalApi,
 } from "common/api/assets/assets";
-import { AssetModel } from "common/models/assets/AssetModel";
+import { AssetListItem, AssetModel } from "common/models/assets/AssetModel";
+import { getAssetUrl } from "./assetUtils";
 
 /**
  * Get the asset metadata for the provided project and uuid.
@@ -56,6 +57,27 @@ export async function saveAssetContent(
     },
     body: content,
   });
+}
+
+/**
+ * Load the contents of a text asset
+ *
+ * @param projectId
+ * @param asset
+ * @returns
+ */
+export async function getTextAssetContents(
+  projectId: string,
+  asset: AssetModel | AssetListItem,
+) {
+  const url = getAssetUrl(asset, projectId);
+
+  const response = await fetch(url);
+  if (!response.ok) {
+    throw new Error("Failed to fetch asset content");
+  }
+
+  return response.text();
 }
 
 /**
