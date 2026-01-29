@@ -2,6 +2,7 @@ import { AssetUploadApi } from "common/api/assets/assets";
 import { customError } from "common/custom-error/custom-error";
 import { AssetModel } from "common/models/assets/AssetModel";
 import { EditorAsset } from "common/models/assets/EditorAsset";
+import { getFileType } from "common/models/assets/FileExtensions";
 import { roles } from "common/models/user/Roles";
 import express from "express";
 import multer from "multer";
@@ -70,7 +71,22 @@ assetFilesRouter.get("/:projectId/*filePath", async (req, res) => {
     throw customError(400, "Invalid file path.");
   }
 
-  res.setHeader("Cache-Control", "public, max-age=604000");
+  const ext = extname(requestedFile);
+
+  switch (getFileType(ext)) {
+    case "image":
+    case "video":
+    case "audio":
+    case "document":
+      res.setHeader("Cache-Control", "private, max-age=7200");
+      break;
+
+    case "text":
+    default:
+      res.setHeader("Cache-Control", "private, no-cache");
+      break;
+  }
+
   res.sendFile(requestedFile);
 });
 
