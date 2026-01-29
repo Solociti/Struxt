@@ -1,6 +1,6 @@
 import { useTheme } from "client/bootstrap/Theme";
 import * as monaco from "monaco-editor";
-import { useCallback, useEffect, useRef } from "react";
+import { useEffect, useRef } from "react";
 import "./codeWorker";
 
 const createUri = (filePath: string) => {
@@ -9,16 +9,48 @@ const createUri = (filePath: string) => {
 };
 
 interface CodeEditorProps {
-  content: string;
   filePath: string;
+  content: monaco.editor.ITextModel;
+
   onChange?: (content: string) => void;
+  /**
+   * Should be a useCallback hook to prevent unnecessary re-renders
+   *
+   * @param content
+   * @returns
+   */
   onSave?: (content: string) => Promise<void>;
+
   readOnly?: boolean;
 }
 
+/**
+ * Update/Create a model for the monaco editor
+ *
+ * @param filePath
+ * @param content
+ * @returns
+ */
+export function updateEditorModel(filePath: string, content: string) {
+  const tm = monaco.editor.getModel(createUri(filePath));
+  if (tm) {
+    tm.setValue(content);
+    return tm;
+  } else {
+    return monaco.editor.createModel(content, undefined, createUri(filePath));
+  }
+}
+
+/**
+ * The Monaco CodeEditor component
+ *
+ * @param param0
+ * @param ref
+ * @returns
+ */
 export default function CodeEditor({
-  content,
   filePath,
+  content,
   onChange,
   onSave,
   readOnly = false,
@@ -35,23 +67,16 @@ export default function CodeEditor({
     monaco.editor.setTheme(theme === "dark" ? "vs-dark" : "vs-light");
   }, [theme]);
 
-  const getModel = useCallback(() => {
-    const uri = createUri(filePath);
-    let model = monaco.editor.getModel(uri);
-
-    if (!model) {
-      model = monaco.editor.createModel(content, undefined, uri);
+  useEffect(() => {
+    // don't setup the editor if we don't have a model
+    if (!content || !filePath) {
+      return;
     }
 
-    return model;
-  }, [filePath, content]);
-
-  useEffect(() => {
+    // setup the editor
     if (monacoEl.current && !editorRef.current) {
-      const tm = getModel();
-
       editorRef.current = monaco.editor.create(monacoEl.current!, {
-        model: tm,
+        model: content,
         theme: theme === "dark" ? "vs-dark" : "vs-light",
         readOnly,
       });
@@ -66,9 +91,9 @@ export default function CodeEditor({
     };
   }, []);
 
-  // Update the editor when the file path changes
+  // Update the loaded editor model when the file path changes
   useEffect(() => {
-    if (!editorRef.current) {
+    if (!editorRef.current || !content || !filePath) {
       return;
     }
 
@@ -84,12 +109,11 @@ export default function CodeEditor({
       }
     }
 
-    const model = getModel();
-    const modelUri = model.uri.toString();
+    const modelUri = content.uri.toString();
 
-    // Only set model if it's different
+    // Only swap the model if it's different
     if (!currentModel || currentModel.uri.toString() !== modelUri) {
-      editor.setModel(model);
+      editor.setModel(content);
 
       // Restore saved view state for this model
       const savedState = modelStates.current.get(modelUri);
@@ -97,13 +121,8 @@ export default function CodeEditor({
         editor.restoreViewState(savedState);
         editor.focus();
       }
-    } else {
-      // Same model.
-      // If content prop changed and is different from model (e.g. external update),
-      // we might want to update it.
-      // For now, trusting the model state as primary.
     }
-  }, [filePath, getModel]);
+  }, [filePath, content]);
 
   // listen for changes to the editor
   const _saveTimeout = useRef<NodeJS.Timeout | null>(null);
@@ -127,7 +146,7 @@ export default function CodeEditor({
 
       return () => disposable.dispose();
     }
-  }, [onSave, filePath]); // Re-bind if onSave changes or we swtiched files
+  }, [onSave, onChange, filePath]); // Re-bind if onSave changes or we switched files
 
   return (
     <div

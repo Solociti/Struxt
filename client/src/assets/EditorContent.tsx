@@ -1,7 +1,10 @@
-import CodeEditor from "client/components/codeEditor/CodeEditor";
 import MaterialIcon from "client/components/MaterialIcon";
+import { lazy, Suspense } from "react";
+import Spinner from "react-bootstrap/Spinner";
 import { getAssetUrl } from "./assetUtils";
 import { useContentManager } from "./cm/contentManager";
+
+const AssetCodeEditor = lazy(() => import("./editors/AssetCodeEditor"));
 
 /**
  * Render the content for the editor
@@ -9,7 +12,7 @@ import { useContentManager } from "./cm/contentManager";
  * @returns
  */
 export function EditorContent() {
-  const { project, assets, tabs } = useContentManager();
+  const { project, tabs } = useContentManager();
 
   if (!tabs.activeTab) {
     return null;
@@ -37,21 +40,29 @@ export function EditorContent() {
     );
   }
 
-  if (tabs.activeTab.type === "text" && tabs.activeTab.hasContentLoaded) {
+  if (tabs.activeTab.type === "text") {
     // show the text editor for text assets
     return (
-      <CodeEditor
-        content={tabs.activeTab.content}
-        filePath={item.path}
-        onChange={() => tabs.markDirty(item.uuid)}
-        onSave={async (content) => {
-          if (!tabs.activeTab) {
-            return;
-          }
-
-          return assets.saveTextAsset(item.uuid, content);
-        }}
-      />
+      <Suspense
+        fallback={
+          <div
+            style={{
+              position: "absolute",
+              top: 0,
+              left: 0,
+              right: 0,
+              bottom: 0,
+            }}
+          >
+            <div className="d-flex justify-content-center align-items-center h-100 p-2 gap-2">
+              <Spinner animation="border" />
+              <div style={{ fontSize: "0.95rem" }}>Loading Editor</div>
+            </div>
+          </div>
+        }
+      >
+        <AssetCodeEditor />
+      </Suspense>
     );
   }
 

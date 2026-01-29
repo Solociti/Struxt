@@ -17,12 +17,7 @@ import {
   useRef,
   useState,
 } from "react";
-import {
-  getAsset,
-  getAssetList,
-  getTextAssetContents,
-  saveAssetContent,
-} from "../assetApis";
+import { getAsset, getAssetList, saveAssetContent } from "../assetApis";
 
 interface Tab {
   item: AssetListItem;
@@ -35,11 +30,6 @@ interface Tab {
 
   isActive: boolean;
   isDirty: boolean;
-
-  content: string;
-  hasContentLoaded: boolean;
-  isContentLoading: boolean;
-  contentLoadError: Error | null;
 }
 
 function createNewTab(item: AssetListItem): Tab {
@@ -56,11 +46,6 @@ function createNewTab(item: AssetListItem): Tab {
 
     isActive: false,
     isDirty: false,
-
-    content: "",
-    hasContentLoaded: false,
-    isContentLoading: true,
-    contentLoadError: null,
   };
 }
 
@@ -85,11 +70,14 @@ interface ContentManagerState {
   };
 }
 
+// TODO: setup listeners for project changes from the server
+
 function useContentManagerState(): ContentManagerState {
   const { project, isSingleProject } = useCurrentProject();
   const projectId = project.projectId;
 
   // Load and keep track of the list of assets
+  // TODO: Add a reload, or methods to update the list (e.g. add/remove)
   const {
     response: assetList,
     isLoading: loadingList,
@@ -159,37 +147,6 @@ function useContentManagerState(): ContentManagerState {
     [projectId, updateTabState],
   );
 
-  const _loadingContent = useRef(new Set<string>());
-  const loadContentForTab = useCallback(
-    (item: AssetListItem) => {
-      if (_loadingContent.current.has(item.uuid)) {
-        return;
-      }
-      _loadingContent.current.add(item.uuid);
-
-      getTextAssetContents(projectId, item)
-        .then((content) => {
-          updateTabState(item.uuid, {
-            content,
-            isContentLoading: false,
-            hasContentLoaded: true,
-            contentLoadError: null,
-          });
-          _loadingContent.current.delete(item.uuid);
-        })
-        .catch((err) => {
-          updateTabState(item.uuid, {
-            content: "",
-            hasContentLoaded: true,
-            isContentLoading: false,
-            contentLoadError: err,
-          });
-          _loadingContent.current.delete(item.uuid);
-        });
-    },
-    [projectId, updateTabState],
-  );
-
   useEffect(() => {
     if (!isSingleProject) {
       return;
@@ -199,28 +156,13 @@ function useContentManagerState(): ContentManagerState {
       if (!tab.hasAssetLoaded) {
         loadAssetForTab(tab.item.uuid);
       }
-
-      if (
-        tab.type === "text" &&
-        !tab.item.isExternalSrc &&
-        !tab.hasContentLoaded
-      ) {
-        loadContentForTab(tab.item);
-      }
     };
 
     // Always load for the active tab immediately
     if (activeTab) {
       loadTab(activeTab);
     }
-  }, [
-    projectId,
-    activeTab,
-    tabs,
-    updateTabState,
-    loadAssetForTab,
-    loadContentForTab,
-  ]);
+  }, [projectId, activeTab, tabs, updateTabState, loadAssetForTab]);
 
   return {
     project,
@@ -231,7 +173,6 @@ function useContentManagerState(): ContentManagerState {
       error: listError,
       async saveTextAsset(uuid: string, content: string) {
         updateTabState(uuid, {
-          content,
           isDirty: true,
         });
 
