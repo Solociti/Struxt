@@ -89,6 +89,8 @@ export interface AssetDeleteApi extends Api {
 
   PostBody: {
     assets: { uuid: string }[];
+
+    isPermanent: boolean;
   };
 
   PostResponse: {

@@ -17,7 +17,7 @@ import { getProjectFilesDir } from "server/utils/uploadDir";
 import z from "zod";
 import { registerApi } from "../registerApi";
 import { isAssetPathUnique } from "./assetPathOps";
-import { deleteAsset } from "./deleteAsset";
+import { deleteAsset, permanentlyDeleteAsset } from "./deleteAsset";
 import { getAsset, getAssetList } from "./getAssets";
 import { saveAsset } from "./saveAsset";
 
@@ -199,21 +199,29 @@ registerApi<AssetDeleteApi>("/api/assets/delete/:projectId").post(
     }
 
     // parse the body
-    const { assets } = z
+    const { assets, isPermanent } = z
       .object({
         assets: z.array(
           z.object({
             uuid: z.string(),
           }),
         ),
+        isPermanent: z.boolean(),
       })
       .parse(body);
 
     for (const asset of assets) {
-      await deleteAsset(asset.uuid, projectId, {
-        userId: user.id,
-        displayName: user.name,
-      });
+      if (
+        isPermanent &&
+        user.hasProjectPermission(projectId, [roles.projects.admin])
+      ) {
+        await permanentlyDeleteAsset(asset.uuid, projectId);
+      } else {
+        await deleteAsset(asset.uuid, projectId, {
+          userId: user.id,
+          displayName: user.name,
+        });
+      }
     }
 
     return {
