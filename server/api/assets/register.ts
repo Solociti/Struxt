@@ -1,12 +1,12 @@
 import { AssetUploadApi } from "common/api/assets/assets";
-import { customError } from "common/custom-error/custom-error";
+import { customError, structureError } from "common/custom-error/custom-error";
 import { AssetModel } from "common/models/assets/AssetModel";
 import { EditorAsset } from "common/models/assets/EditorAsset";
 import { getFileType } from "common/models/assets/FileExtensions";
 import { roles } from "common/models/user/Roles";
 import express from "express";
 import multer from "multer";
-import { existsSync, lstatSync, realpathSync } from "node:fs";
+import { existsSync, realpathSync } from "node:fs";
 import { lstat, rename, unlink } from "node:fs/promises";
 import { basename, extname, join, normalize } from "node:path";
 import { pipeline } from "node:stream/promises";
@@ -22,13 +22,10 @@ import {
   getUploadDir,
 } from "../../utils/uploadDir";
 import { userFromReq } from "../auth/userFromReq";
+import { getProjectDiskUsage } from "../projects/projectDiskUsage";
 import "./apiRegister";
 import { getAsset } from "./getAssets";
 import { saveAsset } from "./saveAsset";
-
-const saveDir = getUploadDir("temp");
-
-const upload = multer({ dest: saveDir });
 
 /**
  * Router for serving project files with permission checks
@@ -115,16 +112,26 @@ assetFilesRouter.put("/:projectId/:uuid", async (req, res) => {
     throw customError(400, "Cannot update external assets.");
   }
 
-  // TODO: check for storage budget. Throw error if it's over the budget.
+  // Check if the storage is available using the client advertised upload size
+  const storage = await getProjectDiskUsage(projectId);
+  const fileSize = parseInt(req.get("content-length") || "0");
+  const fileSizeDiff = fileSize - asset.size;
+
+  if (!(await storage.hasSpaceAvailable(fileSizeDiff))) {
+    throw customError(400, "Storage quota exceeded.");
+  }
 
   const projectFilesDir = getProjectFilesDir(projectId);
   const filePath = join(projectFilesDir, asset.path);
+
+  await storage.reserveSpace(filePath, asset.size, fileSize);
 
   const writeStream = await hfsWriteFileStream(filePath, {
     restrictedTo: projectFilesDir,
   });
 
   await pipeline(req, writeStream);
+  await storage.clearReservation(filePath);
 
   const stats = await lstat(filePath);
 
@@ -154,21 +161,49 @@ router.get("/", async (req, res) => {
   res.json([]);
 });
 
+// setup multer for file uploads using form data
+const saveDir = getUploadDir("temp");
+
+const upload = multer({
+  dest: saveDir,
+  limits: { fileSize: 50 * 1024 * 1024, files: 25 },
+});
+
 router.post(
   "/upload/:projectId",
+  async (req, res, next) => {
+    try {
+      const projectId = req.params.projectId as string;
+
+      // check if the user has permission to edit the project
+      const user = await userFromReq(req);
+      if (!user.hasProjectPermission(projectId, [roles.projects.edit])) {
+        throw customError(
+          403,
+          "You do not have permission to modify this project.",
+          "Forbidden",
+        );
+      }
+
+      // check if the project has enough storage
+      const storage = await getProjectDiskUsage(projectId);
+      if (!(await storage.hasSpaceAvailable(0))) {
+        throw customError(400, "Storage quota exceeded.");
+      }
+
+      next();
+    } catch (err) {
+      next(err);
+    }
+  },
   upload.array("files", 25),
   async (req, res) => {
     const projectId = req.params.projectId as string;
-    const files = Array.isArray((req as any).files) ? (req as any).files : [];
+    const files: Express.Multer.File[] = Array.isArray((req as any).files)
+      ? (req as any).files
+      : [];
 
     const user = await userFromReq(req);
-    if (!user.hasProjectPermission(projectId, [roles.projects.edit])) {
-      throw customError(
-        403,
-        "You do not have permission to modify this project.",
-        "Forbidden",
-      );
-    }
 
     /**
      * The list of uploaded files
@@ -177,6 +212,7 @@ router.post(
     const errors: Error[] = [];
 
     await mkDirRecursive(getProjectFilesDir(projectId));
+    const storage = await getProjectDiskUsage(projectId);
 
     for (const file of files) {
       let renamed = false;
@@ -199,7 +235,10 @@ router.post(
           newFilePath = join(getAssetDir(projectId), newFileName);
         }
 
-        const stats = await lstatSync(file.path);
+        if (!(await storage.hasSpaceAvailable(file.size))) {
+          throw customError(400, "Storage quota exceeded.");
+        }
+        await storage.reserveSpace(newFilePath, 0, file.size);
 
         await rename(file.path, newFilePath);
         renamed = true;
@@ -211,7 +250,7 @@ router.post(
           path: `/public/assets/${newFileName}`,
           displayName: newFileName,
           isExternalSrc: false,
-          size: stats.size,
+          size: file.size,
           created: {
             date: Math.floor(Date.now() / 1000),
             userId: user.id,
@@ -224,8 +263,7 @@ router.post(
           },
         });
 
-        await saveAsset(asset);
-        saved = true;
+        saved = await saveAsset(asset);
 
         uploaded.push(asset.getEditorAsset());
       } catch (err: Error | unknown) {
@@ -240,17 +278,29 @@ router.post(
         }
 
         if (err instanceof Error) {
+          err.message = `(File: ${file.originalname}) ${err.message}`;
           errors.push(err);
+        }
+      }
+
+      if (newFilePath) {
+        try {
+          // clear the file storage reservation
+          await storage.clearReservation(newFilePath);
+        } catch {
+          // ignore error. It'll clear on the ttl
         }
       }
     }
 
+    // throw if all files failed
     if (errors.length > 0 && errors.length === files.length) {
       throw errors[0];
     }
 
     const response: AssetUploadApi["PostResponse"] = {
       assets: uploaded,
+      errors: errors.map(structureError),
     };
 
     res.json(response);

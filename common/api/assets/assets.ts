@@ -1,6 +1,7 @@
 import { AssetListItem, AssetModel } from "common/models/assets/AssetModel";
 import { EditorAsset } from "common/models/assets/EditorAsset";
 import { Api } from "../api";
+import { StructuredError } from "common/custom-error/custom-error";
 
 export interface AssetUploadApi extends Api {
   Endpoint: "/api/assets/upload/:projectId";
@@ -17,6 +18,11 @@ export interface AssetUploadApi extends Api {
      * The list of assets that were uploaded.
      */
     assets: EditorAsset[];
+
+    /**
+     * The list of errors that occurred during the upload.
+     */
+    errors: StructuredError[];
   };
 }
 

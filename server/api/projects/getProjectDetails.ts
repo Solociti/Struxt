@@ -1,7 +1,7 @@
 import { ProjectDetails } from "common/models/projects/ProjectDetails";
 import { getFormSubmissionList } from "server/forms/getFormSubmission";
 import { calcDirSize } from "../../utils/calcDirSize";
-import { getAssetDir } from "../../utils/uploadDir";
+import { getProjectFilesDir } from "../../utils/uploadDir";
 import { getLatestPublish } from "../publish/getPublish";
 import { getProjectData } from "./getProject";
 
@@ -79,7 +79,7 @@ export async function getProjectDetails(projectId: string) {
   details.forms = submissions;
 
   // calculate the storage used
-  const dir = getAssetDir(projectId);
+  const dir = getProjectFilesDir(projectId);
   const storageUsed = await calcDirSize(dir);
   details.storage.usedBytes = storageUsed;
 

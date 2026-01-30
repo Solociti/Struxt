@@ -60,6 +60,15 @@ export async function expressSetup(app: Express) {
     windowSeconds,
     maxCapacity,
     unitCost: (req) => {
+      if (
+        req.path.startsWith("/assets") ||
+        req.path.startsWith("/api/assets")
+      ) {
+        if (req.method === "PUT" || req.method === "POST") {
+          return 20;
+        }
+      }
+
       // This detection might need to be turned off
       // for the public hosts. Should only be needed on the
       // api server to prevent abuse.
@@ -91,7 +100,7 @@ export async function expressSetup(app: Express) {
       req.hostname,
       req.url,
       userAgent,
-      slowDownMs ? `slow-down-ms: ${slowDownMs}` : ""
+      slowDownMs ? `slow-down-ms: ${slowDownMs}` : "",
     );
     next();
   });
@@ -109,7 +118,7 @@ export function setupSiteLogs(
     projectEnv?: string;
     publishId?: string;
     path: string;
-  }
+  },
 ) {
   // setup metrics for the web hosts
   const requestCounter = new promCl.Counter({
