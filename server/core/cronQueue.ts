@@ -41,7 +41,7 @@ async function registerJob(
   name: string,
   options: JobSchedulerTemplateOptions,
   data: Object,
-  pattern: string
+  pattern: string,
 ) {
   if (process.env.BACKUP_ENABLED !== "true") {
     await cronQueue.queue.removeJobScheduler(name);
@@ -58,7 +58,7 @@ async function registerJob(
         attempts: 1,
         ...options,
       },
-    }
+    },
   );
 }
 
@@ -81,7 +81,7 @@ export function setupCronJobs() {
     },
     {
       data: { cron: true },
-    }
+    },
   );
 
   // add the cron job to download the geoip database
@@ -99,7 +99,7 @@ export function setupCronJobs() {
           delay: 10 * 60 * 1000,
         },
       },
-    }
+    },
   );
 
   // setup cron jobs
@@ -136,4 +136,7 @@ export function setupCronJobs() {
     cronQueue.queue.removeJobScheduler("sync-sites-s3");
     cronQueue.queue.removeJobScheduler("sync-backups-s3");
   }
+
+  // setup cron job to clear temp upload files
+  registerJob("cleanup-temp-uploads", { priority: 60 }, {}, "15 * * * *");
 }

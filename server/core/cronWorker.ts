@@ -10,6 +10,7 @@ import { backupNginxProxyManager } from "./backup/nginxProxyManager";
 import { syncS3Backups, syncS3Sites, syncS3Uploads } from "./backup/syncS3";
 import { backupVictoriaMetrics } from "./backup/victoriaMetrics";
 import { cronQueue } from "./cronQueue";
+import { cleanTempDir } from "./cleanup/cleanTempDir";
 
 if (process.env.CONTAINER_NAME !== "core") {
   throw new Error("This script should only be run in the core container.");
@@ -102,7 +103,7 @@ setupWorker(
           (value, max) => {
             const percent = Math.round((value / max) * 100);
             job.updateProgress(percent);
-          }
+          },
         );
 
       case "sync-uploads-s3":
@@ -113,7 +114,7 @@ setupWorker(
           (value, max) => {
             const percent = Math.round((value / max) * 100);
             job.updateProgress(percent);
-          }
+          },
         );
 
       case "sync-backups-s3":
@@ -124,11 +125,14 @@ setupWorker(
           (value, max) => {
             const percent = Math.round((value / max) * 100);
             job.updateProgress(percent);
-          }
+          },
         );
 
       case "cleanup-local-backups":
         return await cleanLocalBackups((msg: string) => job.log(msg));
+
+      case "cleanup-temp-uploads":
+        return await cleanTempDir((msg: string) => job.log(msg));
 
       default:
         console.warn(`Unknown job name: ${job.name}`);
@@ -137,5 +141,5 @@ setupWorker(
   },
   {
     concurrency: 1,
-  }
+  },
 );
