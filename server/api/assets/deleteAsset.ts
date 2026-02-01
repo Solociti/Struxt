@@ -97,11 +97,13 @@ export async function restoreAsset(uuid: string, projectId: string) {
     }
 
     // check if a file with the same name exists first
-    const filePath = join(
-      getProjectPublicDir(projectId),
-      asset.deleted.originalPath,
-    );
-    const trashFilePath = join(getProjectFilesDir(projectId), asset.path);
+    const projectDir = getProjectFilesDir(projectId);
+    const filePath = join(projectDir, asset.deleted.originalPath);
+    const trashFilePath = join(projectDir, asset.path);
+
+    if (!isPathInside(filePath, projectDir)) {
+      throw customError(400, "Invalid file path.");
+    }
 
     if (existsSync(filePath)) {
       throw customError(
@@ -143,15 +145,17 @@ export async function permanentlyDeleteAsset(uuid: string, projectId: string) {
     throw customError(404, "Asset not found.");
   }
 
-  // delete the physical file from disk
-  const projectDir = getProjectFilesDir(projectId);
-  const trashFilePath = join(projectDir, asset.path);
+  if (!asset.isExternalSrc) {
+    // delete the physical file from disk
+    const projectDir = getProjectFilesDir(projectId);
+    const trashFilePath = join(projectDir, asset.path);
 
-  if (existsSync(trashFilePath)) {
-    await unlink(trashFilePath);
+    if (existsSync(trashFilePath)) {
+      await unlink(trashFilePath);
 
-    // delete the empty directory if it is empty
-    await rmDirIfEmpty(dirname(trashFilePath), true, projectDir);
+      // delete the empty directory if it is empty
+      await rmDirIfEmpty(dirname(trashFilePath), true, projectDir);
+    }
   }
 
   // delete the asset from the database

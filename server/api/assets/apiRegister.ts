@@ -3,6 +3,7 @@ import {
   AssetCreateApi,
   AssetDeleteApi,
   AssetListFilesApi,
+  AssetRestoreApi,
   AssetSaveExternalApi,
 } from "common/api/assets/assets";
 import { customError } from "common/custom-error/custom-error";
@@ -17,7 +18,11 @@ import { getProjectFilesDir } from "server/utils/uploadDir";
 import z from "zod";
 import { registerApi } from "../registerApi";
 import { isAssetPathUnique } from "./assetPathOps";
-import { deleteAsset, permanentlyDeleteAsset } from "./deleteAsset";
+import {
+  deleteAsset,
+  permanentlyDeleteAsset,
+  restoreAsset,
+} from "./deleteAsset";
 import { getAsset, getAssetList } from "./getAssets";
 import { saveAsset } from "./saveAsset";
 
@@ -222,6 +227,44 @@ registerApi<AssetDeleteApi>("/api/assets/delete/:projectId").post(
           displayName: user.name,
         });
       }
+    }
+
+    return {
+      success: true,
+    };
+  },
+);
+
+registerApi<AssetRestoreApi>("/api/assets/restore/:projectId").post(
+  [roles.struxt.editor],
+  async ({ params, user, body }) => {
+    const { projectId } = z
+      .object({
+        projectId: z.string(),
+      })
+      .parse(params);
+
+    // check if the user has permission to edit the project
+    if (!user.hasProjectPermission(projectId, [roles.projects.edit])) {
+      throw customError(
+        403,
+        "You do not have permission to modify this project.",
+      );
+    }
+
+    // parse the body
+    const { assets } = z
+      .object({
+        assets: z.array(
+          z.object({
+            uuid: z.string(),
+          }),
+        ),
+      })
+      .parse(body);
+
+    for (const asset of assets) {
+      await restoreAsset(asset.uuid, projectId);
     }
 
     return {

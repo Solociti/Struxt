@@ -1,11 +1,13 @@
+import { errorToastWrapFunction } from "client/components/ErrorSnackBar";
 import MaterialIcon from "client/components/MaterialIcon";
 import { AssetListItem, AssetModel } from "common/models/assets/AssetModel";
 import { PropsWithChildren, useEffect, useRef, useState } from "react";
 import ListGroup from "react-bootstrap/ListGroup";
 import Overlay from "react-bootstrap/Overlay";
+import { restoreAsset } from "../assetApis";
 import { useContentManager } from "../cm/contentManager";
-import { DirectoryNode } from "./DirectoryView";
 import { getRecursiveDirItems } from "./AssetList";
+import { DirectoryNode } from "./DirectoryView";
 
 interface ContextMenuProps {
   show: boolean;
@@ -96,7 +98,7 @@ interface MenuItem {
  * @returns
  */
 export function ItemContextMenu() {
-  const { commands } = useContentManager();
+  const { project, commands } = useContentManager();
 
   const [item, setItem] = useState<null | DirectoryNode | AssetListItem>(null);
   const menuOverlayRef = useRef<HTMLElement | null>(null);
@@ -174,8 +176,6 @@ export function ItemContextMenu() {
           items.push(item);
         }
 
-        // TODO: add the permanently delete visuals and props to the modal
-
         commands.trigger("delete:show", items, true);
         commands.trigger("context-menu:hide");
       },
@@ -193,8 +193,6 @@ export function ItemContextMenu() {
           items.push(item);
         }
 
-        // TODO: add the permanently delete visuals and props to the modal
-
         commands.trigger("delete:show", items, true);
         commands.trigger("context-menu:hide");
       },
@@ -204,7 +202,7 @@ export function ItemContextMenu() {
       section: "general",
       icon: "restore_from_trash",
       text: "Restore",
-      onClick: () => {
+      onClick: errorToastWrapFunction(async () => {
         const items: AssetListItem[] = [];
         if (isDir) {
           items.push(...getRecursiveDirItems(item));
@@ -212,10 +210,14 @@ export function ItemContextMenu() {
           items.push(item);
         }
 
-        // TODO: add api to restore the file
+        const result = await restoreAsset(
+          project.projectId,
+          items.map((i) => ({ uuid: i.uuid })),
+        );
 
+        commands.trigger("restore", result);
         commands.trigger("context-menu:hide");
-      },
+      }),
     },
     {
       hide: isInTrash || Boolean(item.isExternalSrc),

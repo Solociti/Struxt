@@ -3,6 +3,7 @@ import {
   AssetApi,
   AssetCreateApi,
   AssetListFilesApi,
+  AssetRestoreApi,
   AssetSaveExternalApi,
 } from "common/api/assets/assets";
 import { AssetListItem, AssetModel } from "common/models/assets/AssetModel";
@@ -103,4 +104,25 @@ export async function saveExternalAsset(projectId: string, assetSrc: string) {
   );
 
   return response.asset;
+}
+
+/**
+ * Restore the list of assets
+ *
+ * @param projectId
+ * @param assets
+ * @returns
+ */
+export async function restoreAsset(
+  projectId: string,
+  assets: AssetRestoreApi["PostBody"]["assets"],
+) {
+  const response = await postApi<AssetRestoreApi>(
+    ["/api/assets/restore", projectId],
+    {
+      assets,
+    },
+  );
+
+  return response;
 }

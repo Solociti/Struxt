@@ -96,6 +96,23 @@ export interface AssetDeleteApi extends Api {
   };
 }
 
+export interface AssetRestoreApi extends Api {
+  Endpoint: "/api/assets/restore/:projectId";
+  EndpointParts: ["/api/assets/restore", string];
+
+  UrlParams: {
+    projectId: string;
+  };
+
+  PostBody: {
+    assets: { uuid: string }[];
+  };
+
+  PostResponse: {
+    success: boolean;
+  };
+}
+
 /**
  * Get the list of assets for the given project.
  */

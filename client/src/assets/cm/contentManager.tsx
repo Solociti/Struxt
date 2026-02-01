@@ -109,6 +109,11 @@ function useContentManagerState(): ContentManagerState {
         reloadAssetList();
       }),
     );
+    unregister.push(
+      commands.on("restore", () => {
+        reloadAssetList();
+      }),
+    );
 
     return () => {
       unregister.forEach((cb) => cb());

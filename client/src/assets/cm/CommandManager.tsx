@@ -1,4 +1,4 @@
-import { AssetDeleteApi } from "common/api/assets/assets";
+import { AssetDeleteApi, AssetRestoreApi } from "common/api/assets/assets";
 import { AssetListItem, AssetModel } from "common/models/assets/AssetModel";
 import { useMemo, useRef } from "react";
 import { DirectoryNode } from "../list/DirectoryView";
@@ -48,6 +48,13 @@ export interface CommandManager {
     cb: (items: AssetListItem[], isPermanent: boolean) => void,
   ): UnregisterCallback;
   on(event: "delete:hide", cb: () => void): UnregisterCallback;
+
+  // restore
+  trigger(command: "restore", result: AssetRestoreApi["PostResponse"]): void;
+  on(
+    event: "restore",
+    cb: (result: AssetRestoreApi["PostResponse"]) => void,
+  ): UnregisterCallback;
 
   // rename
   trigger(command: "rename", result: CommandResult): void;
