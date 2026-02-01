@@ -136,6 +136,36 @@ export class AssetModel extends Model {
   }
 
   /**
+   * Get the base path from the path
+   *
+   * @param path
+   * @returns
+   */
+  static getBasePath(path: string): string {
+    if (!path) {
+      return "";
+    }
+
+    if (
+      path.startsWith("http://") ||
+      path.startsWith("https://") ||
+      path.endsWith("/")
+    ) {
+      return path;
+    }
+
+    const parts = path.split("/");
+    parts.pop();
+    const newPath = parts.join("/");
+
+    if (newPath.endsWith("/")) {
+      return newPath;
+    }
+
+    return newPath + "/";
+  }
+
+  /**
    * Get the file extension from the path
    *
    * @returns

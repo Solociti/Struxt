@@ -1,4 +1,4 @@
-import { copyFile, rename, unlink } from "fs/promises";
+import { copyFile, rename, unlink } from "node:fs/promises";
 import { isPathInside } from "./path";
 
 interface FileOpsOptions {

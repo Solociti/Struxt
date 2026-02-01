@@ -1,7 +1,9 @@
-import { centerTruncateText } from "common/format/text";
 import { AssetListItem } from "common/models/assets/AssetModel";
+import { useContentManager } from "../cm/contentManager";
 import { DirectoryItem } from "./DirectoryItem";
 import { FileIcon } from "./FileIcon";
+
+export const FILE_OFFSET = 10;
 
 export interface DirectoryNode {
   name: string;
@@ -9,6 +11,7 @@ export interface DirectoryNode {
 
   defaultOpen?: boolean;
   isExternalSrc?: boolean;
+  preventNewFile?: boolean;
 
   subDirectories: Record<string, DirectoryNode>;
   files: AssetListItem[];
@@ -23,14 +26,14 @@ export interface DirectoryNode {
  * @param props.handleOpen Callback to open a file
  */
 export function DirectoryView({
-  node,
   level,
-  handleEdit,
+  node,
 }: {
   node: DirectoryNode;
   level: number;
-  handleEdit: (item: AssetListItem) => void;
 }) {
+  const { commands } = useContentManager();
+
   const dirs = Object.values(node.subDirectories).sort((a, b) =>
     a.name.localeCompare(b.name),
   );
@@ -46,7 +49,6 @@ export function DirectoryView({
           dir={dir}
           level={level}
           defaultOpen={dir.defaultOpen}
-          handleEdit={handleEdit}
         />
       ))}
 
@@ -59,12 +61,17 @@ export function DirectoryView({
           <div
             key={file.uuid}
             className="d-flex align-items-center file-item text-truncate"
-            style={{ paddingLeft: level * 15, cursor: "pointer" }}
-            onClick={() => handleEdit(file)}
+            style={{ paddingLeft: level * FILE_OFFSET, cursor: "pointer" }}
             title={file.displayName}
+            onClick={() => commands.trigger("tabs:open", file)}
+            onContextMenu={(event) => {
+              event.preventDefault();
+              commands.trigger("context-menu:show", event.currentTarget, file);
+            }}
           >
             <FileIcon extension={extension} />
-            {centerTruncateText(file.displayName, 15)}
+            <div className="text-truncate">{file.displayName.slice(0, -6)}</div>
+            <div>{file.displayName.slice(-6)}</div>
           </div>
         );
       })}

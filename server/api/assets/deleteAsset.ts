@@ -2,8 +2,10 @@ import { customError } from "common/custom-error/custom-error";
 import { AssetModel } from "common/models/assets/AssetModel";
 import { existsSync } from "node:fs";
 import { rename, unlink } from "node:fs/promises";
-import { extname, join } from "node:path";
+import { dirname, extname, join } from "node:path";
 import { getCollection } from "server/database/mongodb";
+import { rmDirIfEmpty } from "server/hfs/dirOps";
+import { isPathInside } from "server/hfs/path";
 import { mkDirRecursive } from "server/utils/mkDir";
 import {
   getProjectFilesDir,
@@ -43,11 +45,16 @@ export async function deleteAsset(
 
   // move local assets to the trash
   if (!asset.isExternalSrc) {
-    const currentFilePath = join(getProjectPublicDir(projectId), asset.path);
+    const projectDir = getProjectFilesDir(projectId);
+    const currentFilePath = join(projectDir, asset.path);
+
+    if (!isPathInside(currentFilePath, projectDir)) {
+      throw customError(400, "Invalid file path.");
+    }
 
     const ext = extname(asset.path);
     const trashFileName = `${asset.uuid}${ext}`;
-    const trashDir = join(getProjectFilesDir(projectId), ".trash");
+    const trashDir = join(projectDir, ".trash");
     await mkDirRecursive(trashDir);
 
     const trashFilePath = join(trashDir, trashFileName);
@@ -55,6 +62,10 @@ export async function deleteAsset(
     if (existsSync(currentFilePath)) {
       await rename(currentFilePath, trashFilePath);
     }
+
+    // delete the empty directory if it is empty
+    await rmDirIfEmpty(dirname(currentFilePath), true, projectDir);
+
     asset.path = `/.trash/${trashFileName}`;
   }
 
@@ -107,6 +118,7 @@ export async function restoreAsset(uuid: string, projectId: string) {
     }
 
     // move the file back to the original location
+    await mkDirRecursive(dirname(filePath));
     await rename(trashFilePath, filePath);
 
     asset.path = asset.deleted.originalPath;
@@ -132,10 +144,14 @@ export async function permanentlyDeleteAsset(uuid: string, projectId: string) {
   }
 
   // delete the physical file from disk
-  const trashFilePath = join(getProjectFilesDir(projectId), asset.path);
+  const projectDir = getProjectFilesDir(projectId);
+  const trashFilePath = join(projectDir, asset.path);
 
   if (existsSync(trashFilePath)) {
     await unlink(trashFilePath);
+
+    // delete the empty directory if it is empty
+    await rmDirIfEmpty(dirname(trashFilePath), true, projectDir);
   }
 
   // delete the asset from the database

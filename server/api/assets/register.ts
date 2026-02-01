@@ -84,7 +84,9 @@ assetFilesRouter.get("/:projectId/*filePath", async (req, res) => {
       break;
   }
 
-  res.sendFile(requestedFile);
+  res.sendFile(requestedFile, {
+    dotfiles: "allow",
+  });
 });
 
 // update the file contents based on the posted text contents

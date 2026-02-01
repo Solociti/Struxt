@@ -1,5 +1,6 @@
 import MaterialIcon from "client/components/MaterialIcon";
 import { centerTruncateText } from "common/format/text";
+import { AssetModel } from "common/models/assets/AssetModel";
 import { getFileExtension } from "common/models/assets/FileExtensions";
 import Nav from "react-bootstrap/Nav";
 import { useContentManager } from "./cm/contentManager";
@@ -72,7 +73,8 @@ export function EditorTabs() {
       {list.map((tab) => {
         const { item, isDirty } = tab;
 
-        const extension = getFileExtension(item.path);
+        const fileName = AssetModel.getFileName(item.path);
+        const extension = getFileExtension(fileName);
 
         return (
           <Nav.Item key={item.uuid}>

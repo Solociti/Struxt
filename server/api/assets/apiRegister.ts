@@ -199,20 +199,20 @@ registerApi<AssetDeleteApi>("/api/assets/delete/:projectId").post(
     }
 
     // parse the body
-    const { assets, isPermanent } = z
+    const { assets } = z
       .object({
         assets: z.array(
           z.object({
             uuid: z.string(),
+            isPermanent: z.boolean(),
           }),
         ),
-        isPermanent: z.boolean(),
       })
       .parse(body);
 
     for (const asset of assets) {
       if (
-        isPermanent &&
+        asset.isPermanent &&
         user.hasProjectPermission(projectId, [roles.projects.admin])
       ) {
         await permanentlyDeleteAsset(asset.uuid, projectId);

@@ -8,6 +8,7 @@ import { AssetModel } from "common/models/assets/AssetModel";
 import { useEffect, useState } from "react";
 import Form from "react-bootstrap/Form";
 import { createNewAsset } from "../assetApis";
+import { useContentManager } from "../cm/contentManager";
 
 /**
  * Modal to create a new asset
@@ -15,16 +16,12 @@ import { createNewAsset } from "../assetApis";
  * @param param0
  * @returns
  */
-export function NewAssetModal({
-  show,
-  onHide,
-  defaultPath,
-}: {
-  show: boolean;
-  onHide: () => void;
-  defaultPath: string;
-}) {
-  const [path, setPath] = useState(defaultPath);
+export function NewAssetModal() {
+  const { commands } = useContentManager();
+
+  const [show, setShow] = useState(false);
+
+  const [path, setPath] = useState("");
   const name = path.endsWith("/") ? "" : AssetModel.getFileName(path);
   const isValid = Boolean(path) && Boolean(name);
 
@@ -32,23 +29,40 @@ export function NewAssetModal({
   const { project, isSingleProject } = useCurrentProject();
 
   const saveCb = useAsyncCallback(async () => {
-    await createNewAsset(project.projectId, {
+    const result = await createNewAsset(project.projectId, {
       path,
     });
+
+    // trigger the new asset event
+    commands.trigger("new-asset", result);
+    commands.trigger("new-asset:hide");
   });
 
   useEffect(() => {
-    if (show) {
-      setPath(defaultPath);
-    } else {
-      saveCb.reset();
-    }
-  }, [show]);
+    const unregisterShow = commands.on("new-asset:show", (basePath) => {
+      setPath(basePath);
+      setShow(true);
+    });
+    const unregisterHide = commands.on("new-asset:hide", () => {
+      setPath("");
+      setShow(false);
+    });
+
+    return () => {
+      unregisterShow();
+      unregisterHide();
+    };
+  }, []);
 
   // if the current project is not set, don't show the modal
   if (!isSingleProject) {
     return null;
   }
+
+  const onHide = () => {
+    saveCb.reset();
+    commands.trigger("new-asset:hide");
+  };
 
   return (
     <SimpleModal

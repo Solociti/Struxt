@@ -1,10 +1,9 @@
 import IconButton from "client/components/IconButton";
 import MaterialIcon from "client/components/MaterialIcon";
-import { AssetListItem } from "common/models/assets/AssetModel";
 import { useState } from "react";
 import Collapse from "react-bootstrap/Collapse";
-import { DirectoryNode, DirectoryView } from "./DirectoryView";
-import { NewAssetModal } from "./NewAssetModal";
+import { useContentManager } from "../cm/contentManager";
+import { DirectoryNode, DirectoryView, FILE_OFFSET } from "./DirectoryView";
 
 /**
  * Renders a single directory item with collapse functionality.
@@ -17,24 +16,25 @@ export function DirectoryItem({
   dir,
   level,
   defaultOpen,
-  handleEdit,
 }: {
   dir: DirectoryNode;
   level: number;
   defaultOpen?: boolean;
-  handleEdit: (item: AssetListItem) => void;
 }) {
-  const [open, setOpen] = useState(Boolean(defaultOpen));
+  const { commands } = useContentManager();
 
-  const [showNew, setShowNew] = useState(false);
-  const [newBasePath, setNewBasePath] = useState("");
+  const [open, setOpen] = useState(Boolean(defaultOpen));
 
   return (
     <div className="dir-section">
       <div
         className="d-flex align-items-center dir-item"
-        style={{ paddingLeft: level * 15, cursor: "pointer" }}
+        style={{ paddingLeft: level * FILE_OFFSET, cursor: "pointer" }}
         onClick={() => setOpen(!open)}
+        onContextMenu={(event) => {
+          event.preventDefault();
+          commands.trigger("context-menu:show", event.currentTarget, dir);
+        }}
       >
         <MaterialIcon className="me-2" filled>
           {open ? "folder_open" : "folder"}
@@ -42,7 +42,7 @@ export function DirectoryItem({
         {dir.name}
 
         <div className="d-flex flex-grow-1 justify-content-end modify-dir-btns">
-          {!dir.isExternalSrc && (
+          {!dir.preventNewFile && (
             <IconButton
               variant=""
               size="sm"
@@ -51,19 +51,12 @@ export function DirectoryItem({
               onClick={(event) => {
                 event.stopPropagation();
 
-                // show the modal to create a new file
-                setShowNew(true);
-                setNewBasePath(dir.path);
+                commands.trigger("new-asset:show", dir.path);
               }}
             />
           )}
         </div>
       </div>
-      <NewAssetModal
-        show={showNew}
-        onHide={() => setShowNew(false)}
-        defaultPath={newBasePath}
-      />
 
       <Collapse in={open}>
         <div
@@ -74,13 +67,13 @@ export function DirectoryItem({
             className="dir-hover-guide"
             style={{
               position: "absolute",
-              left: level * 20 + 11,
+              left: level * FILE_OFFSET + 11,
               top: 0,
               bottom: 0,
               width: "1px",
             }}
           />
-          <DirectoryView node={dir} level={level + 1} handleEdit={handleEdit} />
+          <DirectoryView node={dir} level={level + 1} />
         </div>
       </Collapse>
     </div>

@@ -28,7 +28,7 @@ export function FileIcon({ extension }: { extension: string }) {
   }
 
   return (
-    <div style={{ width: "1.75em" }}>
+    <div style={{ minWidth: "1.65em", width: "1.65em" }}>
       {iconText ? (
         <svg viewBox="0 0 120 75" style={{ width: "100%" }}>
           <text

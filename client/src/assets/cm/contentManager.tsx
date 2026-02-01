@@ -18,6 +18,7 @@ import {
   useState,
 } from "react";
 import { getAsset, getAssetList, saveAssetContent } from "../assetApis";
+import { CommandManager, useCommandManager } from "./CommandManager";
 
 interface Tab {
   item: AssetListItem;
@@ -60,6 +61,8 @@ interface ContentManagerState {
     saveTextAsset(uuid: string, content: string): Promise<void>;
   };
 
+  commands: CommandManager;
+
   tabs: {
     list: Tab[];
     setActiveTab: (uuid: string) => void;
@@ -76,12 +79,14 @@ function useContentManagerState(): ContentManagerState {
   const { project, isSingleProject } = useCurrentProject();
   const projectId = project.projectId;
 
+  const commands = useCommandManager();
+
   // Load and keep track of the list of assets
-  // TODO: Add a reload, or methods to update the list (e.g. add/remove)
   const {
     response: assetList,
     isLoading: loadingList,
     error: listError,
+    reload: reloadAssetList,
   } = useLoadAsync(async () => {
     if (!isSingleProject) {
       return null;
@@ -89,6 +94,26 @@ function useContentManagerState(): ContentManagerState {
 
     return await getAssetList(projectId);
   }, [projectId]);
+
+  // listen for events that would trigger a reload of the list
+  useEffect(() => {
+    const unregister: Function[] = [];
+
+    unregister.push(
+      commands.on("new-asset", () => {
+        reloadAssetList();
+      }),
+    );
+    unregister.push(
+      commands.on("delete", () => {
+        reloadAssetList();
+      }),
+    );
+
+    return () => {
+      unregister.forEach((cb) => cb());
+    };
+  }, [reloadAssetList]);
 
   // Keep track of the open editor tabs
   const [tabs, setTabs] = useState<Tab[]>([]);
@@ -164,51 +189,34 @@ function useContentManagerState(): ContentManagerState {
     }
   }, [projectId, activeTab, tabs, updateTabState, loadAssetForTab]);
 
-  return {
-    project,
-    isSingleProject,
-    assets: {
-      list: assetList || [],
-      loading: loadingList,
-      error: listError,
-      async saveTextAsset(uuid: string, content: string) {
-        updateTabState(uuid, {
-          isDirty: true,
-        });
+  useEffect(() => {
+    const unregister: Function[] = [];
 
-        try {
-          await saveAssetContent(projectId, uuid, content);
-          updateTabState(uuid, { isDirty: false });
-        } catch (err) {
-          // show the save error
-          addToastError(err as Error);
-        }
-      },
-    },
-    tabs: {
-      list: tabs,
-      setActiveTab,
-      activeTab,
-      addTab: (item: AssetListItem) => {
-        // check if the item is already open
-        if (tabs.find((t) => t.item.uuid === item.uuid)) {
-          setActiveTab(item.uuid);
-          return;
-        }
-
-        const tab = createNewTab(item);
-        tab.isActive = true;
-
+    unregister.push(
+      commands.on("tabs:open", (item) => {
         setTabs((tabs) => {
+          // check if the item is already open
+          if (tabs.find((t) => t.item.uuid === item.uuid)) {
+            setActiveTab(item.uuid);
+            return tabs;
+          }
+
+          const tab = createNewTab(item);
+          tab.isActive = true;
+
           for (const tab of tabs) {
             tab.isActive = false;
           }
 
           return [...tabs, tab];
         });
-      },
-      removeTab: (uuid: string) => {
+      }),
+    );
+
+    unregister.push(
+      commands.on("tabs:close", (uuid) => {
         setTabs((tabs) => {
+          const activeTab = tabs.find((t) => t.isActive) || null;
           let isActive = activeTab?.item.uuid === uuid;
           let index = -1;
 
@@ -229,6 +237,46 @@ function useContentManagerState(): ContentManagerState {
 
           return tabs;
         });
+      }),
+    );
+
+    return () => {
+      unregister.forEach((cb) => cb());
+    };
+  }, []);
+
+  return {
+    commands,
+    project,
+    isSingleProject,
+    assets: {
+      list: assetList || [],
+      loading: loadingList,
+      error: listError,
+      async saveTextAsset(uuid: string, content: string) {
+        updateTabState(uuid, {
+          isDirty: true,
+        });
+
+        try {
+          await saveAssetContent(projectId, uuid, content);
+          updateTabState(uuid, { isDirty: false });
+        } catch (err) {
+          // show the save error
+          addToastError(err as Error);
+        }
+      },
+    },
+
+    tabs: {
+      list: tabs,
+      setActiveTab,
+      activeTab,
+      addTab: (item: AssetListItem) => {
+        commands.trigger("tabs:open", item);
+      },
+      removeTab: (uuid: string) => {
+        commands.trigger("tabs:close", uuid);
       },
       markDirty(uuid: string) {
         updateTabState(uuid, { isDirty: true });

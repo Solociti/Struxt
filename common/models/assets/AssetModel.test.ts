@@ -118,7 +118,7 @@ describe("AssetModel.getFileName", () => {
 
     test("should extract filename from deep nested path", () => {
       const result = AssetModel.getFileName(
-        "/assets/images/subfolder/deep/file.jpg"
+        "/assets/images/subfolder/deep/file.jpg",
       );
       expect(result).toBe("file.jpg");
     });
@@ -162,35 +162,35 @@ describe("AssetModel.getFileName", () => {
 
     test("should extract filename from URL with query params", () => {
       const result = AssetModel.getFileName(
-        "https://example.com/image.png?v=123&size=large"
+        "https://example.com/image.png?v=123&size=large",
       );
       expect(result).toBe("image.png");
     });
 
     test("should extract filename from URL with fragment", () => {
       const result = AssetModel.getFileName(
-        "https://example.com/image.png#section"
+        "https://example.com/image.png#section",
       );
       expect(result).toBe("image.png");
     });
 
     test("should extract filename from URL with both params and fragment", () => {
       const result = AssetModel.getFileName(
-        "https://example.com/file.pdf?download=1#page=5"
+        "https://example.com/file.pdf?download=1#page=5",
       );
       expect(result).toBe("file.pdf");
     });
 
     test("should extract filename from nested path in URL", () => {
       const result = AssetModel.getFileName(
-        "https://cdn.example.com/assets/images/logo.png"
+        "https://cdn.example.com/assets/images/logo.png",
       );
       expect(result).toBe("logo.png");
     });
 
     test("should decode URL-encoded characters", () => {
       const result = AssetModel.getFileName(
-        "https://example.com/My%20File%20Name.png"
+        "https://example.com/My%20File%20Name.png",
       );
       expect(result).toBe("My File Name.png");
     });
@@ -202,7 +202,7 @@ describe("AssetModel.getFileName", () => {
 
     test("should handle multiple consecutive slashes in URL", () => {
       const result = AssetModel.getFileName(
-        "https://example.com/assets//images///logo.png///"
+        "https://example.com/assets//images///logo.png///",
       );
       expect(result).toBe("logo.png");
     });
@@ -223,5 +223,41 @@ describe("AssetModel.getFileName", () => {
       const result = AssetModel.getFileName("//example.com/image.png");
       expect(result).toBe("image.png");
     });
+  });
+});
+
+describe("AssetModel.getBasePath", () => {
+  test("should return empty string for empty input", () => {
+    expect(AssetModel.getBasePath("")).toBe("");
+  });
+
+  test("should return path as is if it starts with http://", () => {
+    expect(AssetModel.getBasePath("http://example.com/img.png")).toBe(
+      "http://example.com/img.png",
+    );
+  });
+
+  test("should return path as is if it starts with https://", () => {
+    expect(AssetModel.getBasePath("https://example.com/img.png")).toBe(
+      "https://example.com/img.png",
+    );
+  });
+
+  test("should return path as is if it ends with /", () => {
+    expect(AssetModel.getBasePath("/assets/")).toBe("/assets/");
+  });
+
+  test("should return base path for standard file path", () => {
+    expect(AssetModel.getBasePath("/assets/images/logo.png")).toBe(
+      "/assets/images/",
+    );
+  });
+
+  test("should return base path for deeply nested file", () => {
+    expect(AssetModel.getBasePath("/a/b/c/d/file.txt")).toBe("/a/b/c/d/");
+  });
+
+  test("should return / for file in root", () => {
+    expect(AssetModel.getBasePath("logo.png")).toBe("/");
   });
 });
