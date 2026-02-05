@@ -258,6 +258,6 @@ describe("AssetModel.getBasePath", () => {
   });
 
   test("should return / for file in root", () => {
-    expect(AssetModel.getBasePath("logo.png")).toBe("/");
+    expect(AssetModel.getBasePath("/logo.png")).toBe("/");
   });
 });

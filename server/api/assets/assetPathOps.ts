@@ -34,15 +34,15 @@ export async function isAssetPathUnique(
     path = path.slice(0, -1);
   }
 
-  const escapedPath = RegExp.escape(path);
-  const regexStr = `^${escapedPath}\/`;
-
   // check if the path is in the blacklist
   for (const pattern of blackListPathGlobs) {
     if (matchesGlob(path, pattern)) {
       return false;
     }
   }
+
+  const escapedPath = RegExp.escape(path);
+  const regexStr = `^${escapedPath}\/`;
 
   const filter: Filter<DataPropsOnly<AssetModel>> = {
     projectId,
@@ -53,7 +53,9 @@ export async function isAssetPathUnique(
   }
 
   const collection = await getCollection<AssetModel>("assets");
-  const doc = await collection.findOne(filter, { projection: { _id: 1 } });
+  const doc = await collection.findOne(filter, {
+    projection: { _id: 1, path: 1 },
+  });
 
   return !doc;
 }

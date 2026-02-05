@@ -1,7 +1,8 @@
+import { basename, dirname } from "common/path/path";
+import { getFileType, isTextFile } from "../../path/FileExtensions";
 import { Model, UserModelAction } from "../Model";
 import { DeepPartial, mergeDeep } from "../utils";
 import { EditorAsset } from "./EditorAsset";
-import { getFileType, isTextFile } from "./FileExtensions";
 
 export interface AssetListItem {
   uuid: string;
@@ -132,7 +133,7 @@ export class AssetModel extends Model {
       );
     }
 
-    return path.split("/").filter(Boolean).pop() || "";
+    return basename(path);
   }
 
   /**
@@ -154,15 +155,12 @@ export class AssetModel extends Model {
       return path;
     }
 
-    const parts = path.split("/");
-    parts.pop();
-    const newPath = parts.join("/");
+    const newPath = dirname(path);
 
     if (newPath.endsWith("/")) {
       return newPath;
     }
-
-    return newPath + "/";
+    return `${newPath}/`;
   }
 
   /**

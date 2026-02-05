@@ -7,10 +7,7 @@ import { getCollection } from "server/database/mongodb";
 import { rmDirIfEmpty } from "server/hfs/dirOps";
 import { isPathInside } from "server/hfs/path";
 import { mkDirRecursive } from "server/utils/mkDir";
-import {
-  getProjectFilesDir,
-  getProjectPublicDir,
-} from "server/utils/uploadDir";
+import { getProjectFilesDir } from "server/utils/uploadDir";
 import { getAsset } from "./getAssets";
 import { saveAsset } from "./saveAsset";
 

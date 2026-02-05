@@ -1,4 +1,8 @@
-import { AssetDeleteApi, AssetRestoreApi } from "common/api/assets/assets";
+import {
+  AssetDeleteApi,
+  AssetMoveApi,
+  AssetRestoreApi,
+} from "common/api/assets/assets";
 import { AssetListItem, AssetModel } from "common/models/assets/AssetModel";
 import { useMemo, useRef } from "react";
 import { DirectoryNode } from "../list/DirectoryView";
@@ -57,17 +61,20 @@ export interface CommandManager {
   ): UnregisterCallback;
 
   // rename
-  trigger(command: "rename", result: CommandResult): void;
+  trigger(command: "rename", result: AssetMoveApi["PostResponse"]): void;
   trigger(
     command: "rename:show",
     items: AssetListItem[],
     basePath: string,
   ): void;
   trigger(command: "rename:hide"): void;
-  on(event: "rename", cb: (result: CommandResult) => void): UnregisterCallback;
+  on(
+    event: "rename",
+    cb: (result: AssetMoveApi["PostResponse"]) => void,
+  ): UnregisterCallback;
   on(
     event: "rename:show",
-    cb: (item: AssetListItem) => void,
+    cb: (items: AssetListItem[], basePath: string) => void,
   ): UnregisterCallback;
   on(event: "rename:hide", cb: () => void): UnregisterCallback;
 

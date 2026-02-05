@@ -131,6 +131,35 @@ export interface AssetListFilesApi extends Api {
   };
 }
 
+export interface AssetMoveApi extends Api {
+  Endpoint: "/api/assets/move/:projectId";
+  EndpointParts: ["/api/assets/move", string];
+
+  UrlParams: {
+    projectId: string;
+  };
+
+  PostBody: {
+    fromPath: string;
+    toPath: string;
+
+    onConflict: "skip" | "overwrite" | "rename" | "throw";
+
+    assets: { uuid: string }[];
+  };
+
+  PostResponse: {
+    success: boolean;
+
+    skipped: AssetModel[];
+
+    /**
+     * The list of assets that were changed
+     */
+    completed: AssetModel[];
+  };
+}
+
 export interface AssetEditEndpoint {
   Endpoint: "/assets/:projectId/:uuid";
   EndpointParts: ["/assets", string, string];

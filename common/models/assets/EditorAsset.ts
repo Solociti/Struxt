@@ -1,4 +1,4 @@
-import { FileType } from "./FileExtensions";
+import { FileType } from "../../path/FileExtensions";
 
 export interface EditorAsset {
   uuid: string;

@@ -4,9 +4,10 @@ import { useMemo } from "react";
 import Spinner from "react-bootstrap/Spinner";
 import { useContentManager } from "../cm/contentManager";
 import { DeleteAssetsModal } from "../modals/DeleteAssetsModal";
+import { NewAssetModal } from "../modals/NewAssetModal";
+import { RenameAssetsModal } from "../modals/RenameAssetsModal";
 import { ItemContextMenu } from "./ContextMenu";
 import { DirectoryNode, DirectoryView } from "./DirectoryView";
-import { NewAssetModal } from "./NewAssetModal";
 
 /**
  * Create the directory tree to use when rendering the file list
@@ -153,8 +154,8 @@ export function AssetList() {
       </div>
 
       <NewAssetModal />
-
       <DeleteAssetsModal />
+      <RenameAssetsModal />
     </div>
   );
 }

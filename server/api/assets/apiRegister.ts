@@ -3,6 +3,7 @@ import {
   AssetCreateApi,
   AssetDeleteApi,
   AssetListFilesApi,
+  AssetMoveApi,
   AssetRestoreApi,
   AssetSaveExternalApi,
 } from "common/api/assets/assets";
@@ -24,6 +25,7 @@ import {
   restoreAsset,
 } from "./deleteAsset";
 import { getAsset, getAssetList } from "./getAssets";
+import { moveAssets } from "./moveAssets";
 import { saveAsset } from "./saveAsset";
 
 registerApi<AssetApi>("/api/assets/model/:projectId").get(
@@ -82,6 +84,7 @@ registerApi<AssetCreateApi>("/api/assets/create/:projectId").post(
       );
     }
 
+    // TODO: sanitize the file name, checking for length and invalid characters
     const path = normalize(parsedBody.path);
     const uuid = await createSimpleId("asset");
 
@@ -293,6 +296,61 @@ registerApi<AssetListFilesApi>("/api/assets/list-files/:projectId").get(
 
     return {
       files,
+    };
+  },
+);
+
+registerApi<AssetMoveApi>("/api/assets/move/:projectId").post(
+  [roles.struxt.editor],
+  async ({ user, params, body }) => {
+    const { projectId } = z
+      .object({
+        projectId: z.string(),
+      })
+      .parse(params);
+
+    if (!user.hasProjectPermission(projectId, [roles.projects.edit])) {
+      throw customError(
+        403,
+        "You do not have permission to modify this project.",
+      );
+    }
+
+    // validate the incoming body
+    const { assets, fromPath, toPath, onConflict } = z
+      .object({
+        fromPath: z.string(),
+        toPath: z.string(),
+        onConflict: z
+          .enum(["skip", "overwrite", "rename", "throw"])
+          .optional()
+          .default("throw"),
+        assets: z.array(
+          z.object({
+            uuid: z.string(),
+          }),
+        ),
+      })
+      .parse(body);
+
+    // TODO: sanitize the file name, checking for length and invalid characters
+    // process the file moves
+    const result = await moveAssets(
+      projectId,
+      assets,
+      fromPath,
+      toPath,
+      onConflict,
+      {
+        userId: user.id,
+        displayName: user.name,
+      },
+    );
+
+    // return the list of affected assets
+    return {
+      success: true,
+      ...result,
     };
   },
 );

@@ -1,7 +1,7 @@
 import MaterialIcon from "client/components/MaterialIcon";
 import { centerTruncateText } from "common/format/text";
 import { AssetModel } from "common/models/assets/AssetModel";
-import { getFileExtension } from "common/models/assets/FileExtensions";
+import { getFileExtension } from "common/path/FileExtensions";
 import Nav from "react-bootstrap/Nav";
 import { useContentManager } from "./cm/contentManager";
 import { FileIcon } from "./list/FileIcon";

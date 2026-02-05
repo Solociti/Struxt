@@ -2,8 +2,8 @@ import { AssetUploadApi } from "common/api/assets/assets";
 import { customError, structureError } from "common/custom-error/custom-error";
 import { AssetModel } from "common/models/assets/AssetModel";
 import { EditorAsset } from "common/models/assets/EditorAsset";
-import { getFileType } from "common/models/assets/FileExtensions";
 import { roles } from "common/models/user/Roles";
+import { getFileType } from "common/path/FileExtensions";
 import express from "express";
 import multer from "multer";
 import { existsSync, realpathSync } from "node:fs";
@@ -222,6 +222,7 @@ router.post(
       let newFilePath = "";
 
       try {
+        // TODO: sanitize the file name, checking for length and invalid characters
         const ext = extname(file.originalname);
         const originalName = basename(file.originalname, ext);
 

@@ -6,7 +6,7 @@ import {
   FileType,
   getFileExtension,
   getFileType,
-} from "common/models/assets/FileExtensions";
+} from "common/path/FileExtensions";
 import { ProjectListItem } from "common/models/projects/ProjectItem";
 import {
   createContext,
@@ -114,6 +114,26 @@ function useContentManagerState(): ContentManagerState {
         reloadAssetList();
       }),
     );
+    unregister.push(
+      commands.on("rename", () => {
+        reloadAssetList();
+      }),
+    );
+    unregister.push(
+      commands.on("move", () => {
+        reloadAssetList();
+      }),
+    );
+    unregister.push(
+      commands.on("paste", () => {
+        reloadAssetList();
+      }),
+    );
+    unregister.push(
+      commands.on("upload", () => {
+        reloadAssetList();
+      }),
+    );
 
     return () => {
       unregister.forEach((cb) => cb());
@@ -144,6 +164,27 @@ function useContentManagerState(): ContentManagerState {
   }, []);
 
   const activeTab = tabs.find((t) => t.isActive) || null;
+
+  useEffect(() => {
+    const unregister = commands.on("rename", (result) => {
+      // update any open tabs with the new path
+      setTabs((tabs) =>
+        tabs.map((tab) => {
+          const asset = result.completed.find((i) => i.uuid === tab.item.uuid);
+          if (asset) {
+            return {
+              ...tab,
+              item: asset.getListItem(),
+              asset,
+            };
+          }
+          return tab;
+        }),
+      );
+    });
+
+    return unregister;
+  }, []);
 
   // handle loading the assets and content for all tabs in the background
   const _loadingAssets = useRef(new Set<string>());

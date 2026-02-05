@@ -3,6 +3,7 @@ import {
   AssetApi,
   AssetCreateApi,
   AssetListFilesApi,
+  AssetMoveApi,
   AssetRestoreApi,
   AssetSaveExternalApi,
 } from "common/api/assets/assets";
@@ -125,4 +126,38 @@ export async function restoreAsset(
   );
 
   return response;
+}
+
+/**
+ * Move assets from one path to another
+ *
+ * @param projectId
+ * @param assets
+ * @param fromPath
+ * @param toPath
+ * @param onConflict
+ * @returns
+ */
+export async function moveAssets(
+  projectId: string,
+  assets: { uuid: string }[],
+  fromPath: string,
+  toPath: string,
+  onConflict: AssetMoveApi["PostBody"]["onConflict"],
+) {
+  const response = await postApi<AssetMoveApi>(
+    ["/api/assets/move", projectId],
+    {
+      assets,
+      fromPath,
+      toPath,
+      onConflict,
+    },
+  );
+
+  return {
+    ...response,
+    completed: response.completed.map((asset) => new AssetModel(asset)),
+    skipped: response.skipped.map((asset) => new AssetModel(asset)),
+  };
 }

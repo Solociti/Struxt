@@ -3,14 +3,12 @@ import IconButton from "client/components/IconButton";
 import SimpleModal from "client/components/modals/SimpleModal";
 import { useAsyncCallback } from "client/components/useAsyncCallback";
 import { deleteAssets } from "client/projects/assets";
-import { AssetListItem, AssetModel } from "common/models/assets/AssetModel";
-import { getFileExtension } from "common/models/assets/FileExtensions";
+import { AssetListItem } from "common/models/assets/AssetModel";
 import { roles } from "common/models/user/Roles";
 import { useEffect, useState } from "react";
 import Alert from "react-bootstrap/Alert";
-import ListGroup from "react-bootstrap/ListGroup";
 import { useContentManager } from "../cm/contentManager";
-import { FileIcon } from "../list/FileIcon";
+import { DisplayAssetsList } from "./DisplayAssetsList";
 
 /**
  * Creates a modal to confirm the deletion of assets.
@@ -103,26 +101,7 @@ export function DeleteAssetsModal() {
           <p>Are you sure you want to send the following assets to trash?</p>
         )}
 
-        <ListGroup>
-          {items.map((item) => {
-            const fileName = AssetModel.getFileName(item.path);
-            const extension = getFileExtension(fileName);
-            const path = AssetModel.getBasePath(item.path);
-
-            return (
-              <ListGroup.Item key={item.uuid} title={item.path}>
-                <div className="d-flex align-items-center">
-                  <FileIcon extension={extension} />
-                  <div className="ms-2 text-truncate text-muted">
-                    {path.slice(0, -6)}
-                  </div>
-                  <div className="text-muted">{path.slice(-6)}</div>
-                  <div>{fileName}</div>
-                </div>
-              </ListGroup.Item>
-            );
-          })}
-        </ListGroup>
+        <DisplayAssetsList list={items} />
       </div>
     </SimpleModal>
   );
