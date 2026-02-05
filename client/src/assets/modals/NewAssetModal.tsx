@@ -36,7 +36,7 @@ export function NewAssetModal() {
 
   const saveCb = useAsyncCallback(async () => {
     const result = await createNewAsset(project.projectId, {
-      path,
+      path: fullPath,
     });
 
     // trigger the new asset event

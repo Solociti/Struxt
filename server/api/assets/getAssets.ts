@@ -47,6 +47,27 @@ export async function getEditorAssets(projectId: string) {
 }
 
 /**
+ * Get the asset by its path
+ *
+ * @param projectId
+ * @param path
+ * @returns
+ */
+export async function getAssetByPath(projectId: string, path: string) {
+  const collection = await getCollection<AssetModel>("assets");
+
+  const doc = await collection.findOne({
+    projectId,
+    path,
+  });
+  if (!doc) {
+    return null;
+  }
+
+  return new AssetModel(doc);
+}
+
+/**
  * Get the list of assets for the given project specifically for the visual editor
  *
  * @param projectId

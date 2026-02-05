@@ -7,8 +7,9 @@ import { rename } from "node:fs/promises";
 import { isPathInside } from "server/hfs/path";
 import { getProjectFilesDir } from "server/utils/uploadDir";
 import { isAssetPathUnique } from "./assetPathOps";
-import { getAsset } from "./getAssets";
+import { getAsset, getAssetByPath } from "./getAssets";
 import { saveAsset } from "./saveAsset";
+import { deleteAsset } from "./deleteAsset";
 
 /**
  * Move the list of assets from one path to another
@@ -38,6 +39,7 @@ export async function moveAssets(
     newPath: string;
     fullPath: string;
     asset: AssetModel;
+    deleteAsset?: string;
   }[] = [];
 
   const skipped: AssetModel[] = [];
@@ -60,6 +62,7 @@ export async function moveAssets(
 
     let fullPath = join(projectDir, path);
     const oldPath = join(projectDir, asset.path);
+    let deleteAsset: string | undefined = undefined;
 
     if (
       !isPathInside(fullPath, projectDir) ||
@@ -109,7 +112,16 @@ export async function moveAssets(
         throw customError(400, `Asset path conflict for (${path}).`);
       }
 
-      // overwrite case - proceed
+      if (onConflict === "overwrite") {
+        // we need to delete the existing asset that is being overwritten
+        const existingAsset = await getAssetByPath(projectId, path);
+        if (existingAsset) {
+          deleteAsset = existingAsset.uuid;
+        } else {
+          // fallback to skipping
+          continue;
+        }
+      }
     }
 
     operations.push({
@@ -118,11 +130,16 @@ export async function moveAssets(
       newPath: path,
       fullPath,
       asset,
+      deleteAsset,
     });
   }
 
   // perform the move operations
   for (const op of operations) {
+    if (op.deleteAsset) {
+      await deleteAsset(op.deleteAsset, projectId, user);
+    }
+
     // move the file on disk
     await rename(op.oldFullPath, op.fullPath);
 
