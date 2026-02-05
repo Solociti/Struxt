@@ -22,7 +22,7 @@ import { DisplayAssetsList } from "./DisplayAssetsList";
  * @returns
  */
 export function RenameAssetsModal() {
-  const { commands, project } = useContentManager();
+  const { commands, project, isSingleProject } = useContentManager();
 
   const [show, setShow] = useState(false);
   const [items, setItems] = useState<AssetListItem[]>([]);
@@ -96,6 +96,10 @@ export function RenameAssetsModal() {
       toastError: true,
     },
   );
+
+  if(!isSingleProject) {
+    return null;
+  }
 
   return (
     <SimpleModal

@@ -5,6 +5,7 @@ import { ShowError } from "client/components/ShowError";
 import { useAsyncCallback } from "client/components/useAsyncCallback";
 import { useCurrentProject } from "client/projects/ProjectContext";
 import { AssetModel } from "common/models/assets/AssetModel";
+import { join, normalize, sep } from "common/path/path";
 import { useEffect, useState } from "react";
 import Form from "react-bootstrap/Form";
 import { createNewAsset } from "../assetApis";
@@ -21,9 +22,14 @@ export function NewAssetModal() {
 
   const [show, setShow] = useState(false);
 
+  const [originalPath, setOriginalPath] = useState("");
   const [path, setPath] = useState("");
-  const name = path.endsWith("/") ? "" : AssetModel.getFileName(path);
-  const isValid = Boolean(path) && Boolean(name);
+
+  const fullPath = normalize(join(originalPath, path));
+  const isValid =
+    Boolean(path) &&
+    Boolean(AssetModel.getFileName(originalPath)) &&
+    !fullPath.endsWith(sep);
 
   // get the current project details
   const { project, isSingleProject } = useCurrentProject();
@@ -40,10 +46,12 @@ export function NewAssetModal() {
 
   useEffect(() => {
     const unregisterShow = commands.on("new-asset:show", (basePath) => {
-      setPath(basePath);
+      setOriginalPath(basePath);
+      setPath("");
       setShow(true);
     });
     const unregisterHide = commands.on("new-asset:hide", () => {
+      setOriginalPath("");
       setPath("");
       setShow(false);
     });
@@ -60,7 +68,6 @@ export function NewAssetModal() {
   }
 
   const onHide = () => {
-    saveCb.reset();
     commands.trigger("new-asset:hide");
   };
 
@@ -94,23 +101,19 @@ export function NewAssetModal() {
       <div className="d-flex flex-column gap-3">
         <Group prepend="Name">
           <Form.Control
-            value={path.endsWith("/") ? "" : AssetModel.getFileName(path)}
+            value={path}
             placeholder="Asset Name"
             name="name"
-            onChange={(event) => {
-              const parts = path.split("/");
-              parts[parts.length - 1] = event.target.value;
-              setPath(parts.join("/"));
-            }}
+            onChange={(event) => setPath(event.target.value)}
           />
         </Group>
 
-        <Group prepend="Path">
+        <Group prepend="Result">
           <Form.Control
-            value={path}
-            placeholder="/"
+            value={fullPath}
+            placeholder={sep}
             name="path"
-            onChange={(event) => setPath(event.target.value)}
+            readOnly
           />
         </Group>
       </div>
