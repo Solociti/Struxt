@@ -1,6 +1,6 @@
-import ToastContainer from "react-bootstrap/ToastContainer";
-import Toast from "react-bootstrap/Toast";
 import { useEffect, useState } from "react";
+import Toast from "react-bootstrap/Toast";
+import ToastContainer from "react-bootstrap/ToastContainer";
 import MaterialIcon from "./MaterialIcon";
 
 /**
@@ -10,7 +10,8 @@ const change: (() => void)[] = [];
 
 interface ErrorType {
   id: number;
-  error: Error;
+  error: Error | { name: string; message: string };
+  type: "error" | "warning" | "info";
 }
 
 /**
@@ -25,9 +26,39 @@ let idCounter = 0;
  *
  * @param error
  */
-export function addToastError(error: Error) {
+export function addToastError(
+  error: Error | { name: string; message: string },
+) {
   const id = idCounter++;
-  errors.push({ id, error });
+  errors.push({ id, error, type: "error" });
+
+  // Notify all change listeners
+  change.forEach((listener) => listener());
+}
+
+/**
+ * Add a warning to the snackbar.
+ *
+ * @param name
+ * @param message
+ */
+export function addToastWarning(name: string, message: string) {
+  const id = idCounter++;
+  errors.push({ id, error: { name, message }, type: "warning" });
+
+  // Notify all change listeners
+  change.forEach((listener) => listener());
+}
+
+/**
+ * Add an info message to the snackbar.
+ *
+ * @param name
+ * @param message
+ */
+export function addToastInfo(name: string, message: string) {
+  const id = idCounter++;
+  errors.push({ id, error: { name, message }, type: "info" });
 
   // Notify all change listeners
   change.forEach((listener) => listener());
@@ -110,16 +141,42 @@ export function SetupErrorSnackBar({}) {
       position="bottom-end"
       containerPosition="fixed"
     >
-      {list.map(({ error, id }) => {
+      {list.map(({ error, type, id }) => {
+        const variant = (() => {
+          switch (type) {
+            case "error":
+              return "danger";
+            case "warning":
+              return "warning";
+            case "info":
+              return "info";
+            default:
+              return "secondary";
+          }
+        })();
+
+        const icon = (() => {
+          switch (type) {
+            case "error":
+              return "error";
+            case "warning":
+              return "warning";
+            case "info":
+              return "info";
+            default:
+              return "info";
+          }
+        })();
+
         return (
           <Toast
             onClose={() => removeToastError(id)}
             show
             key={id}
-            className="border border-danger"
+            className={`border border-${variant}`}
           >
-            <Toast.Header className="text-danger">
-              <MaterialIcon className="me-2">error</MaterialIcon>
+            <Toast.Header className={`text-${variant}`}>
+              <MaterialIcon className="me-2">{icon}</MaterialIcon>
               <strong className="me-auto">{error.name}</strong>
             </Toast.Header>
             <Toast.Body>{error.message}</Toast.Body>
