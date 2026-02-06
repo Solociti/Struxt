@@ -85,7 +85,7 @@ function extractPackageChanges(prFiles, prBody) {
 
     for (const line of lines) {
       // Look for version changes in dependencies (supports semver including pre-release)
-      const match = line.match(/^[\+\-]\s+"(@?[\w\-\/]+)":\s+"[\^~]?([\d\.\-\w]+)"/);
+      const match = line.match(/^[\+\-]\s+"(@?[\w\-\.\/]+)":\s+"[\^~]?([\d\.\-\w]+)"/);
       if (match) {
         const packageName = match[1];
         const version = match[2];

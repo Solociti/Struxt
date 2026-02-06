@@ -117,6 +117,26 @@ describe("Renovate Summary Script", () => {
       expect(changes[0].oldVersion).toBe("1.0.0-beta.1");
       expect(changes[0].newVersion).toBe("1.0.0-rc.2");
     });
+
+    test("should handle package names with periods", () => {
+      const prFiles = [
+        {
+          filename: "package.json",
+          patch: `@@ -1,5 +1,5 @@
+ {
+-  "some.package": "^1.0.0"
++  "some.package": "^2.0.0"
+ }`,
+        },
+      ];
+
+      const changes = extractPackageChangesLocal(prFiles);
+
+      expect(changes).toHaveLength(1);
+      expect(changes[0].name).toBe("some.package");
+      expect(changes[0].oldVersion).toBe("1.0.0");
+      expect(changes[0].newVersion).toBe("2.0.0");
+    });
   });
 
   describe("comment header detection", () => {
@@ -156,7 +176,7 @@ function extractPackageChangesLocal(prFiles) {
     const lines = patch.split("\n");
 
     for (const line of lines) {
-      const match = line.match(/^[\+\-]\s+"(@?[\w\-\/]+)":\s+"[\^~]?([\d\.\-\w]+)"/);
+      const match = line.match(/^[\+\-]\s+"(@?[\w\-\.\/]+)":\s+"[\^~]?([\d\.\-\w]+)"/);
       if (match) {
         const packageName = match[1];
         const version = match[2];
