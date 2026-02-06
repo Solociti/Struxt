@@ -3,7 +3,7 @@ import { describe, expect, test } from "vitest";
 /**
  * Tests for the renovate-summary script
  * Note: These tests cover the extractPackageChanges function logic
- * The full script requires GitHub and OpenAI API access
+ * The full script requires GitHub and GitHub Copilot CLI access
  */
 describe("Renovate Summary Script", () => {
   describe("extractPackageChanges", () => {

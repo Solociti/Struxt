@@ -4,6 +4,8 @@ import { exec } from 'child_process';
 import { promisify } from 'util';
 import fs from 'fs/promises';
 import path from 'path';
+import os from 'os';
+import { randomBytes } from 'crypto';
 
 const execAsync = promisify(exec);
 
@@ -223,28 +225,41 @@ Please provide a concise summary that includes:
 Format your response in markdown. Be concise but thorough. If there are no release notes available, acknowledge this and provide a best-effort analysis based on version numbers.`;
 
   try {
-    // Write prompt to temp file
-    const tempFile = `/tmp/copilot-prompt-${Date.now()}.txt`;
-    await fs.writeFile(tempFile, prompt);
+    // Generate unique temp file path
+    const tempDir = os.tmpdir();
+    const uniqueId = randomBytes(8).toString('hex');
+    const tempFile = path.join(tempDir, `copilot-prompt-${process.pid}-${uniqueId}.txt`);
+    
+    await fs.writeFile(tempFile, prompt, 'utf8');
 
-    // Use GitHub Copilot CLI to generate summary
-    const { stdout } = await execAsync(
-      `gh copilot suggest -t shell "$(cat ${tempFile})" | tail -n +3`,
-      { 
-        cwd: process.cwd(),
-        maxBuffer: 10 * 1024 * 1024,
-        env: { ...process.env }
+    try {
+      // Read file content and pass via stdin to avoid shell expansion
+      const promptContent = await fs.readFile(tempFile, 'utf8');
+      
+      // Use GitHub Copilot CLI to generate summary
+      // Pass prompt via stdin to avoid shell escaping issues
+      const { stdout } = await execAsync(
+        `echo "${promptContent.replace(/"/g, '\\"')}" | gh copilot suggest -t shell | tail -n +3`,
+        { 
+          cwd: process.cwd(),
+          maxBuffer: 10 * 1024 * 1024,
+          env: { ...process.env }
+        }
+      );
+
+      // Clean up temp file
+      await fs.unlink(tempFile).catch(() => {});
+
+      if (!stdout || stdout.trim().length === 0) {
+        throw new Error('GitHub Copilot CLI returned empty response');
       }
-    );
 
-    // Clean up temp file
-    await fs.unlink(tempFile).catch(() => {});
-
-    if (!stdout || stdout.trim().length === 0) {
-      throw new Error('GitHub Copilot CLI returned empty response');
+      return stdout.trim();
+    } catch (execError) {
+      // Clean up temp file on error
+      await fs.unlink(tempFile).catch(() => {});
+      throw execError;
     }
-
-    return stdout.trim();
   } catch (error) {
     console.error('Error calling GitHub Copilot CLI:', error);
     
@@ -263,16 +278,26 @@ Format your response in markdown. Be concise but thorough. If there are no relea
 function generateFallbackSummary(prTitle, packageChanges, usageAnalysis) {
   const changesList = packageChanges.map(pkg => {
     const usage = usageAnalysis[pkg.name];
-    const versionParts = {
-      old: pkg.oldVersion.split('.'),
-      new: pkg.newVersion.split('.')
+    
+    // Parse semver properly, handling pre-release versions
+    const parseVersion = (ver) => {
+      const match = ver.match(/^(\d+)\.(\d+)\.(\d+)/);
+      return match ? { major: match[1], minor: match[2], patch: match[3] } : null;
     };
     
+    const oldVer = parseVersion(pkg.oldVersion);
+    const newVer = parseVersion(pkg.newVersion);
+    
     let riskLevel = 'Low Risk';
-    if (versionParts.old[0] !== versionParts.new[0]) {
-      riskLevel = 'High Risk (Major version change)';
-    } else if (versionParts.old[1] !== versionParts.new[1]) {
-      riskLevel = 'Medium Risk (Minor version change)';
+    if (oldVer && newVer) {
+      if (oldVer.major !== newVer.major) {
+        riskLevel = 'High Risk (Major version change)';
+      } else if (oldVer.minor !== newVer.minor) {
+        riskLevel = 'Medium Risk (Minor version change)';
+      }
+    } else {
+      // If we can't parse versions, be conservative
+      riskLevel = 'Medium Risk (Version format changed)';
     }
     
     return `- **${pkg.name}**: ${pkg.oldVersion} → ${pkg.newVersion}
