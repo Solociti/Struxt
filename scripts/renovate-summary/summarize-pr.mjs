@@ -6,6 +6,7 @@ import fs from 'fs/promises';
 import path from 'path';
 import os from 'os';
 import { randomBytes } from 'crypto';
+import { fileURLToPath } from 'url';
 
 const execAsync = promisify(exec);
 
@@ -148,24 +149,20 @@ async function extractPackageChanges(octokit, owner, repo, prNumber, prFiles, pr
         const previousVersion = previousDeps[packageName];
         
         if (previousVersion && previousVersion !== currentVersion) {
-          // Version changed
+          // Version changed - keep version as-is including ^ or ~ prefix
           changes.push({
             name: packageName,
-            oldVersion: previousVersion.replace(/^[\^~]/, ''),
-            newVersion: currentVersion.replace(/^[\^~]/, ''),
+            oldVersion: previousVersion,
+            newVersion: currentVersion,
             depType,
           });
         }
       }
     }
 
-    // Also parse from PR body (Renovate usually includes this info)
-    const releaseNotesMatch = prBody.match(/### Release Notes[^\#]*/s);
-    if (releaseNotesMatch) {
-      const releaseNotes = releaseNotesMatch[0];
-      for (const change of changes) {
-        change.releaseNotes = releaseNotes;
-      }
+    // Include entire PR body for AI context (contains all Renovate notes)
+    for (const change of changes) {
+      change.prBody = prBody;
     }
 
   } catch (error) {
@@ -395,6 +392,8 @@ ${summary}
 export { extractPackageChanges };
 
 // Only run main if this is the main module (not imported for testing)
-if (import.meta.url === `file://${process.argv[1]}`) {
+const currentFile = fileURLToPath(import.meta.url);
+const invokedFile = path.resolve(process.argv[1]);
+if (currentFile === invokedFile) {
   main();
 }

@@ -74,8 +74,8 @@ describe("Renovate Summary Script", () => {
 
       expect(changes).toHaveLength(1);
       expect(changes[0].name).toBe("axios");
-      expect(changes[0].oldVersion).toBe("1.12.0");
-      expect(changes[0].newVersion).toBe("1.13.4");
+      expect(changes[0].oldVersion).toBe("^1.12.0");
+      expect(changes[0].newVersion).toBe("^1.13.4");
     });
 
     test("should extract scoped package changes", async () => {
@@ -115,8 +115,8 @@ describe("Renovate Summary Script", () => {
 
       expect(changes).toHaveLength(1);
       expect(changes[0].name).toBe("@types/node");
-      expect(changes[0].oldVersion).toBe("24.0.0");
-      expect(changes[0].newVersion).toBe("24.10.1");
+      expect(changes[0].oldVersion).toBe("^24.0.0");
+      expect(changes[0].newVersion).toBe("^24.10.1");
     });
 
     test("should handle multiple package changes", async () => {
@@ -261,8 +261,8 @@ describe("Renovate Summary Script", () => {
 
       expect(changes).toHaveLength(1);
       expect(changes[0].name).toBe("beta-pkg");
-      expect(changes[0].oldVersion).toBe("1.0.0-beta.1");
-      expect(changes[0].newVersion).toBe("1.0.0-rc.2");
+      expect(changes[0].oldVersion).toBe("^1.0.0-beta.1");
+      expect(changes[0].newVersion).toBe("^1.0.0-rc.2");
     });
 
     test("should handle package names with periods", async () => {
@@ -302,8 +302,8 @@ describe("Renovate Summary Script", () => {
 
       expect(changes).toHaveLength(1);
       expect(changes[0].name).toBe("some.package");
-      expect(changes[0].oldVersion).toBe("1.0.0");
-      expect(changes[0].newVersion).toBe("2.0.0");
+      expect(changes[0].oldVersion).toBe("^1.0.0");
+      expect(changes[0].newVersion).toBe("^2.0.0");
     });
   });
 
