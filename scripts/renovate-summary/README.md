@@ -1,6 +1,6 @@
 # Renovate PR Summary GitHub Action
 
-This GitHub Action automatically summarizes Renovate pull requests using AI (OpenAI's ChatGPT) and adds an intelligent comment to the PR with:
+This GitHub Action automatically summarizes Renovate pull requests using AI (GitHub Copilot CLI) and adds an intelligent comment to the PR with:
 
 - Release summary and key changes
 - Breaking changes identification
@@ -11,20 +11,23 @@ This GitHub Action automatically summarizes Renovate pull requests using AI (Ope
 ## Features
 
 - ✅ Automatically runs when Renovate creates or updates a PR
-- ✅ Uses AI to analyze release notes and provide meaningful summaries
+- ✅ Uses GitHub Copilot CLI to analyze release notes and provide meaningful summaries
 - ✅ Analyzes codebase to find where packages are used
 - ✅ Assesses risk level based on version changes and usage
 - ✅ Updates existing comment instead of creating duplicates
 - ✅ Provides actionable recommendations for testing
+- ✅ **No additional dependencies required** - uses dynamic imports and GitHub CLI
+- ✅ Falls back to basic summary if Copilot is unavailable
 
 ## Setup
 
-### 1. Add OpenAI API Key to GitHub Secrets
+### 1. Enable GitHub Copilot
 
-1. Go to your repository's Settings → Secrets and variables → Actions
-2. Click "New repository secret"
-3. Name: `OPENAI_API_KEY`
-4. Value: Your OpenAI API key (get one from https://platform.openai.com/api-keys)
+This action uses GitHub Copilot CLI, which requires:
+- GitHub Copilot subscription for your organization or user account
+- The action will automatically install and configure GitHub Copilot CLI
+
+No additional API keys or secrets are required! The action uses the `GITHUB_TOKEN` that's automatically provided by GitHub Actions.
 
 ### 2. Enable GitHub Actions
 
@@ -35,14 +38,19 @@ The workflow file is located at `.github/workflows/renovate-pr-summary.yml` and 
 ## How It Works
 
 1. **Trigger**: The action runs when a PR is created or updated by the Renovate bot
-2. **Analysis**: 
+2. **Setup**:
+   - Installs GitHub CLI
+   - Installs GitHub Copilot CLI extension
+   - Dynamically imports @octokit/rest from esm.sh (no npm install needed)
+3. **Analysis**: 
    - Extracts package changes from `package.json` diff
    - Searches the codebase to find where each package is used
    - Counts usage locations and lists affected files
-3. **AI Summary**: 
-   - Sends package changes, release notes, and usage data to OpenAI
+4. **AI Summary**: 
+   - Sends package changes, release notes, and usage data to GitHub Copilot CLI
    - Generates a comprehensive summary with risk assessment
-4. **Comment**: 
+   - Falls back to basic summary if Copilot is unavailable
+5. **Comment**: 
    - Creates a comment on the PR with the summary
    - Updates the existing comment on subsequent runs (no spam!)
 
@@ -93,23 +101,21 @@ You can customize the action by editing:
 - Verify the PR is created by `renovate[bot]`
 - Check that GitHub Actions are enabled for your repository
 
-### OpenAI API errors
-- Verify your `OPENAI_API_KEY` secret is set correctly
-- Check your OpenAI account has available credits
-- Review the action logs for specific error messages
+### GitHub Copilot CLI errors
+- Verify your organization/account has GitHub Copilot enabled
+- Check the action logs for specific error messages
+- The action will fall back to a basic summary if Copilot is unavailable
 
 ### Missing dependencies
-- The action runs `npm ci` to install dependencies
-- Ensure `@octokit/rest` and `openai` are in `package.json`
+- No npm dependencies are required - the script uses dynamic imports from esm.sh
+- GitHub CLI and Copilot CLI are installed automatically by the workflow
 
 ## Cost Considerations
 
-This action uses OpenAI's API, which has usage costs:
-- Model used: `gpt-4o-mini` (cost-effective for summaries)
-- Typical cost per PR: ~$0.01-0.05
+This action uses GitHub Copilot CLI, which is included in your GitHub Copilot subscription:
+- No additional API costs beyond your Copilot subscription
 - Runs only on Renovate PRs (limited frequency)
-
-Monitor your OpenAI usage at https://platform.openai.com/usage
+- Falls back to basic summary if Copilot is unavailable
 
 ## License
 

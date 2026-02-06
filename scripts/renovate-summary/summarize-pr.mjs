@@ -1,7 +1,5 @@
 #!/usr/bin/env node
 
-import { Octokit } from '@octokit/rest';
-import OpenAI from 'openai';
 import { exec } from 'child_process';
 import { promisify } from 'util';
 import fs from 'fs/promises';
@@ -17,20 +15,20 @@ const COMMENT_HEADER = '<!-- RENOVATE_SUMMARY_COMMENT -->';
 async function main() {
   try {
     const githubToken = process.env.GITHUB_TOKEN;
-    const openaiApiKey = process.env.OPENAI_API_KEY;
     const prNumber = parseInt(process.env.PR_NUMBER);
     const repository = process.env.REPOSITORY;
     const prTitle = process.env.PR_TITLE;
     const prBody = process.env.PR_BODY || '';
 
-    if (!githubToken || !openaiApiKey || !prNumber || !repository) {
+    if (!githubToken || !prNumber || !repository) {
       throw new Error('Missing required environment variables');
     }
 
     const [owner, repo] = repository.split('/');
 
+    // Dynamically import Octokit from esm.sh
+    const { Octokit } = await import('https://esm.sh/@octokit/rest');
     const octokit = new Octokit({ auth: githubToken });
-    const openai = new OpenAI({ apiKey: openaiApiKey });
 
     console.log(`Processing PR #${prNumber} in ${repository}`);
 
@@ -54,8 +52,8 @@ async function main() {
     // Analyze where packages are used in the codebase
     const usageAnalysis = await analyzePackageUsage(packageChanges);
 
-    // Generate AI summary
-    const summary = await generateSummary(openai, prTitle, prBody, packageChanges, usageAnalysis);
+    // Generate AI summary using GitHub Copilot CLI
+    const summary = await generateSummaryWithCopilot(prTitle, prBody, packageChanges, usageAnalysis);
 
     // Find existing comment or create new one
     await createOrUpdateComment(octokit, owner, repo, prNumber, summary);
@@ -84,8 +82,8 @@ function extractPackageChanges(prFiles, prBody) {
     const lines = patch.split('\n');
 
     for (const line of lines) {
-      // Look for version changes in dependencies
-      const match = line.match(/^[\+\-]\s+"(@?[\w\-\/]+)":\s+"[\^~]?([\d\.]+)"/);
+      // Look for version changes in dependencies (supports semver including pre-release)
+      const match = line.match(/^[\+\-]\s+"(@?[\w\-\/]+)":\s+"[\^~]?([\d\.\-\w]+)"/);
       if (match) {
         const packageName = match[1];
         const version = match[2];
@@ -134,22 +132,26 @@ async function analyzePackageUsage(packageChanges) {
     console.log(`Analyzing usage of ${pkg.name}...`);
 
     try {
-      // Search for imports/requires of this package
+      // Escape special shell characters in package name
+      const escapedPkgName = pkg.name.replace(/['"\\$`]/g, '\\$&');
+      
+      // Search for imports/requires of this package (including subpaths for scoped packages)
       const searchPatterns = [
-        `from '${pkg.name}'`,
-        `from "${pkg.name}"`,
-        `require('${pkg.name}')`,
-        `require("${pkg.name}")`,
-        `import('${pkg.name}')`,
-        `import("${pkg.name}")`,
+        `from '${escapedPkgName}`,
+        `from "${escapedPkgName}`,
+        `require('${escapedPkgName}`,
+        `require("${escapedPkgName}`,
+        `import('${escapedPkgName}`,
+        `import("${escapedPkgName}`,
       ];
 
       const locations = new Set();
 
       for (const pattern of searchPatterns) {
         try {
+          // Use shell escaping by passing pattern through proper quoting
           const { stdout } = await execAsync(
-            `grep -r "${pattern}" --include="*.ts" --include="*.tsx" --include="*.js" --include="*.jsx" --include="*.mjs" --exclude-dir=node_modules --exclude-dir=build --exclude-dir=dist . || true`,
+            `grep -r --fixed-strings "${pattern}" --include="*.ts" --include="*.tsx" --include="*.js" --include="*.jsx" --include="*.mjs" --exclude-dir=node_modules --exclude-dir=build --exclude-dir=dist . || true`,
             { cwd: process.cwd(), maxBuffer: 10 * 1024 * 1024 }
           );
 
@@ -185,15 +187,14 @@ async function analyzePackageUsage(packageChanges) {
 }
 
 /**
- * Generate AI summary using OpenAI
- * @param {OpenAI} openai - OpenAI client
+ * Generate AI summary using GitHub Copilot CLI
  * @param {string} prTitle - PR title
  * @param {string} prBody - PR body
  * @param {Array} packageChanges - Package changes
  * @param {Object} usageAnalysis - Usage analysis
  * @returns {string} Generated summary
  */
-async function generateSummary(openai, prTitle, prBody, packageChanges, usageAnalysis) {
+async function generateSummaryWithCopilot(prTitle, prBody, packageChanges, usageAnalysis) {
   const prompt = `You are a senior software engineer reviewing a dependency update PR from Renovate.
 
 PR Title: ${prTitle}
@@ -222,27 +223,78 @@ Please provide a concise summary that includes:
 Format your response in markdown. Be concise but thorough. If there are no release notes available, acknowledge this and provide a best-effort analysis based on version numbers.`;
 
   try {
-    const completion = await openai.chat.completions.create({
-      model: 'gpt-4o-mini',
-      messages: [
-        {
-          role: 'system',
-          content: 'You are a helpful assistant that analyzes dependency updates and provides actionable summaries for software engineers.',
-        },
-        {
-          role: 'user',
-          content: prompt,
-        },
-      ],
-      temperature: 0.7,
-      max_tokens: 2000,
-    });
+    // Write prompt to temp file
+    const tempFile = `/tmp/copilot-prompt-${Date.now()}.txt`;
+    await fs.writeFile(tempFile, prompt);
 
-    return completion.choices[0].message.content;
+    // Use GitHub Copilot CLI to generate summary
+    const { stdout } = await execAsync(
+      `gh copilot suggest -t shell "$(cat ${tempFile})" | tail -n +3`,
+      { 
+        cwd: process.cwd(),
+        maxBuffer: 10 * 1024 * 1024,
+        env: { ...process.env }
+      }
+    );
+
+    // Clean up temp file
+    await fs.unlink(tempFile).catch(() => {});
+
+    if (!stdout || stdout.trim().length === 0) {
+      throw new Error('GitHub Copilot CLI returned empty response');
+    }
+
+    return stdout.trim();
   } catch (error) {
-    console.error('Error calling OpenAI API:', error);
-    throw error;
+    console.error('Error calling GitHub Copilot CLI:', error);
+    
+    // Fallback to basic summary if Copilot fails
+    return generateFallbackSummary(prTitle, packageChanges, usageAnalysis);
   }
+}
+
+/**
+ * Generate a basic fallback summary when AI is unavailable
+ * @param {string} prTitle - PR title
+ * @param {Array} packageChanges - Package changes
+ * @param {Object} usageAnalysis - Usage analysis
+ * @returns {string} Basic summary
+ */
+function generateFallbackSummary(prTitle, packageChanges, usageAnalysis) {
+  const changesList = packageChanges.map(pkg => {
+    const usage = usageAnalysis[pkg.name];
+    const versionParts = {
+      old: pkg.oldVersion.split('.'),
+      new: pkg.newVersion.split('.')
+    };
+    
+    let riskLevel = 'Low Risk';
+    if (versionParts.old[0] !== versionParts.new[0]) {
+      riskLevel = 'High Risk (Major version change)';
+    } else if (versionParts.old[1] !== versionParts.new[1]) {
+      riskLevel = 'Medium Risk (Minor version change)';
+    }
+    
+    return `- **${pkg.name}**: ${pkg.oldVersion} → ${pkg.newVersion}
+  - Risk: ${riskLevel}
+  - Usage: ${usage.usageCount} location(s)`;
+  }).join('\n\n');
+
+  return `## Release Summary
+
+${prTitle}
+
+## Package Updates
+
+${changesList}
+
+## Recommended Actions
+
+- Review and test the affected areas listed above
+- Check for any breaking changes in the package release notes
+- Run the test suite to ensure compatibility
+
+*Note: This is a basic summary. GitHub Copilot CLI was unavailable for detailed analysis.*`;
 }
 
 /**
