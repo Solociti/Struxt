@@ -17,7 +17,6 @@ This GitHub Action automatically summarizes Renovate pull requests using AI (Git
 - ✅ Updates existing comment instead of creating duplicates
 - ✅ Provides actionable recommendations for testing
 - ✅ **No additional dependencies required** - uses dynamic imports and GitHub CLI
-- ✅ Falls back to basic summary if Copilot is unavailable
 
 ## Setup
 
@@ -39,7 +38,7 @@ The workflow file is located at `.github/workflows/renovate-pr-summary.yml` and 
 
 1. **Trigger**: The action runs when a PR is created or updated by the Renovate bot
 2. **Setup**:
-   - Installs GitHub CLI
+   - Uses preinstalled GitHub CLI on GitHub runners
    - Installs GitHub Copilot CLI extension
    - Dynamically imports @octokit/rest from esm.sh (no npm install needed)
 3. **Analysis**: 
@@ -49,7 +48,7 @@ The workflow file is located at `.github/workflows/renovate-pr-summary.yml` and 
 4. **AI Summary**: 
    - Sends package changes, release notes, and usage data to GitHub Copilot CLI
    - Generates a comprehensive summary with risk assessment
-   - Falls back to basic summary if Copilot is unavailable
+   - Fails the action if Copilot is unavailable (Renovate already provides basic details)
 5. **Comment**: 
    - Creates a comment on the PR with the summary
    - Updates the existing comment on subsequent runs (no spam!)
@@ -104,18 +103,18 @@ You can customize the action by editing:
 ### GitHub Copilot CLI errors
 - Verify your organization/account has GitHub Copilot enabled
 - Check the action logs for specific error messages
-- The action will fall back to a basic summary if Copilot is unavailable
+- The action will fail if Copilot is unavailable (Renovate PR already contains basic package information)
 
 ### Missing dependencies
 - No npm dependencies are required - the script uses dynamic imports from esm.sh
-- GitHub CLI and Copilot CLI are installed automatically by the workflow
+- GitHub CLI is preinstalled on GitHub runners
+- Copilot CLI extension is installed automatically by the workflow
 
 ## Cost Considerations
 
 This action uses GitHub Copilot CLI, which is included in your GitHub Copilot subscription:
 - No additional API costs beyond your Copilot subscription
 - Runs only on Renovate PRs (limited frequency)
-- Falls back to basic summary if Copilot is unavailable
 
 ## License
 

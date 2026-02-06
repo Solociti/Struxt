@@ -259,64 +259,8 @@ Format your response in markdown. Be concise but thorough. If there are no relea
     }
   } catch (error) {
     console.error('Error calling GitHub Copilot CLI:', error);
-    
-    // Fallback to basic summary if Copilot fails
-    return generateFallbackSummary(prTitle, packageChanges, usageAnalysis);
+    throw new Error(`Failed to generate summary using GitHub Copilot CLI: ${error.message}`);
   }
-}
-
-/**
- * Generate a basic fallback summary when AI is unavailable
- * @param {string} prTitle - PR title
- * @param {Array} packageChanges - Package changes
- * @param {Object} usageAnalysis - Usage analysis
- * @returns {string} Basic summary
- */
-function generateFallbackSummary(prTitle, packageChanges, usageAnalysis) {
-  const changesList = packageChanges.map(pkg => {
-    const usage = usageAnalysis[pkg.name];
-    
-    // Parse semver properly, handling pre-release versions
-    const parseVersion = (ver) => {
-      const match = ver.match(/^(\d+)\.(\d+)\.(\d+)/);
-      return match ? { major: match[1], minor: match[2], patch: match[3] } : null;
-    };
-    
-    const oldVer = parseVersion(pkg.oldVersion);
-    const newVer = parseVersion(pkg.newVersion);
-    
-    let riskLevel = 'Low Risk';
-    if (oldVer && newVer) {
-      if (oldVer.major !== newVer.major) {
-        riskLevel = 'High Risk (Major version change)';
-      } else if (oldVer.minor !== newVer.minor) {
-        riskLevel = 'Medium Risk (Minor version change)';
-      }
-    } else {
-      // If we can't parse versions, be conservative
-      riskLevel = 'Medium Risk (Version format changed)';
-    }
-    
-    return `- **${pkg.name}**: ${pkg.oldVersion} → ${pkg.newVersion}
-  - Risk: ${riskLevel}
-  - Usage: ${usage.usageCount} location(s)`;
-  }).join('\n\n');
-
-  return `## Release Summary
-
-${prTitle}
-
-## Package Updates
-
-${changesList}
-
-## Recommended Actions
-
-- Review and test the affected areas listed above
-- Check for any breaking changes in the package release notes
-- Run the test suite to ensure compatibility
-
-*Note: This is a basic summary. GitHub Copilot CLI was unavailable for detailed analysis.*`;
 }
 
 /**
