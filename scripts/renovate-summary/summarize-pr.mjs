@@ -216,7 +216,7 @@ async function analyzePackageUsage(packageChanges) {
       for (const pattern of searchPatterns) {
         try {
           // Use shell escaping by passing pattern through proper quoting
-          const { stdout, stderr } = await execAsync(
+          const { stdout } = await execAsync(
             `grep -r --fixed-strings "${pattern}" --include="*.ts" --include="*.tsx" --include="*.js" --include="*.jsx" --include="*.mjs" --exclude-dir=node_modules --exclude-dir=build --exclude-dir=dist .`,
             { cwd: process.cwd(), maxBuffer: 10 * 1024 * 1024 }
           );
