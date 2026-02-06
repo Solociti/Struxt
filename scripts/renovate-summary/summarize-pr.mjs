@@ -233,13 +233,10 @@ Format your response in markdown. Be concise but thorough. If there are no relea
     await fs.writeFile(tempFile, prompt, 'utf8');
 
     try {
-      // Read file content and pass via stdin to avoid shell expansion
-      const promptContent = await fs.readFile(tempFile, 'utf8');
-      
       // Use GitHub Copilot CLI to generate summary
-      // Pass prompt via stdin to avoid shell escaping issues
+      // Pass prompt file directly to avoid shell escaping issues
       const { stdout } = await execAsync(
-        `echo "${promptContent.replace(/"/g, '\\"')}" | gh copilot suggest -t shell | tail -n +3`,
+        `gh copilot suggest -t shell < "${tempFile}" | tail -n +3`,
         { 
           cwd: process.cwd(),
           maxBuffer: 10 * 1024 * 1024,
