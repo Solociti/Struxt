@@ -160,11 +160,6 @@ async function extractPackageChanges(octokit, owner, repo, prNumber, prFiles, pr
       }
     }
 
-    // Include entire PR body for AI context (contains all Renovate notes)
-    for (const change of changes) {
-      change.prBody = prBody;
-    }
-
   } catch (error) {
     console.error('Error extracting package changes:', error);
   }
