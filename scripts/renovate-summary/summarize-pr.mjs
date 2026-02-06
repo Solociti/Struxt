@@ -197,12 +197,18 @@ async function analyzePackageUsage(packageChanges) {
  * @returns {string} Generated summary
  */
 async function generateSummaryWithCopilot(prTitle, prBody, packageChanges, usageAnalysis) {
+  // Truncate PR body if it's too long to prevent issues with Copilot CLI
+  const MAX_PR_BODY_LENGTH = 10000;
+  const truncatedPrBody = prBody.length > MAX_PR_BODY_LENGTH 
+    ? prBody.substring(0, MAX_PR_BODY_LENGTH) + '\n\n[... truncated for length ...]'
+    : prBody;
+
   const prompt = `You are a senior software engineer reviewing a dependency update PR from Renovate.
 
 PR Title: ${prTitle}
 
 PR Description:
-${prBody}
+${truncatedPrBody}
 
 Package Changes:
 ${packageChanges.map(pkg => `- ${pkg.name}: ${pkg.oldVersion} → ${pkg.newVersion}`).join('\n')}
@@ -245,7 +251,9 @@ Format your response in markdown. Be concise but thorough. If there are no relea
       );
 
       // Clean up temp file
-      await fs.unlink(tempFile).catch(() => {});
+      await fs.unlink(tempFile).catch((err) => {
+        console.warn(`Failed to cleanup temp file ${tempFile}:`, err.message);
+      });
 
       if (!stdout || stdout.trim().length === 0) {
         throw new Error('GitHub Copilot CLI returned empty response');
@@ -254,7 +262,9 @@ Format your response in markdown. Be concise but thorough. If there are no relea
       return stdout.trim();
     } catch (execError) {
       // Clean up temp file on error
-      await fs.unlink(tempFile).catch(() => {});
+      await fs.unlink(tempFile).catch((err) => {
+        console.warn(`Failed to cleanup temp file ${tempFile}:`, err.message);
+      });
       throw execError;
     }
   } catch (error) {
@@ -312,4 +322,10 @@ ${summary}
   }
 }
 
-main();
+// Export for testing
+export { extractPackageChanges };
+
+// Only run main if this is the main module (not imported for testing)
+if (import.meta.url === `file://${process.argv[1]}`) {
+  main();
+}

@@ -1,9 +1,10 @@
 import { describe, expect, test } from "vitest";
+import { extractPackageChanges } from "./summarize-pr.mjs";
 
 /**
  * Tests for the renovate-summary script
- * Note: These tests cover the extractPackageChanges function logic
- * The full script requires GitHub and GitHub Copilot CLI access
+ * These are integration tests that validate the actual implementation
+ * from summarize-pr.mjs
  */
 describe("Renovate Summary Script", () => {
   describe("extractPackageChanges", () => {
@@ -19,7 +20,7 @@ describe("Renovate Summary Script", () => {
         },
       ];
 
-      const changes = extractPackageChangesLocal(prFiles);
+      const changes = extractPackageChanges(prFiles, "");
 
       expect(changes).toHaveLength(1);
       expect(changes[0].name).toBe("axios");
@@ -39,7 +40,7 @@ describe("Renovate Summary Script", () => {
         },
       ];
 
-      const changes = extractPackageChangesLocal(prFiles);
+      const changes = extractPackageChanges(prFiles, "");
 
       expect(changes).toHaveLength(1);
       expect(changes[0].name).toBe("@types/node");
@@ -61,7 +62,7 @@ describe("Renovate Summary Script", () => {
         },
       ];
 
-      const changes = extractPackageChangesLocal(prFiles);
+      const changes = extractPackageChanges(prFiles, "");
 
       expect(changes).toHaveLength(2);
       expect(changes.find((c) => c.name === "react")).toBeDefined();
@@ -76,7 +77,7 @@ describe("Renovate Summary Script", () => {
         },
       ];
 
-      const changes = extractPackageChangesLocal(prFiles);
+      const changes = extractPackageChanges(prFiles, "");
 
       expect(changes).toHaveLength(0);
     });
@@ -92,7 +93,7 @@ describe("Renovate Summary Script", () => {
         },
       ];
 
-      const changes = extractPackageChangesLocal(prFiles);
+      const changes = extractPackageChanges(prFiles, "");
 
       // Should be filtered out because there's no old version
       expect(changes).toHaveLength(0);
@@ -110,7 +111,7 @@ describe("Renovate Summary Script", () => {
         },
       ];
 
-      const changes = extractPackageChangesLocal(prFiles);
+      const changes = extractPackageChanges(prFiles, "");
 
       expect(changes).toHaveLength(1);
       expect(changes[0].name).toBe("beta-pkg");
@@ -130,7 +131,7 @@ describe("Renovate Summary Script", () => {
         },
       ];
 
-      const changes = extractPackageChangesLocal(prFiles);
+      const changes = extractPackageChanges(prFiles, "");
 
       expect(changes).toHaveLength(1);
       expect(changes[0].name).toBe("some.package");
@@ -159,46 +160,3 @@ describe("Renovate Summary Script", () => {
     });
   });
 });
-
-/**
- * Local implementation of extractPackageChanges for testing
- * Extracted from summarize-pr.mjs to test the logic
- */
-function extractPackageChangesLocal(prFiles) {
-  const changes = [];
-
-  const packageJsonFile = prFiles.find(
-    (file) => file.filename === "package.json"
-  );
-
-  if (packageJsonFile && packageJsonFile.patch) {
-    const patch = packageJsonFile.patch;
-    const lines = patch.split("\n");
-
-    for (const line of lines) {
-      const match = line.match(/^[\+\-]\s+"(@?[\w\-\.\/]+)":\s+"[\^~]?([\d\.\-\w]+)"/);
-      if (match) {
-        const packageName = match[1];
-        const version = match[2];
-        const isAddition = line.startsWith("+");
-
-        const existing = changes.find((c) => c.name === packageName);
-        if (existing) {
-          if (isAddition) {
-            existing.newVersion = version;
-          } else {
-            existing.oldVersion = version;
-          }
-        } else {
-          changes.push({
-            name: packageName,
-            oldVersion: isAddition ? null : version,
-            newVersion: isAddition ? version : null,
-          });
-        }
-      }
-    }
-  }
-
-  return changes.filter((c) => c.oldVersion && c.newVersion);
-}
