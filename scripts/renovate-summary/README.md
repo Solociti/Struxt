@@ -42,7 +42,7 @@ The workflow file is located at `.github/workflows/renovate-pr-summary.yml` and 
    - Installs GitHub Copilot CLI extension
    - Dynamically imports @octokit/rest from esm.sh (no npm install needed)
 3. **Analysis**: 
-   - Extracts package changes from `package.json` diff
+   - Determines package changes by fetching and comparing `package.json` at the base and head commits
    - Searches the codebase to find where each package is used
    - Counts usage locations and lists affected files
 4. **AI Summary**: 
