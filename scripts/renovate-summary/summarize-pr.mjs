@@ -42,7 +42,7 @@ async function main() {
     });
 
     // Extract package changes from PR
-    const packageChanges = extractPackageChanges(prFiles, prBody);
+    const packageChanges = await extractPackageChanges(octokit, owner, repo, prNumber, prFiles, prBody);
 
     if (packageChanges.length === 0) {
       console.log('No package changes detected');
@@ -68,58 +68,111 @@ async function main() {
 }
 
 /**
- * Extract package changes from PR files and body
+ * Extract package changes from PR by comparing parsed package.json files
+ * @param {Object} octokit - Octokit instance
+ * @param {string} owner - Repository owner
+ * @param {string} repo - Repository name  
+ * @param {number} prNumber - PR number
  * @param {Array} prFiles - List of files changed in the PR
  * @param {string} prBody - PR description body
- * @returns {Array} List of package changes
+ * @returns {Promise<Array>} List of package changes
  */
-function extractPackageChanges(prFiles, prBody) {
+async function extractPackageChanges(octokit, owner, repo, prNumber, prFiles, prBody) {
   const changes = [];
 
-  // Check for package.json changes
+  // Check if package.json was modified
   const packageJsonFile = prFiles.find(file => file.filename === 'package.json');
+  
+  if (!packageJsonFile) {
+    return changes;
+  }
 
-  if (packageJsonFile && packageJsonFile.patch) {
-    const patch = packageJsonFile.patch;
-    const lines = patch.split('\n');
+  try {
+    // Get PR details to find base and head commits
+    const { data: pr } = await octokit.pulls.get({
+      owner,
+      repo,
+      pull_number: prNumber,
+    });
+    
+    const baseSha = pr.base.sha;
+    const headSha = pr.head.sha;
+    
+    // Get package.json from base commit (previous version)
+    let previousPackageJson;
+    try {
+      const { data: baseFile } = await octokit.repos.getContent({
+        owner,
+        repo,
+        path: 'package.json',
+        ref: baseSha,
+      });
+      
+      if (baseFile.content) {
+        const content = Buffer.from(baseFile.content, 'base64').toString('utf-8');
+        previousPackageJson = JSON.parse(content);
+      }
+    } catch (error) {
+      console.warn('Could not fetch previous package.json:', error.message);
+      return changes;
+    }
 
-    for (const line of lines) {
-      // Look for version changes in dependencies (supports semver including pre-release)
-      const match = line.match(/^[\+\-]\s+"(@?[\w\-\.\/]+)":\s+"[\^~]?([\d\.\-\w]+)"/);
-      if (match) {
-        const packageName = match[1];
-        const version = match[2];
-        const isAddition = line.startsWith('+');
+    // Get package.json from head commit (current version)
+    let currentPackageJson;
+    try {
+      const { data: headFile } = await octokit.repos.getContent({
+        owner,
+        repo,
+        path: 'package.json',
+        ref: headSha,
+      });
+      
+      if (headFile.content) {
+        const content = Buffer.from(headFile.content, 'base64').toString('utf-8');
+        currentPackageJson = JSON.parse(content);
+      }
+    } catch (error) {
+      console.warn('Could not fetch current package.json:', error.message);
+      return changes;
+    }
 
-        // Check if we already have this package
-        const existing = changes.find(c => c.name === packageName);
-        if (existing) {
-          if (isAddition) {
-            existing.newVersion = version;
-          } else {
-            existing.oldVersion = version;
-          }
-        } else {
+    // Compare dependencies and devDependencies
+    const depTypes = ['dependencies', 'devDependencies', 'peerDependencies', 'optionalDependencies'];
+    
+    for (const depType of depTypes) {
+      const currentDeps = currentPackageJson[depType] || {};
+      const previousDeps = previousPackageJson[depType] || {};
+      
+      // Find changed packages
+      for (const [packageName, currentVersion] of Object.entries(currentDeps)) {
+        const previousVersion = previousDeps[packageName];
+        
+        if (previousVersion && previousVersion !== currentVersion) {
+          // Version changed
           changes.push({
             name: packageName,
-            oldVersion: isAddition ? null : version,
-            newVersion: isAddition ? version : null,
+            oldVersion: previousVersion.replace(/^[\^~]/, ''),
+            newVersion: currentVersion.replace(/^[\^~]/, ''),
+            depType,
           });
         }
       }
     }
-  }
 
-  // Also parse from PR body (Renovate usually includes this info)
-  const releaseNotesMatch = prBody.match(/### Release Notes[^\#]*/s);
-  if (releaseNotesMatch) {
-    const releaseNotes = releaseNotesMatch[0];
-    for (const change of changes) {
-      change.releaseNotes = releaseNotes;
+    // Also parse from PR body (Renovate usually includes this info)
+    const releaseNotesMatch = prBody.match(/### Release Notes[^\#]*/s);
+    if (releaseNotesMatch) {
+      const releaseNotes = releaseNotesMatch[0];
+      for (const change of changes) {
+        change.releaseNotes = releaseNotes;
+      }
     }
+
+  } catch (error) {
+    console.error('Error extracting package changes:', error);
   }
 
-  return changes.filter(c => c.oldVersion && c.newVersion);
+  return changes;
 }
 
 /**
