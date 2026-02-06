@@ -134,17 +134,28 @@ async function analyzePackageUsage(packageChanges) {
     console.log(`Analyzing usage of ${pkg.name}...`);
 
     try {
-      // Escape special shell characters in package name
-      const escapedPkgName = pkg.name.replace(/['"\\$`]/g, '\\$&');
+      // Only allow safe characters in package names to avoid shell injection
+      // Valid npm package names contain: alphanumerics, hyphens, periods, slashes, and @ for scoped packages
+      const safeNamePattern = /^[a-zA-Z0-9@/._-]+$/;
+      if (!safeNamePattern.test(pkg.name)) {
+        const errorMessage = 'Package name contains unsupported characters and will not be analyzed for usage.';
+        console.warn(`Skipping usage analysis for package with unsafe name: "${pkg.name}". ${errorMessage}`);
+        analysis[pkg.name] = {
+          usageCount: 0,
+          locations: [],
+          error: errorMessage,
+        };
+        continue;
+      }
       
       // Search for imports/requires of this package (including subpaths for scoped packages)
       const searchPatterns = [
-        `from '${escapedPkgName}`,
-        `from "${escapedPkgName}`,
-        `require('${escapedPkgName}`,
-        `require("${escapedPkgName}`,
-        `import('${escapedPkgName}`,
-        `import("${escapedPkgName}`,
+        `from '${pkg.name}`,
+        `from "${pkg.name}`,
+        `require('${pkg.name}`,
+        `require("${pkg.name}`,
+        `import('${pkg.name}`,
+        `import("${pkg.name}`,
       ];
 
       const locations = new Set();
@@ -152,8 +163,8 @@ async function analyzePackageUsage(packageChanges) {
       for (const pattern of searchPatterns) {
         try {
           // Use shell escaping by passing pattern through proper quoting
-          const { stdout } = await execAsync(
-            `grep -r --fixed-strings "${pattern}" --include="*.ts" --include="*.tsx" --include="*.js" --include="*.jsx" --include="*.mjs" --exclude-dir=node_modules --exclude-dir=build --exclude-dir=dist . || true`,
+          const { stdout, stderr } = await execAsync(
+            `grep -r --fixed-strings "${pattern}" --include="*.ts" --include="*.tsx" --include="*.js" --include="*.jsx" --include="*.mjs" --exclude-dir=node_modules --exclude-dir=build --exclude-dir=dist .`,
             { cwd: process.cwd(), maxBuffer: 10 * 1024 * 1024 }
           );
 
@@ -167,6 +178,11 @@ async function analyzePackageUsage(packageChanges) {
             files.forEach(file => locations.add(file));
           }
         } catch (err) {
+          // Exit code 1 means no matches found, which is fine
+          // Any other error should be logged
+          if (err.code !== 1) {
+            console.warn(`Error searching for pattern "${pattern}":`, err.message);
+          }
           // Continue with other patterns
         }
       }
