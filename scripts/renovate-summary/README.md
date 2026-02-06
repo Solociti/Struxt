@@ -16,7 +16,7 @@ This GitHub Action automatically summarizes Renovate pull requests using AI (Git
 - ✅ Assesses risk level based on version changes and usage
 - ✅ Updates existing comment instead of creating duplicates
 - ✅ Provides actionable recommendations for testing
-- ✅ **No additional dependencies required** - uses dynamic imports and GitHub CLI
+- ✅ **Zero npm dependencies** - leverages dynamic ESM imports for lightweight deployment
 
 ## Setup
 
@@ -40,13 +40,13 @@ The workflow file is located at `.github/workflows/renovate-pr-summary.yml` and 
 2. **Setup**:
    - Uses preinstalled GitHub CLI on GitHub runners
    - Installs GitHub Copilot CLI extension
-   - Dynamically imports @octokit/rest from esm.sh (no npm install needed)
+   - Loads @octokit/rest via ESM dynamic import for zero npm dependencies
 3. **Analysis**: 
    - Determines package changes by fetching and comparing `package.json` at the base and head commits
    - Searches the codebase to find where each package is used
    - Counts usage locations and lists affected files
 4. **AI Summary**: 
-   - Sends package changes, release notes, and usage data to GitHub Copilot CLI
+   - Sends package changes and full PR context to GitHub Copilot CLI
    - Generates a comprehensive summary with risk assessment
    - Fails the action if Copilot is unavailable (Renovate already provides basic details)
 5. **Comment**: 
@@ -106,7 +106,7 @@ You can customize the action by editing:
 - The action will fail if Copilot is unavailable (Renovate PR already contains basic package information)
 
 ### Missing dependencies
-- No npm dependencies are required - the script uses dynamic imports from esm.sh
+- No npm dependencies required - the script uses ESM dynamic imports
 - GitHub CLI is preinstalled on GitHub runners
 - Copilot CLI extension is installed automatically by the workflow
 
