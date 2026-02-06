@@ -116,6 +116,22 @@ This action uses GitHub Copilot CLI, which is included in your GitHub Copilot su
 - No additional API costs beyond your Copilot subscription
 - Runs only on Renovate PRs (limited frequency)
 
+## Testing
+
+Want to test the action before deploying? See [TESTING.md](./TESTING.md) for comprehensive testing instructions including:
+
+- Testing against real Renovate PRs
+- Local testing with the test script
+- Manual workflow triggers
+- Troubleshooting common issues
+
+**Quick test**:
+```bash
+# Test against a Renovate PR
+cd scripts/renovate-summary
+./test-local.mjs <pr_number>
+```
+
 ## License
 
 This feature is part of the Struxt project and follows the same license.
