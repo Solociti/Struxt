@@ -4,12 +4,14 @@ import { reWriteAssetPath } from "common/models/assets/reWriteAssetPath";
 import { basename, dirname, extname, join, normalize } from "common/path/path";
 import { existsSync } from "node:fs";
 import { rename } from "node:fs/promises";
+import { rmDirIfEmpty } from "server/hfs/dirOps";
 import { isPathInside } from "server/hfs/path";
+import { mkDirRecursive } from "server/utils/mkDir";
 import { getProjectFilesDir } from "server/utils/uploadDir";
 import { isAssetPathUnique } from "./assetPathOps";
+import { deleteAsset } from "./deleteAsset";
 import { getAsset, getAssetByPath } from "./getAssets";
 import { saveAsset } from "./saveAsset";
-import { deleteAsset } from "./deleteAsset";
 
 /**
  * Move the list of assets from one path to another
@@ -29,6 +31,15 @@ export async function moveAssets(
   user: { userId: string; displayName: string },
 ) {
   const projectDir = getProjectFilesDir(projectId);
+
+  // ensure that the destination path is not inside the source path
+  if (fromPath === toPath) {
+    throw customError(400, "Cannot move to the same location.");
+  }
+
+  if (isPathInside(toPath, fromPath)) {
+    throw customError(400, "Cannot move to a sub-directory of itself.");
+  }
 
   /**
    * The list of operations to perform
@@ -60,9 +71,15 @@ export async function moveAssets(
 
     let path = reWriteAssetPath(asset.path, fromPath, toPath);
 
+    /**
+     * This is the path where the asset will be moved to
+     */
     let fullPath = join(projectDir, path);
+    /**
+     * The current on disk path of the asset. Will become the old path after move
+     */
     const oldPath = join(projectDir, asset.path);
-    let deleteAsset: string | undefined = undefined;
+    let deleteAssetUuid: string | undefined = undefined;
 
     if (
       !isPathInside(fullPath, projectDir) ||
@@ -116,9 +133,10 @@ export async function moveAssets(
         // we need to delete the existing asset that is being overwritten
         const existingAsset = await getAssetByPath(projectId, path);
         if (existingAsset) {
-          deleteAsset = existingAsset.uuid;
+          deleteAssetUuid = existingAsset.uuid;
         } else {
           // fallback to skipping
+          skipped.push(asset);
           continue;
         }
       }
@@ -130,9 +148,11 @@ export async function moveAssets(
       newPath: path,
       fullPath,
       asset,
-      deleteAsset,
+      deleteAsset: deleteAssetUuid,
     });
   }
+
+  const dirs: string[] = [];
 
   // perform the move operations
   for (const op of operations) {
@@ -141,6 +161,15 @@ export async function moveAssets(
     }
 
     // move the file on disk
+
+    const dir = dirname(op.fullPath);
+    await mkDirRecursive(dir);
+
+    const oldDir = dirname(op.oldFullPath);
+    if (!dirs.includes(oldDir)) {
+      dirs.push(oldDir);
+    }
+
     await rename(op.oldFullPath, op.fullPath);
 
     // update the asset path
@@ -154,6 +183,11 @@ export async function moveAssets(
     };
 
     await saveAsset(op.asset);
+  }
+
+  for (const dir of dirs) {
+    // try to remove the old directories if they are empty
+    await rmDirIfEmpty(dir, true, projectDir);
   }
 
   return {

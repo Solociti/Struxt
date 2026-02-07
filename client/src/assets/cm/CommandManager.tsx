@@ -79,13 +79,16 @@ export interface CommandManager {
   on(event: "rename:hide", cb: () => void): UnregisterCallback;
 
   // move
-  trigger(command: "move", result: CommandResult): void;
-  trigger(command: "move:show", items: AssetListItem[]): void;
+  trigger(command: "move", result: AssetMoveApi["PostResponse"]): void;
+  trigger(command: "move:show", items: AssetListItem[], basePath: string): void;
   trigger(command: "move:hide"): void;
-  on(event: "move", cb: (result: CommandResult) => void): UnregisterCallback;
+  on(
+    event: "move",
+    cb: (result: AssetMoveApi["PostResponse"]) => void,
+  ): UnregisterCallback;
   on(
     event: "move:show",
-    cb: (items: AssetListItem[]) => void,
+    cb: (items: AssetListItem[], basePath: string) => void,
   ): UnregisterCallback;
   on(event: "move:hide", cb: () => void): UnregisterCallback;
 

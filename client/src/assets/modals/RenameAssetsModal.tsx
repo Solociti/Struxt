@@ -8,7 +8,8 @@ import { AssetMoveApi } from "common/api/assets/assets";
 import { AssetListItem } from "common/models/assets/AssetModel";
 import { reWriteAssetPath } from "common/models/assets/reWriteAssetPath";
 import { basename, dirname, join, normalize } from "common/path/path";
-import { useEffect, useState } from "react";
+import { validateMoveLocation } from "common/path/validateMoveLocation";
+import { useEffect, useMemo, useState } from "react";
 import Dropdown from "react-bootstrap/Dropdown";
 import Form from "react-bootstrap/Form";
 import { moveAssets } from "../assetApis";
@@ -34,6 +35,21 @@ export function RenameAssetsModal() {
   const [newName, setNewName] = useState("");
   const newPath =
     normalize(join(dirname(originalPath), newName)) + (isDir ? "/" : "");
+
+  const { isValid, warningMessage } = useMemo(() => {
+    if (!newName.trim()) {
+      return { isValid: false, warningMessage: "" };
+    }
+
+    if (originalPath === newPath) {
+      return { isValid: false, warningMessage: "" };
+    }
+
+    return validateMoveLocation(
+      originalPath,
+      isDir ? newPath : dirname(newPath),
+    );
+  }, [originalPath, newPath]);
 
   const [conflictResolution, setConflictResolution] =
     useState<AssetMoveApi["PostBody"]["onConflict"]>("skip");
@@ -97,7 +113,7 @@ export function RenameAssetsModal() {
     },
   );
 
-  if(!isSingleProject) {
+  if (!isSingleProject) {
     return null;
   }
 
@@ -116,7 +132,7 @@ export function RenameAssetsModal() {
           <IconButton
             icon="check"
             variant="primary"
-            disabled={newName.trim().length === 0 || renameCb.isLoading}
+            disabled={!isValid || renameCb.isLoading}
             spinner={renameCb.isLoading}
             onClick={renameCb.callback}
           >
@@ -174,6 +190,16 @@ export function RenameAssetsModal() {
             </Dropdown.Menu>
           </Dropdown>
         </Group>
+
+        {warningMessage && (
+          <div
+            className="border border-warning rounded p-2 my-2 text-warning"
+            style={{ backgroundColor: "rgba(97, 97, 97, 0.1)" }}
+            role="alert"
+          >
+            <small>{warningMessage}</small>
+          </div>
+        )}
 
         {/* List of affected assets */}
         {isDir && (

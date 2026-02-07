@@ -10,7 +10,7 @@ import {
 import { customError } from "common/custom-error/custom-error";
 import { AssetModel } from "common/models/assets/AssetModel";
 import { roles } from "common/models/user/Roles";
-import { dirname, join, normalize } from "node:path";
+import { dirname, isAbsolute, join, normalize } from "node:path";
 import { isPathInside } from "server/hfs/path";
 import { hfsWriteFile } from "server/hfs/writeFile";
 import { createSimpleId } from "server/utils/createId";
@@ -333,13 +333,17 @@ registerApi<AssetMoveApi>("/api/assets/move/:projectId").post(
       })
       .parse(body);
 
+    if (!isAbsolute(fromPath) || !isAbsolute(toPath)) {
+      throw customError(400, "Paths must be absolute.");
+    }
+
     // TODO: sanitize the file name, checking for length and invalid characters
     // process the file moves
     const result = await moveAssets(
       projectId,
       assets,
-      fromPath,
-      toPath,
+      normalize(fromPath),
+      normalize(toPath),
       onConflict,
       {
         userId: user.id,

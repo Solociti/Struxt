@@ -50,6 +50,7 @@ describe("path (browser/posix) comparison with node:path", () => {
       "/foo/bar//baz/asdf/quux/..",
       "./foo/./bar/",
       "/foo/../../bar",
+      "/a//b",
     ];
 
     testCases.forEach((p) => {
@@ -105,8 +106,8 @@ describe("path (browser/posix) comparison with node:path", () => {
         // So we must normalize the comparison by using resolve('/', ...) for node too if we want to match our shim's "root=/" assumption.
 
         const expected = posix.relative(
-           posix.resolve("/", from),
-           posix.resolve("/", to)
+          posix.resolve("/", from),
+          posix.resolve("/", to),
         );
         const actual = relative(from, to);
         expect(actual).toBe(expected);

@@ -4,6 +4,7 @@ import { useMemo } from "react";
 import Spinner from "react-bootstrap/Spinner";
 import { useContentManager } from "../cm/contentManager";
 import { DeleteAssetsModal } from "../modals/DeleteAssetsModal";
+import { MoveAssetModal } from "../modals/MoveAssetModal";
 import { NewAssetModal } from "../modals/NewAssetModal";
 import { RenameAssetsModal } from "../modals/RenameAssetsModal";
 import { ItemContextMenu } from "./ContextMenu";
@@ -15,7 +16,7 @@ import { DirectoryNode, DirectoryView } from "./DirectoryView";
  * @param list
  * @returns
  */
-function createFileTree(list: AssetListItem[]): DirectoryNode {
+export function createFileTree(list: AssetListItem[]): DirectoryNode {
   const root: DirectoryNode = {
     name: "root",
     path: "/",
@@ -102,7 +103,7 @@ export function getRecursiveDirItems(dir: DirectoryNode): AssetListItem[] {
 }
 
 export function AssetList() {
-  const { assets } = useContentManager();
+  const { assets, commands } = useContentManager();
   const { list, loading, error } = assets;
 
   const fileTree = useMemo(() => {
@@ -118,37 +119,25 @@ export function AssetList() {
       style={{ width: "200px", overflowY: "auto" }}
       className="h-100 border-end p-3"
     >
-      <style>
-        {`          
-          .dir-hover-guide {
-            background-color: transparent;
-            transition: background-color 0.1s;
-            margin-top: 5px;
-            margin-bottom: 5px;
-            margin-left: -5px;
-          }
-          .dir-section:hover > .dir-children-container > .dir-hover-guide {
-            background-color: rgba(103, 103, 103, 0.5);
-          }
-          
-          .dir-item > .modify-dir-btns {
-            opacity: 0;
-            transition: opacity 0.1s;
-          }
-          .dir-item:hover > .modify-dir-btns {
-            opacity: 1;
-          }
-          .file-item:hover, .dir-item:hover {
-            background-color: rgba(103, 103, 103, 0.1);
-          }
-        `}
-      </style>
       <ShowError error={error} />
 
       {loading && <Spinner animation="border" size="sm" />}
 
       <div>
-        {fileTree && <DirectoryView node={fileTree} level={0} />}
+        {fileTree && (
+          <DirectoryView
+            node={fileTree}
+            level={0}
+            onClick={(file) => {
+              commands.trigger("tabs:open", file);
+            }}
+            onContextMenu={(file, target) => {
+              commands.trigger("context-menu:show", target, file);
+            }}
+            showNewFileBtn={true}
+            selected={[]}
+          />
+        )}
 
         <ItemContextMenu />
       </div>
@@ -156,6 +145,7 @@ export function AssetList() {
       <NewAssetModal />
       <DeleteAssetsModal />
       <RenameAssetsModal />
+      <MoveAssetModal />
     </div>
   );
 }

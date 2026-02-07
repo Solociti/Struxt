@@ -250,7 +250,7 @@ export function ItemContextMenu() {
           items.push(item);
         }
 
-        commands.trigger("move:show", items);
+        commands.trigger("move:show", items, item.path);
         commands.trigger("context-menu:hide");
       },
     },

@@ -3,7 +3,18 @@ import MaterialIcon from "client/components/MaterialIcon";
 import { useState } from "react";
 import Collapse from "react-bootstrap/Collapse";
 import { useContentManager } from "../cm/contentManager";
-import { DirectoryNode, DirectoryView, FILE_OFFSET } from "./DirectoryView";
+import {
+  DirectoryCommonProps,
+  DirectoryNode,
+  DirectoryView,
+  FILE_OFFSET,
+} from "./DirectoryView";
+
+interface DirectoryItemProps extends DirectoryCommonProps {
+  dir: DirectoryNode;
+  level: number;
+  defaultOpen?: boolean;
+}
 
 /**
  * Renders a single directory item with collapse functionality.
@@ -16,24 +27,25 @@ export function DirectoryItem({
   dir,
   level,
   defaultOpen,
-}: {
-  dir: DirectoryNode;
-  level: number;
-  defaultOpen?: boolean;
-}) {
+  ...commonProps
+}: DirectoryItemProps) {
   const { commands } = useContentManager();
 
   const [open, setOpen] = useState(Boolean(defaultOpen));
+  const isSelected = commonProps.selected.includes(dir.path);
 
   return (
     <div className="dir-section">
       <div
-        className="d-flex align-items-center dir-item"
+        className={`d-flex align-items-center dir-item rounded ${isSelected ? "selected" : ""}`}
         style={{ paddingLeft: level * FILE_OFFSET, cursor: "pointer" }}
-        onClick={() => setOpen(!open)}
+        onClick={() => {
+          setOpen(!open);
+          commonProps.onDirClick?.(dir);
+        }}
         onContextMenu={(event) => {
           event.preventDefault();
-          commands.trigger("context-menu:show", event.currentTarget, dir);
+          commonProps.onContextMenu(dir, event.currentTarget);
         }}
       >
         <MaterialIcon className="me-2" filled>
@@ -42,7 +54,7 @@ export function DirectoryItem({
         {dir.name}
 
         <div className="d-flex flex-grow-1 justify-content-end modify-dir-btns">
-          {!dir.preventNewFile && (
+          {commonProps.showNewFileBtn && !dir.preventNewFile && (
             <IconButton
               variant=""
               size="sm"
@@ -73,7 +85,7 @@ export function DirectoryItem({
               width: "1px",
             }}
           />
-          <DirectoryView node={dir} level={level + 1} />
+          <DirectoryView node={dir} level={level + 1} {...commonProps} />
         </div>
       </Collapse>
     </div>

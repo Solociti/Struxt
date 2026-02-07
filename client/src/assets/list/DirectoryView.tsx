@@ -1,7 +1,8 @@
 import { AssetListItem } from "common/models/assets/AssetModel";
-import { useContentManager } from "../cm/contentManager";
 import { DirectoryItem } from "./DirectoryItem";
 import { FileIcon } from "./FileIcon";
+
+import "./dir.scss";
 
 export const FILE_OFFSET = 10;
 
@@ -17,6 +18,29 @@ export interface DirectoryNode {
   files: AssetListItem[];
 }
 
+export interface DirectoryCommonProps {
+  onClick: (file: AssetListItem) => void;
+  onContextMenu: (
+    item: DirectoryNode | AssetListItem,
+    target: HTMLElement,
+  ) => void;
+
+  onDirClick?: (dir: DirectoryNode) => void;
+
+  showNewFileBtn: boolean;
+
+  /**
+   * For directories, it's the path.
+   * For files, it's the UUID.
+   */
+  selected: string[];
+}
+
+interface DirectoryViewProps extends DirectoryCommonProps {
+  node: DirectoryNode;
+  level: number;
+}
+
 /**
  * Renders the directory tree recursively.
  *
@@ -28,12 +52,8 @@ export interface DirectoryNode {
 export function DirectoryView({
   level,
   node,
-}: {
-  node: DirectoryNode;
-  level: number;
-}) {
-  const { commands } = useContentManager();
-
+  ...commonProps
+}: DirectoryViewProps) {
   const dirs = Object.values(node.subDirectories).sort((a, b) =>
     a.name.localeCompare(b.name),
   );
@@ -49,6 +69,7 @@ export function DirectoryView({
           dir={dir}
           level={level}
           defaultOpen={dir.defaultOpen}
+          {...commonProps}
         />
       ))}
 
@@ -57,16 +78,18 @@ export function DirectoryView({
           ? file.displayName.split(".").pop() || ""
           : "";
 
+        const isSelected = commonProps.selected.includes(file.uuid);
+
         return (
           <div
             key={file.uuid}
-            className="d-flex align-items-center file-item text-truncate"
+            className={`d-flex align-items-center file-item text-truncate rounded ${isSelected ? "selected" : ""}`}
             style={{ paddingLeft: level * FILE_OFFSET, cursor: "pointer" }}
             title={file.displayName}
-            onClick={() => commands.trigger("tabs:open", file)}
+            onClick={() => commonProps.onClick(file)}
             onContextMenu={(event) => {
               event.preventDefault();
-              commands.trigger("context-menu:show", event.currentTarget, file);
+              commonProps.onContextMenu(file, event.currentTarget);
             }}
           >
             <FileIcon extension={extension} />
