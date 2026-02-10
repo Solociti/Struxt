@@ -3,9 +3,10 @@ import { AssetModel } from "common/models/assets/AssetModel";
 import { reWriteAssetPath } from "common/models/assets/reWriteAssetPath";
 import { basename, dirname, extname, join, normalize } from "common/path/path";
 import { existsSync } from "node:fs";
-import { rename } from "node:fs/promises";
 import { rmDirIfEmpty } from "server/hfs/dirOps";
+import { hfsCopyFile, hfsRenameFile } from "server/hfs/fileOps";
 import { isPathInside } from "server/hfs/path";
+import { createSimpleId } from "server/utils/createId";
 import { mkDirRecursive } from "server/utils/mkDir";
 import { getProjectFilesDir } from "server/utils/uploadDir";
 import { isAssetPathUnique } from "./assetPathOps";
@@ -28,17 +29,21 @@ export async function moveAssets(
   fromPath: string,
   toPath: string,
   onConflict: "skip" | "overwrite" | "rename" | "throw",
+  operation: "move" | "copy",
   user: { userId: string; displayName: string },
 ) {
   const projectDir = getProjectFilesDir(projectId);
 
   // ensure that the destination path is not inside the source path
-  if (fromPath === toPath) {
-    throw customError(400, "Cannot move to the same location.");
+  if (
+    (operation === "move" || onConflict !== "rename") &&
+    fromPath === toPath
+  ) {
+    throw customError(400, `Cannot ${operation} to the same location.`);
   }
 
-  if (isPathInside(toPath, fromPath)) {
-    throw customError(400, "Cannot move to a sub-directory of itself.");
+  if (operation === "move" && isPathInside(toPath, fromPath)) {
+    throw customError(400, `Cannot ${operation} to a sub-directory of itself.`);
   }
 
   /**
@@ -57,7 +62,7 @@ export async function moveAssets(
 
   // validate that all assets can be moved
   for (const { uuid } of assets) {
-    const asset = await getAsset(uuid, projectId);
+    let asset = await getAsset(uuid, projectId);
     if (!asset) {
       throw customError(404, "A given asset was not found.");
     }
@@ -67,6 +72,17 @@ export async function moveAssets(
         400,
         `Asset (${asset.path}) is deleted and cannot be moved.`,
       );
+    }
+
+    if (operation === "copy") {
+      // for copy ops, we need to clone the current asset with a new uuid, since we will be creating a new asset
+      asset = asset.clone();
+      asset.uuid = await createSimpleId("asset");
+      asset.created = {
+        date: Math.floor(Date.now() / 1000),
+        userId: user.userId,
+        displayName: user.displayName,
+      };
     }
 
     let path = reWriteAssetPath(asset.path, fromPath, toPath);
@@ -96,7 +112,7 @@ export async function moveAssets(
       );
     }
 
-    const isUnique = await isAssetPathUnique(projectId, uuid, path);
+    const isUnique = await isAssetPathUnique(projectId, asset.uuid, path);
     if (!isUnique) {
       if (onConflict === "skip") {
         skipped.push(asset);
@@ -114,7 +130,11 @@ export async function moveAssets(
           }
 
           const ext = extname(path);
-          const baseFileName = basename(path, ext);
+          let baseFileName = basename(path, ext);
+          if (/\(\d{1,}\)$/.test(baseFileName)) {
+            baseFileName = baseFileName.replace(/\(\d{1,}\)$/, "");
+          }
+
           const dir = dirname(path);
 
           index++;
@@ -122,7 +142,7 @@ export async function moveAssets(
 
           path = normalize(join(dir, newFileName));
           fullPath = join(projectDir, path);
-        } while (!(await isAssetPathUnique(projectId, uuid, path)));
+        } while (!(await isAssetPathUnique(projectId, asset.uuid, path)));
       }
 
       if (onConflict === "throw") {
@@ -143,7 +163,7 @@ export async function moveAssets(
     }
 
     operations.push({
-      uuid,
+      uuid: asset.uuid,
       oldFullPath: oldPath,
       newPath: path,
       fullPath,
@@ -161,7 +181,6 @@ export async function moveAssets(
     }
 
     // move the file on disk
-
     const dir = dirname(op.fullPath);
     await mkDirRecursive(dir);
 
@@ -170,7 +189,15 @@ export async function moveAssets(
       dirs.push(oldDir);
     }
 
-    await rename(op.oldFullPath, op.fullPath);
+    if (operation === "copy") {
+      await hfsCopyFile(op.oldFullPath, op.fullPath, {
+        restrictedTo: projectDir,
+      });
+    } else {
+      await hfsRenameFile(op.oldFullPath, op.fullPath, {
+        restrictedTo: projectDir,
+      });
+    }
 
     // update the asset path
     op.asset.path = op.newPath;
@@ -185,9 +212,11 @@ export async function moveAssets(
     await saveAsset(op.asset);
   }
 
-  for (const dir of dirs) {
-    // try to remove the old directories if they are empty
-    await rmDirIfEmpty(dir, true, projectDir);
+  if (operation === "move") {
+    for (const dir of dirs) {
+      // try to remove the old directories if they are empty
+      await rmDirIfEmpty(dir, true, projectDir);
+    }
   }
 
   return {

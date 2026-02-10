@@ -2,12 +2,13 @@ import { useLoadAsync } from "client/api/useLoadAsync";
 import { addToastError } from "client/components/ErrorSnackBar";
 import { useCurrentProject } from "client/projects/ProjectContext";
 import { AssetListItem, AssetModel } from "common/models/assets/AssetModel";
+import { ProjectListItem } from "common/models/projects/ProjectItem";
 import {
   FileType,
   getFileExtension,
   getFileType,
 } from "common/path/FileExtensions";
-import { ProjectListItem } from "common/models/projects/ProjectItem";
+import { dirname } from "common/path/path";
 import {
   createContext,
   ReactNode,
@@ -17,7 +18,12 @@ import {
   useRef,
   useState,
 } from "react";
-import { getAsset, getAssetList, saveAssetContent } from "../assetApis";
+import {
+  getAsset,
+  getAssetList,
+  moveAssets,
+  saveAssetContent,
+} from "../assetApis";
 import { CommandManager, useCommandManager } from "./CommandManager";
 
 interface Tab {
@@ -62,6 +68,13 @@ interface ContentManagerState {
   };
 
   commands: CommandManager;
+
+  clipboard: {
+    state: null | {
+      items: AssetListItem[];
+      basePath: string;
+    };
+  };
 
   tabs: {
     list: Tab[];
@@ -291,10 +304,63 @@ function useContentManagerState(): ContentManagerState {
     };
   }, []);
 
+  // setup asset clipboard system
+  const [assetClipboard, setAssetClipboard] = useState<null | {
+    basePath: string;
+    items: AssetListItem[];
+  }>(null);
+
+  useEffect(() => {
+    const unregister: Function[] = [];
+
+    unregister.push(
+      commands.on("copy", (path, items) => {
+        setAssetClipboard({
+          basePath: path,
+          items,
+        });
+      }),
+    );
+
+    return () => {
+      unregister.forEach((cb) => cb());
+    };
+  }, [commands]);
+
+  useEffect(() => {
+    return commands.on("paste:trigger", async (destination) => {
+      if (!assetClipboard) {
+        return;
+      }
+
+      // create copies of all items in the clipboard in the new location
+      const { basePath, items } = assetClipboard;
+      const srcPath = dirname(basePath);
+
+      // Get the directory where the asset will be copied into.
+      const isDestDir = "files" in destination;
+      const destPath = isDestDir ? destination.path : dirname(destination.path);
+
+      const result = await moveAssets(
+        projectId,
+        items.map((i) => ({ uuid: i.uuid })),
+        srcPath,
+        destPath,
+        "rename",
+        "copy",
+      );
+
+      commands.trigger("paste", result);
+    });
+  }, [commands, assetClipboard, projectId]);
+
   return {
     commands,
     project,
     isSingleProject,
+    clipboard: {
+      state: assetClipboard,
+    },
     assets: {
       list: assetList || [],
       loading: loadingList,

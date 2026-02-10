@@ -66,15 +66,18 @@ function ContextMenuItem({
   text,
   icon,
   onClick,
+  disabled,
 }: {
   text: string;
   icon: string;
-  onClick: () => void;
+  onClick: (event: React.MouseEvent<HTMLButtonElement, MouseEvent>) => void;
+  disabled?: boolean;
 }) {
   return (
     <ListGroup.Item
       action
-      onClick={onClick}
+      disabled={disabled}
+      onClick={disabled ? undefined : onClick}
       className="border-0 d-flex align-items-center gap-2"
       variant="light"
     >
@@ -86,10 +89,11 @@ function ContextMenuItem({
 
 interface MenuItem {
   hide?: boolean;
+  disabled?: boolean;
   section: string;
   icon: string;
   text: string;
-  onClick: () => void;
+  onClick: (event: React.MouseEvent<HTMLButtonElement, MouseEvent>) => void;
 }
 
 /**
@@ -98,7 +102,7 @@ interface MenuItem {
  * @returns
  */
 export function ItemContextMenu() {
-  const { project, commands } = useContentManager();
+  const { project, commands, clipboard } = useContentManager();
 
   const [item, setItem] = useState<null | DirectoryNode | AssetListItem>(null);
   const menuOverlayRef = useRef<HTMLElement | null>(null);
@@ -148,7 +152,7 @@ export function ItemContextMenu() {
       section: "general",
       icon: "delete",
       text: "Trash",
-      onClick: () => {
+      onClick: (event) => {
         const items: AssetListItem[] = [];
         if (isDir) {
           items.push(...getRecursiveDirItems(item));
@@ -156,7 +160,8 @@ export function ItemContextMenu() {
           items.push(item);
         }
 
-        commands.trigger("delete:show", items, false);
+        // check if shift key is held for permanent delete
+        commands.trigger("delete:show", items, event.shiftKey);
         commands.trigger("context-menu:hide");
       },
     },
@@ -268,20 +273,18 @@ export function ItemContextMenu() {
           items.push(item);
         }
 
-        commands.trigger(
-          "copy:show",
-          items.map((i) => i.uuid),
-        );
+        commands.trigger("copy", item.path, items);
         commands.trigger("context-menu:hide");
       },
     },
     {
       hide: isInTrash || item.isExternalSrc,
+      disabled: !clipboard.state,
       section: "clipboard",
       icon: "content_paste",
       text: "Paste",
       onClick: () => {
-        commands.trigger("paste:show", item.path);
+        commands.trigger("paste:trigger", item);
         commands.trigger("context-menu:hide");
       },
     },
@@ -353,6 +356,7 @@ export function ItemContextMenu() {
           <div key={menuItem.text}>
             {showDivider && <div className="border-bottom" />}
             <ContextMenuItem
+              disabled={menuItem.disabled}
               icon={menuItem.icon}
               text={menuItem.text}
               onClick={menuItem.onClick}

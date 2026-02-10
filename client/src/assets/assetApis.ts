@@ -144,6 +144,7 @@ export async function moveAssets(
   fromPath: string,
   toPath: string,
   onConflict: AssetMoveApi["PostBody"]["onConflict"],
+  operation: "move" | "copy",
 ) {
   const response = await postApi<AssetMoveApi>(
     ["/api/assets/move", projectId],
@@ -152,6 +153,7 @@ export async function moveAssets(
       fromPath,
       toPath,
       onConflict,
+      operation,
     },
   );
 

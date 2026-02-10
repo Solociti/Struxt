@@ -103,6 +103,7 @@ export function MoveAssetModal() {
         fromPath,
         newPath,
         "throw",
+        "move",
       );
 
       commands.trigger("move", result);

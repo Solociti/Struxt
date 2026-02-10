@@ -88,6 +88,7 @@ export function RenameAssetsModal() {
         originalPath,
         newPath,
         conflictResolution,
+        "move",
       );
 
       if (result.completed.length === 0 && result.skipped.length > 0) {

@@ -143,6 +143,8 @@ export interface AssetMoveApi extends Api {
     fromPath: string;
     toPath: string;
 
+    operation: "move" | "copy";
+
     onConflict: "skip" | "overwrite" | "rename" | "throw";
 
     assets: { uuid: string }[];

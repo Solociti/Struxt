@@ -317,7 +317,7 @@ registerApi<AssetMoveApi>("/api/assets/move/:projectId").post(
     }
 
     // validate the incoming body
-    const { assets, fromPath, toPath, onConflict } = z
+    const { assets, fromPath, toPath, onConflict, operation } = z
       .object({
         fromPath: z.string(),
         toPath: z.string(),
@@ -330,6 +330,7 @@ registerApi<AssetMoveApi>("/api/assets/move/:projectId").post(
             uuid: z.string(),
           }),
         ),
+        operation: z.enum(["move", "copy"]),
       })
       .parse(body);
 
@@ -345,6 +346,7 @@ registerApi<AssetMoveApi>("/api/assets/move/:projectId").post(
       normalize(fromPath),
       normalize(toPath),
       onConflict,
+      operation,
       {
         userId: user.id,
         displayName: user.name,

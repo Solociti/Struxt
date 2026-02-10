@@ -93,23 +93,26 @@ export interface CommandManager {
   on(event: "move:hide", cb: () => void): UnregisterCallback;
 
   // copy
-  trigger(command: "copy", result: CommandResult): void;
-  trigger(command: "copy:show", uuids: string[]): void;
-  trigger(command: "copy:hide"): void;
-  on(event: "copy", cb: (result: CommandResult) => void): UnregisterCallback;
-  on(event: "copy:show", cb: (uuids: string[]) => void): UnregisterCallback;
-  on(event: "copy:hide", cb: () => void): UnregisterCallback;
+  trigger(command: "copy", sourcePath: string, items: AssetListItem[]): void;
+  on(
+    event: "copy",
+    cb: (sourcePath: string, items: AssetListItem[]) => void,
+  ): UnregisterCallback;
 
   // paste
-  trigger(command: "paste", result: CommandResult): void;
-  trigger(command: "paste:show", destinationPath: string): void;
-  trigger(command: "paste:hide"): void;
-  on(event: "paste", cb: (result: CommandResult) => void): UnregisterCallback;
+  trigger(command: "paste", result: AssetMoveApi["PostResponse"]): void;
+  trigger(
+    command: "paste:trigger",
+    destination: AssetListItem | DirectoryNode,
+  ): void;
   on(
-    event: "paste:show",
-    cb: (destinationPath: string) => void,
+    event: "paste",
+    cb: (result: AssetMoveApi["PostResponse"]) => void,
   ): UnregisterCallback;
-  on(event: "paste:hide", cb: () => void): UnregisterCallback;
+  on(
+    event: "paste:trigger",
+    cb: (destination: AssetListItem | DirectoryNode) => void,
+  ): UnregisterCallback;
 
   // download
   trigger(command: "download", result: CommandResult): void;
