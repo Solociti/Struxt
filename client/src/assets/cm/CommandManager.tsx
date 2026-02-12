@@ -116,7 +116,11 @@ export interface CommandManager {
 
   // download
   trigger(command: "download", result: CommandResult): void;
-  trigger(command: "download:show", items: AssetListItem[]): void;
+  trigger(
+    command: "download:show",
+    src: AssetListItem | DirectoryNode,
+    items: AssetListItem[],
+  ): void;
   trigger(command: "download:hide"): void;
   on(
     event: "download",
@@ -124,7 +128,7 @@ export interface CommandManager {
   ): UnregisterCallback;
   on(
     event: "download:show",
-    cb: (items: AssetListItem[]) => void,
+    cb: (src: AssetListItem | DirectoryNode, items: AssetListItem[]) => void,
   ): UnregisterCallback;
   on(event: "download:hide", cb: () => void): UnregisterCallback;
 

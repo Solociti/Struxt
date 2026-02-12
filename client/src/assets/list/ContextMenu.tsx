@@ -301,7 +301,7 @@ export function ItemContextMenu() {
           items.push(item);
         }
 
-        commands.trigger("download:show", items);
+        commands.trigger("download:show", item, items);
         commands.trigger("context-menu:hide");
       },
     },

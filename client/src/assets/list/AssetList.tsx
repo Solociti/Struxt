@@ -4,6 +4,7 @@ import { useMemo } from "react";
 import Spinner from "react-bootstrap/Spinner";
 import { useContentManager } from "../cm/contentManager";
 import { DeleteAssetsModal } from "../modals/DeleteAssetsModal";
+import { DownloadAssetsModal } from "../modals/DownloadAssetsModal";
 import { MoveAssetModal } from "../modals/MoveAssetModal";
 import { NewAssetModal } from "../modals/NewAssetModal";
 import { RenameAssetsModal } from "../modals/RenameAssetsModal";
@@ -146,6 +147,8 @@ export function AssetList() {
       <DeleteAssetsModal />
       <RenameAssetsModal />
       <MoveAssetModal />
+
+      <DownloadAssetsModal />
     </div>
   );
 }
