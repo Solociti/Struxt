@@ -133,10 +133,10 @@ export interface CommandManager {
   on(event: "download:hide", cb: () => void): UnregisterCallback;
 
   // upload
-  trigger(command: "upload", result: CommandResult): void;
+  trigger(command: "upload", list: AssetListItem[]): void;
   trigger(command: "upload:show", basePath: string): void;
   trigger(command: "upload:hide"): void;
-  on(event: "upload", cb: (result: CommandResult) => void): UnregisterCallback;
+  on(event: "upload", cb: (list: AssetListItem[]) => void): UnregisterCallback;
   on(event: "upload:show", cb: (basePath: string) => void): UnregisterCallback;
   on(event: "upload:hide", cb: () => void): UnregisterCallback;
 

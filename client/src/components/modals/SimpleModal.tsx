@@ -18,6 +18,11 @@ interface SimpleModalProps {
   footer?: React.ReactNode;
 
   size?: "sm" | "lg" | "xl";
+
+  modalProps?: Omit<
+    React.ComponentProps<typeof Modal>,
+    "show" | "onHide" | "onExited" | "size"
+  >;
 }
 
 export default function SimpleModal({
@@ -28,9 +33,16 @@ export default function SimpleModal({
   size,
   title,
   footer = null,
+  modalProps = {},
 }: SimpleModalProps) {
   return (
-    <Modal show={show} onHide={onHide} onExited={onExit} size={size}>
+    <Modal
+      show={show}
+      onHide={onHide}
+      onExited={onExit}
+      size={size}
+      {...modalProps}
+    >
       <Modal.Header closeButton>
         <Modal.Title>{title}</Modal.Title>
       </Modal.Header>

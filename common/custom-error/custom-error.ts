@@ -10,9 +10,10 @@ export const ErrorNames = {
   Unauthorized: "Unauthorized",
   PaymentRequired: "Payment Required",
   ExecutionError: "Execution Error",
+  RateLimitError: "Rate Limit Exceeded",
 };
 
-export type HTTPStatus = 400 | 401 | 402 | 403 | 404 | 500;
+export type HTTPStatus = 400 | 401 | 402 | 403 | 404 | 429 | 500;
 type ErrorNames = keyof typeof ErrorNames;
 
 declare global {
@@ -30,6 +31,7 @@ declare global {
  * `402 Payment Required`
  * `403 Forbidden`
  * `404 Not Found`
+ * `429 Too Many Requests`
  *
  * `500 Internal Server Error`
  *
@@ -41,7 +43,7 @@ declare global {
 export function customError(
   status: HTTPStatus,
   message: string,
-  name?: ErrorNames
+  name?: ErrorNames,
 ) {
   const err = new Error(message);
   err.status = status;
@@ -64,6 +66,9 @@ export function customError(
         break;
       case 404:
         err.name = ErrorNames.NotFound;
+        break;
+      case 429:
+        err.name = ErrorNames.RateLimitError;
         break;
       case 500:
         err.name = ErrorNames.InternalServerError;
@@ -106,10 +111,10 @@ export function structureError(error: Error): StructuredError {
  */
 export function deStructureError(
   error: StructuredError,
-  fallbackMessage?: string
+  fallbackMessage?: string,
 ): Error {
   const err = new Error(
-    error.message || fallbackMessage || "An error occurred."
+    error.message || fallbackMessage || "An error occurred.",
   );
   if (error.name) {
     err.name = error.name;

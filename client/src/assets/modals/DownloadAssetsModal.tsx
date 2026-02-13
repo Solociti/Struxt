@@ -16,7 +16,8 @@ import { FileIcon } from "../list/FileIcon";
 
 /**
  * When a single file is selected, download that file.
- * When multiple files are selected, show a modal with the directory structure that will be downloaded as a zip file, and a button to trigger the download.
+ * When multiple files are selected, show a modal with the directory structure that will be
+ * downloaded as a zip file, and a button to trigger the download.
  *
  * @returns
  */

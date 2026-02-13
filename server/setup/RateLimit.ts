@@ -1,4 +1,5 @@
-import { Request, Response } from "express";
+import { customError } from "common/custom-error/custom-error";
+import { NextFunction, Request, Response } from "express";
 import promCl from "prom-client";
 import { setupNewClient } from "../database/dragonFly";
 import { getIp } from "../utils/requests";
@@ -65,7 +66,7 @@ export async function rateLimit(options: {
     };
   };
 
-  const limit = async (res: Response) => {
+  const limit = (res: Response, next: NextFunction) => {
     if (!res.headersSent) {
       res.setHeader("X-RateLimit-Limit", options.maxCapacity.toString());
       res.setHeader("X-RateLimit-Remaining", "0");
@@ -73,14 +74,15 @@ export async function rateLimit(options: {
 
     limitedRequests.inc({ ip: getIp(res.req) }, 1);
 
-    res.status(429).send("Too many requests");
+    const err = customError(429, "Too many requests.", "RateLimitError");
+    next(err);
   };
 
   const slowDown = async (
     req: Request,
     res: Response,
     next: () => void,
-    remaining: number
+    remaining: number,
   ) => {
     if (!res.headersSent) {
       res.setHeader("X-RateLimit-Limit", options.maxCapacity.toString());
@@ -96,7 +98,7 @@ export async function rateLimit(options: {
     setTimeout(next, delay);
   };
 
-  return async (req: Request, res: Response, next: () => void) => {
+  return async (req: Request, res: Response, next: NextFunction) => {
     // get the ip
     const ip = getIp(req);
     const key = `${options.prefix}:${ip}`;
@@ -104,7 +106,7 @@ export async function rateLimit(options: {
     try {
       const result = await checkLimit(
         key,
-        options.unitCost(req, ip || "").toString()
+        options.unitCost(req, ip || "").toString(),
       );
 
       // store the result for logging
@@ -112,7 +114,7 @@ export async function rateLimit(options: {
 
       // rate limit the requests
       if (result.limited) {
-        limit(res);
+        limit(res, next);
         return;
       }
 
@@ -130,7 +132,7 @@ export async function rateLimit(options: {
       memoryStore.set(key, count);
 
       if (count > options.maxCapacity) {
-        limit(res);
+        limit(res, next);
         return;
       }
     }

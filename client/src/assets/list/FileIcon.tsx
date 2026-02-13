@@ -7,6 +7,11 @@
 export function FileIcon({ extension }: { extension: string }) {
   let iconText = "";
   let iconColour = "lightblue";
+
+  if (extension.startsWith(".")) {
+    extension = extension.substring(1);
+  }
+
   switch (extension) {
     case "js":
       iconColour = "orange";

@@ -9,6 +9,7 @@ import {
 } from "common/api/assets/assets";
 import { AssetListItem, AssetModel } from "common/models/assets/AssetModel";
 import { getAssetUrl } from "./assetUtils";
+import { deStructureError } from "common/custom-error/custom-error";
 
 /**
  * Get the asset metadata for the provided project and uuid.
@@ -40,6 +41,38 @@ export async function getAssetList(projectId: string) {
   return response.files;
 }
 
+async function errorWrapFetch(url: string, options?: RequestInit) {
+  let responseCode: number = 0;
+
+  try {
+    const res = await fetch(url, options);
+    responseCode = res.status;
+
+    if (res.headers.get("Content-Type")?.includes("application/json")) {
+      const data = await res.json();
+
+      // check if the server sent an error
+      if (data.error) {
+        throw deStructureError(data.error, "API request failed.");
+      }
+
+      return data;
+    } else {
+      // if the response isn't json, just return the raw response
+      if (!res.ok) {
+        throw new Error(`Request failed with status ${res.status}`);
+      }
+      return res;
+    }
+  } catch (err) {
+    if (err instanceof Error && !err.status) {
+      err.status = responseCode;
+    }
+
+    throw err;
+  }
+}
+
 /**
  * Save asset content (text)
  *
@@ -52,13 +85,15 @@ export async function saveAssetContent(
 ) {
   const url = `/assets/${projectId}/${uuid}`;
 
-  await fetch(url, {
+  const response = await errorWrapFetch(url, {
     method: "PUT",
     headers: {
       "Content-Type": "text/plain",
     },
     body: content,
   });
+
+  return response;
 }
 
 /**
@@ -74,12 +109,12 @@ export async function getTextAssetContents(
 ) {
   const url = getAssetUrl(asset, projectId);
 
-  const response = await fetch(url);
-  if (!response.ok) {
-    throw new Error("Failed to fetch asset content");
+  const response = await errorWrapFetch(url);
+  if (response instanceof Response) {
+    return response.text();
   }
 
-  return response.text();
+  return response;
 }
 
 /**

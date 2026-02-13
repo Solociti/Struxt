@@ -109,6 +109,23 @@ async function main() {
     },
   );
 
+  app.use(
+    "/assets/:projectId",
+    (err: Error, req: Request, res: Response, next: NextFunction) => {
+      const statusCode = err.status || err.statusCode || 500;
+
+      const error: StructuredError = {
+        name: statusCode >= 500 ? "Server Error" : err.name || "Error",
+        status: statusCode as HTTPStatus,
+        message: err.message || "Something went wrong. Please try again later.",
+      };
+
+      res.status(statusCode).json({
+        error,
+      });
+    },
+  );
+
   // register the last middleware for the app
   registerErrorPage(app);
 

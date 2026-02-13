@@ -65,7 +65,7 @@ export async function expressSetup(app: Express) {
         req.path.startsWith("/api/assets")
       ) {
         if (req.method === "PUT" || req.method === "POST") {
-          return 20;
+          return 5;
         }
       }
 
