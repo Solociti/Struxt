@@ -261,3 +261,82 @@ describe("AssetModel.getBasePath", () => {
     expect(AssetModel.getBasePath("/logo.png")).toBe("/");
   });
 });
+
+describe("AssetModel.getPublicUrl", () => {
+  test("should strip /public prefix for public assets", () => {
+    const asset = new AssetModel({
+      path: "/public/assets/logo.png",
+      isExternalSrc: false,
+    });
+    expect(AssetModel.getPublicUrl(asset)).toBe("/assets/logo.png");
+  });
+
+  test("should return full URL for external assets", () => {
+    const asset = new AssetModel({
+      path: "https://example.com/image.png",
+      isExternalSrc: true,
+    });
+    expect(AssetModel.getPublicUrl(asset)).toBe(
+      "https://example.com/image.png",
+    );
+  });
+
+  test("should return path as-is for routines assets", () => {
+    const asset = new AssetModel({
+      path: "/routines/function.js",
+      isExternalSrc: false,
+    });
+    expect(AssetModel.getPublicUrl(asset)).toBe("/routines/function");
+  });
+
+  test("should return null for non-public assets", () => {
+    const asset = new AssetModel({
+      path: "/src/app.tsx",
+      isExternalSrc: false,
+    });
+    expect(AssetModel.getPublicUrl(asset)).toBeNull();
+  });
+
+  test("should work with AssetListItem interface", () => {
+    const asset = {
+      uuid: "test-123",
+      displayName: "Logo",
+      path: "/public/assets/logo.png",
+      isExternalSrc: false,
+      updated: { date: 0, userId: "", displayName: "" },
+    };
+    expect(AssetModel.getPublicUrl(asset)).toBe("/assets/logo.png");
+  });
+
+  test("instance method should delegate to static method", () => {
+    const asset = new AssetModel({
+      path: "/public/assets/logo.png",
+      isExternalSrc: false,
+    });
+    expect(asset.getPublicUrl()).toBe("/assets/logo.png");
+  });
+
+  test("should integrate correctly with getEditorAsset for public assets", () => {
+    const publicAsset = new AssetModel({
+      uuid: "asset-123",
+      displayName: "Logo",
+      path: "/public/assets/logo.png",
+      isExternalSrc: false,
+    });
+
+    const editorAsset = publicAsset.getEditorAsset();
+    expect(editorAsset.src).toBe("/assets/logo.png");
+  });
+
+  test("should return empty string in getEditorAsset for non-public assets", () => {
+    const privateAsset = new AssetModel({
+      uuid: "asset-456",
+      displayName: "Source",
+      path: "/src/app.tsx",
+      isExternalSrc: false,
+    });
+
+    const editorAsset = privateAsset.getEditorAsset();
+    expect(editorAsset.src).toBe("");
+  });
+});

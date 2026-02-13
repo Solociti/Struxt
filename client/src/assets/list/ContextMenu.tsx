@@ -1,5 +1,6 @@
 import { errorToastWrapFunction } from "client/components/ErrorSnackBar";
 import MaterialIcon from "client/components/MaterialIcon";
+import { showToastTop } from "client/components/ToastTop";
 import { AssetListItem, AssetModel } from "common/models/assets/AssetModel";
 import { PropsWithChildren, useEffect, useRef, useState } from "react";
 import ListGroup from "react-bootstrap/ListGroup";
@@ -321,21 +322,36 @@ export function ItemContextMenu() {
       icon: "account_tree",
       text: "Copy Path",
       onClick: () => {
-        // TODO: show a copied toast
         navigator.clipboard.writeText(item.path);
         commands.trigger("context-menu:hide");
+
+        showToastTop("Copied Path!", "content_copy", "secondary", 3000);
       },
     },
     {
       hide: isDir || isInTrash,
+      disabled: !AssetModel.getPublicUrl(item as AssetListItem),
       section: "path",
       icon: "link",
       text: "Copy URL",
       onClick: () => {
-        const url = item.path;
+        const url = AssetModel.getPublicUrl(item as AssetListItem);
+
+        if (url === null) {
+          showToastTop(
+            "This asset is not publicly accessible",
+            "block",
+            "warning",
+            3000,
+          );
+          commands.trigger("context-menu:hide");
+          return;
+        }
 
         navigator.clipboard.writeText(url);
         commands.trigger("context-menu:hide");
+
+        showToastTop("Copied URL!", "content_copy", "secondary", 3000);
       },
     },
   ];

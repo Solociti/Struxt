@@ -1,4 +1,4 @@
-import { basename, dirname } from "common/path/path";
+import { basename, dirname, extname, join } from "common/path/path";
 import { getFileType, isTextFile } from "../../path/FileExtensions";
 import { Model, UserModelAction } from "../Model";
 import { DeepPartial, mergeDeep } from "../utils";
@@ -100,7 +100,7 @@ export class AssetModel extends Model {
     const item: EditorAsset = {
       uuid: this.uuid,
       type: getFileType(this.getFileExtension()),
-      src: this.getPublicUrl(),
+      src: this.getPublicUrl() ?? "",
       name: this.displayName,
     };
 
@@ -186,23 +186,43 @@ export class AssetModel extends Model {
   }
 
   /**
-   * Get the public facing URL for the asset.
-   * Assets that are not saved withing /public are going to return a blank string.
+   * Get the public URL path for an asset.
+   * Returns the public path (e.g., `/assets/logo.png`) for assets in `/public/`,
+   * the full URL for external assets, or `null` if the asset is not publicly accessible.
    *
-   * This is used to get the URL for grapesjs.
-   *
+   * @param asset
    * @returns
    */
-  getPublicUrl(): string {
-    if (this.isExternalSrc) {
-      return this.path;
+  static getPublicUrl(asset: AssetListItem | AssetModel): string | null {
+    if (asset.isExternalSrc) {
+      return asset.path;
     }
 
-    if (this.path.startsWith("/public")) {
-      return this.path.replace("/public", "");
+    if (asset.path.startsWith("/public")) {
+      return asset.path.replace("/public", "");
     }
 
-    return "";
+    const ext = extname(asset.path).toLowerCase();
+    if (asset.path.startsWith("/routines") && ext === ".js") {
+      // remove the extension for the public URL for routines
+      const name = basename(asset.path, ext);
+      const dir = dirname(asset.path);
+
+      return join(dir, name);
+    }
+
+    return null;
+  }
+
+  /**
+   * Get the public URL path for this asset.
+   * Returns the public path (e.g., `/assets/logo.png`) for assets in `/public/`,
+   * the full URL for external assets, or `null` if the asset is not publicly accessible.
+   *
+   * @returns The public URL path, full external URL, or null if not public
+   */
+  getPublicUrl(): string | null {
+    return AssetModel.getPublicUrl(this);
   }
 
   /**
