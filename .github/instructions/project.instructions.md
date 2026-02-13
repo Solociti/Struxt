@@ -18,6 +18,19 @@ Root level react components should always be defined as functional components. N
 For React Bootstrap components, ALWAYS use default imports from the specific component path (e.g., `import ListGroup from "react-bootstrap/ListGroup"`). Do NOT use destructuring imports (e.g., `import { ListGroup } from "react-bootstrap"`).
 Use react styles when possible for styling components.
 
+### Formatting Rules
+
+- **Braces**: Always use braces for if statements, even single-line blocks. Opening brace on same line, closing brace on new line.
+- **Multi-line blocks**: Always format if-return statements with proper indentation:
+  ```typescript
+  if (condition) {
+    return value;
+  }
+  ```
+  NOT: `if (condition) return value;` or `if (condition) { return value; }`
+- **Indentation**: Use 2 spaces (consistent with project style).
+- **Line breaks**: Each statement should be on its own line for readability.
+
 ## Imports
 
 - **Path Aliases**: Always use `common/*`, `server/*`, `client/*`.
@@ -41,6 +54,7 @@ Use the `<ShowError />` component from `client/components/ShowError` to display 
 ## DB models
 
 The database models are defined in the `common/models` directory.
+
 - **Classes**: Models extending the base `Model` class should be used for business logic and validation before database insertion. They match the DB structure.
 - **Interfaces**: Use interfaces for simplified lists or DTOs when data doesn't strictly match the database structure.
 
