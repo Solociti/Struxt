@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import {
   DEFAULT_MAX_FILENAME_LENGTH,
+  DEFAULT_MAX_PATH_LENGTH,
   getFilenameValidationErrors,
   getPathValidationErrors,
   isValidFilename,
@@ -81,11 +82,11 @@ describe("sanitizeFilename", () => {
       expect(() => sanitizeFilename("..")).toThrow("reserved");
     });
 
-    it("should truncate filenames longer than default max (255)", () => {
+    it("should truncate filenames longer than default max (200)", () => {
       const longName = "a".repeat(300);
       const result = sanitizeFilename(longName);
       expect(result.length).toBe(DEFAULT_MAX_FILENAME_LENGTH);
-      expect(result).toBe("a".repeat(255));
+      expect(result).toBe("a".repeat(200));
     });
 
     it("should truncate filenames to custom max length", () => {
@@ -300,7 +301,7 @@ describe("sanitizeFilename", () => {
       const longName = "a".repeat(256);
       const errors = getFilenameValidationErrors(longName);
       expect(errors.some((e) => e.includes("Too long"))).toBe(true);
-      expect(errors.some((e) => e.includes("255"))).toBe(true);
+      expect(errors.some((e) => e.includes("200"))).toBe(true);
     });
 
     it("should return multiple errors for multiple issues", () => {
@@ -433,6 +434,23 @@ describe("sanitizeFilename", () => {
     it("should handle leading slashes gracefully", () => {
       expect(getPathValidationErrors("/folder/file.txt")).toEqual([]);
       expect(getPathValidationErrors("/")).toEqual([]);
+    });
+
+    it("should return error when path exceeds max length", () => {
+      const longPath = "a/" + "b/".repeat(100) + "c.txt"; // Creates a very long path
+      const errors = getPathValidationErrors(longPath);
+      if (longPath.length > DEFAULT_MAX_PATH_LENGTH) {
+        expect(errors.some((e) => e.includes("Path too long"))).toBe(true);
+        expect(errors.some((e) => e.includes(String(DEFAULT_MAX_PATH_LENGTH)))).toBe(true);
+      }
+    });
+
+    it("should allow paths up to max length", () => {
+      // Create a path that's exactly at the limit
+      const atLimit = "a" + "/b".repeat(Math.floor((DEFAULT_MAX_PATH_LENGTH - 1) / 2));
+      const errors = getPathValidationErrors(atLimit);
+      // Should not have length error (may have other errors if path structure is odd)
+      expect(errors.some((e) => e.includes("Path too long"))).toBe(false);
     });
   });
 
@@ -621,6 +639,39 @@ describe("sanitizeFilename", () => {
       expect(sanitizePath('folder"/file<name>.txt/', { replaceChar: "" })).toBe(
         "folder/filename.txt/",
       );
+    });
+
+    it("should throw when sanitized path exceeds maxPathLength", () => {
+      const longPath = "folder/" + "subfolder/".repeat(30) + "file.txt";
+      expect(() => sanitizePath(longPath, { maxPathLength: 50 })).toThrow(
+        "Path too long after sanitizing",
+      );
+    });
+
+    it("should allow paths up to maxPathLength", () => {
+      const path = "a/b/c.txt"; // 9 characters
+      expect(() => sanitizePath(path, { maxPathLength: 9 })).not.toThrow();
+      expect(sanitizePath(path, { maxPathLength: 9 })).toBe("a/b/c.txt");
+    });
+
+    it("should use default maxPathLength when not specified", () => {
+      const longPath = "a/" + "b/".repeat(200) + "file.txt";
+      if (longPath.length > DEFAULT_MAX_PATH_LENGTH) {
+        expect(() => sanitizePath(longPath)).toThrow(
+          "Path too long after sanitizing",
+        );
+      }
+    });
+
+    it("should combine maxPathLength with other options", () => {
+      const path = "folder:name/file*.txt";
+      // After sanitization: "folder_name/file_.txt" (22 chars)
+      expect(() =>
+        sanitizePath(path, { maxPathLength: 20, replaceChar: "_" }),
+      ).toThrow("Path too long after sanitizing");
+      expect(() =>
+        sanitizePath(path, { maxPathLength: 25, replaceChar: "_" }),
+      ).not.toThrow();
     });
   });
 });

@@ -25,10 +25,16 @@ import { join, normalize } from "./path";
 const INVALID_FILENAME_CHARS = /[/\\?*:|"<>\x00-\x1F\x7F-\x9F]/g;
 
 /**
- * Default maximum filename length (255 characters is the most common limit
+ * Default maximum filename length (200 characters provides a safe buffer for
+ * filesystem operations while allowing reasonable filename lengths)
+ */
+export const DEFAULT_MAX_FILENAME_LENGTH = 200;
+
+/**
+ * Default maximum path length (255 characters is the most common limit
  * across NTFS, ext4, APFS, HFS+ filesystems)
  */
-export const DEFAULT_MAX_FILENAME_LENGTH = 255;
+export const DEFAULT_MAX_PATH_LENGTH = 255;
 
 /**
  * Validates whether a filename contains only valid characters
@@ -159,6 +165,13 @@ export function getPathValidationErrors(path: string): string[] {
     return errors;
   }
 
+  // Check total path length
+  if (path.length > DEFAULT_MAX_PATH_LENGTH) {
+    errors.push(
+      `Path too long. (max ${DEFAULT_MAX_PATH_LENGTH})`,
+    );
+  }
+
   // Special case: "/" is a valid root path
   if (trimmed === "/") {
     return errors;
@@ -230,7 +243,7 @@ export function getPathValidationErrors(path: string): string[] {
  *
  * @param filename - The filename to sanitize (without path)
  * @param replaceChar - Character to replace invalid characters with, or empty string to remove them (default: "_")
- * @param maxLength - Maximum filename length (default: 255)
+ * @param maxLength - Maximum filename length (default: 200)
  * @returns Sanitized filename safe for cross-platform use
  * @throws Error if sanitization results in an empty filename or "." or ".."
  *
@@ -302,9 +315,10 @@ export function sanitizeFilename(
  * @param options - Configuration options
  * @param options.skipInvalid - If true, skip invalid components; if false, throw on invalid components (default: false)
  * @param options.replaceChar - Character to replace invalid characters with, or empty string to remove them (default: "_")
- * @param options.maxLength - Maximum length for each component (default: 255)
+ * @param options.maxLength - Maximum length for each component (default: 200)
+ * @param options.maxPathLength - Maximum length for the entire path (default: 255)
  * @returns Sanitized path with original slash structure preserved
- * @throws Error if any component is invalid and skipInvalid is false
+ * @throws Error if any component is invalid and skipInvalid is false, or if path exceeds maxPathLength
  *
  * @example
  * sanitizePath("/folder:name/file*.txt") // "/folder_name/file_.txt"
@@ -320,12 +334,14 @@ export function sanitizePath(
     skipInvalid?: boolean;
     replaceChar?: string;
     maxLength?: number;
+    maxPathLength?: number;
   } = {},
 ): string {
   const {
     skipInvalid = false,
     replaceChar = "_",
     maxLength = DEFAULT_MAX_FILENAME_LENGTH,
+    maxPathLength = DEFAULT_MAX_PATH_LENGTH,
   } = options;
 
   if (typeof path !== "string") {
@@ -378,6 +394,13 @@ export function sanitizePath(
 
   if (hasTrailingSlash && !result.endsWith("/")) {
     result = result + "/";
+  }
+
+  // Validate total path length
+  if (result.length > maxPathLength) {
+    throw new Error(
+      `Path too long after sanitizing: ${result.length} characters (max ${maxPathLength})`,
+    );
   }
 
   return result;
