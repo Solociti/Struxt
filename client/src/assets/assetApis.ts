@@ -120,17 +120,19 @@ function inferContentType(
  * @param projectId
  * @param uuid
  * @param content
- * @param filename - Optional filename to help infer Content-Type (e.g., "data.json" for string content)
+ * @param options
+ * @param options.filename when set, will be used to infer the content type
  */
 export async function saveAssetContent(
   projectId: string,
   uuid: string,
   content: Blob | File | string,
-  filename?: string,
+  options?: { filename?: string; signal?: AbortSignal; mime?: string },
 ) {
   const url = `/assets/${projectId}/${uuid}`;
 
-  const contentType = inferContentType(content, filename);
+  const contentType =
+    options?.mime || inferContentType(content, options?.filename);
 
   const response = await errorWrapFetch(url, {
     method: "PUT",
@@ -138,6 +140,7 @@ export async function saveAssetContent(
       "Content-Type": contentType,
     },
     body: content,
+    signal: options?.signal,
   });
 
   const data = await response.json();

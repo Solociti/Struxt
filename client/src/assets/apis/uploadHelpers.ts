@@ -3,6 +3,7 @@ import { createNewAsset, saveAssetContent } from "client/assets/assetApis";
 import { AssetListItem, AssetModel } from "common/models/assets/AssetModel";
 import { join, normalize } from "common/path/path";
 import { sanitizePath } from "common/path/sanitizeFilename";
+import { FileToUpload } from "../modals/UploadAssetsModal";
 
 export interface ZipFileEntry {
   /**
@@ -70,12 +71,27 @@ export async function processZipFiles(
   zipFile: File,
   entryFilenames: string[],
   callback: (filename: string, blob: Blob) => Promise<void>,
+  options: {
+    abort?: AbortSignal;
+  },
 ): Promise<void> {
   const zipReader = new ZipReader(new BlobReader(zipFile));
   const entries = await zipReader.getEntries();
+  let stopUpload = false;
+
+  const abortHandler = () => {
+    stopUpload = true;
+  };
+  if (options.abort) {
+    options.abort.addEventListener("abort", abortHandler);
+  }
 
   try {
     for (const filename of entryFilenames) {
+      if (stopUpload) {
+        break;
+      }
+
       const entry = entries.find((e) => e.filename === filename);
 
       if (!entry || entry.directory || !entry.getData) {
@@ -87,6 +103,9 @@ export async function processZipFiles(
     }
   } finally {
     await zipReader.close();
+  }
+  if (options.abort) {
+    options.abort.removeEventListener("abort", abortHandler);
   }
 }
 
@@ -102,11 +121,25 @@ export async function uploadFile(
   projectId: string,
   file: File | Blob,
   path: string,
+  signal?: AbortSignal,
 ) {
   let asset: AssetModel | null = null;
   let tryCount = 0;
 
+  let stopUpload = false;
+
+  const abortHandler = () => {
+    stopUpload = true;
+  };
+  if (signal) {
+    signal.addEventListener("abort", abortHandler);
+  }
+
   while (tryCount < 3) {
+    if (stopUpload) {
+      throw new Error("Upload aborted!");
+    }
+
     try {
       if (!asset) {
         asset = await createNewAsset(projectId, {
@@ -114,12 +147,23 @@ export async function uploadFile(
         });
       }
 
-      await saveAssetContent(projectId, asset.uuid, file, path);
+      await saveAssetContent(projectId, asset.uuid, file, {
+        filename: path,
+        signal,
+      });
+
+      if (signal) {
+        signal.removeEventListener("abort", abortHandler);
+      }
 
       return asset;
     } catch (error) {
       tryCount++;
       if (tryCount >= 3) {
+        if (signal) {
+          signal.removeEventListener("abort", abortHandler);
+        }
+
         throw error;
       }
 
@@ -179,26 +223,33 @@ export function getFilesToUpload<
 export async function batchUploadFiles(
   projectId: string,
   basePath: string,
-  files: Array<{
-    localId: number;
-    file: File | Blob;
-    path: string;
-    originalName: string;
-    shouldExtract?: boolean;
-    sourceZipId?: number;
-    sourceZipFile?: File;
-  }>,
+  files: FileToUpload[],
   onProgress: (
     index: number,
     status: "uploading" | "complete" | "error",
     error?: string,
   ) => void,
+  options: {
+    abort?: AbortSignal;
+  },
 ): Promise<AssetListItem[]> {
   const uploadedAssets: AssetListItem[] = [];
 
   let i = 0;
+  let stopUpload = false;
+
+  const abortHandler = () => {
+    stopUpload = true;
+  };
+  if (options.abort) {
+    options.abort.addEventListener("abort", abortHandler);
+  }
 
   while (i < files.length) {
+    if (stopUpload) {
+      break;
+    }
+
     const fileItem = files[i];
 
     if (fileItem.shouldExtract) {
@@ -218,14 +269,21 @@ export async function batchUploadFiles(
                 (f) => f.originalName === filename,
               );
 
-              if (!fileToUpload) return;
+              if (!fileToUpload) {
+                return;
+              }
 
               const fileIndex = files.indexOf(fileToUpload);
               onProgress(fileIndex, "uploading");
 
               try {
                 const fullPath = join(basePath, fileToUpload.path);
-                const asset = await uploadFile(projectId, blob, fullPath);
+                const asset = await uploadFile(
+                  projectId,
+                  blob,
+                  fullPath,
+                  options.abort,
+                );
                 onProgress(fileIndex, "complete");
                 uploadedAssets.push(asset.getListItem());
               } catch (error) {
@@ -234,6 +292,7 @@ export async function batchUploadFiles(
                 onProgress(fileIndex, "error", errorMsg);
               }
             },
+            options,
           );
         } catch (error) {
           const errorMsg =
@@ -258,7 +317,12 @@ export async function batchUploadFiles(
 
     try {
       const fullPath = join(basePath, fileItem.path);
-      const asset = await uploadFile(projectId, fileItem.file, fullPath);
+      const asset = await uploadFile(
+        projectId,
+        fileItem.file,
+        fullPath,
+        options.abort,
+      );
       onProgress(i, "complete");
       uploadedAssets.push(asset.getListItem());
     } catch (error) {
@@ -267,6 +331,10 @@ export async function batchUploadFiles(
     }
 
     i++;
+  }
+
+  if (options.abort) {
+    options.abort.removeEventListener("abort", abortHandler);
   }
 
   return uploadedAssets;

@@ -327,9 +327,13 @@ export default function UploadAssetsModal() {
     { toastError: false },
   );
 
+  const abortControllerRef = useRef<AbortController | null>(null);
   const handleUpload = useAsyncCallback(
     async () => {
-      await batchUploadFiles(
+      const abortController = new AbortController();
+      abortControllerRef.current = abortController;
+
+      const list = await batchUploadFiles(
         projectId,
         basePath,
         files,
@@ -345,10 +349,13 @@ export default function UploadAssetsModal() {
             error,
           }));
         },
+        {
+          abort: abortController.signal,
+        },
       );
-      // TODO: get the list of assets uploaded
-      commands.trigger("upload", []);
+      commands.trigger("upload", list);
       setUploadCompleted(true);
+      abortControllerRef.current = null;
     },
     { toastError: false },
   );
@@ -357,7 +364,9 @@ export default function UploadAssetsModal() {
     if (!handleUpload.isLoading) {
       commands.trigger("upload:hide");
     } else {
-      // TODO: Cancel ongoing uploads. We can terminate using the AbortController signal.
+      if (abortControllerRef.current) {
+        abortControllerRef.current.abort();
+      }
     }
   };
 
@@ -368,13 +377,8 @@ export default function UploadAssetsModal() {
   const footer = (
     <>
       <div className="flex-grow-1 text-muted small">{statusMessage}</div>
-      <IconButton
-        icon="close"
-        variant="secondary"
-        onClick={handleClose}
-        disabled={isUploading}
-      >
-        {isUploading ? "Close" : "Cancel"}
+      <IconButton icon="close" variant="secondary" onClick={handleClose}>
+        {uploadCompleted ? "Close" : "Cancel"}
       </IconButton>
 
       {!uploadCompleted && (
