@@ -2,6 +2,7 @@ import { customError } from "common/custom-error/custom-error";
 import { AssetModel } from "common/models/assets/AssetModel";
 import { reWriteAssetPath } from "common/models/assets/reWriteAssetPath";
 import { basename, dirname, extname, join, normalize } from "common/path/path";
+import { sanitizeFilename, sanitizePath } from "common/path/sanitizeFilename";
 import { existsSync } from "node:fs";
 import { rmDirIfEmpty } from "server/hfs/dirOps";
 import { hfsCopyFile, hfsRenameFile } from "server/hfs/fileOps";
@@ -134,13 +135,16 @@ export async function moveAssets(
           if (/\(\d{1,}\)$/.test(baseFileName)) {
             baseFileName = baseFileName.replace(/\(\d{1,}\)$/, "");
           }
+          // Ensure the base filename is sanitized for cross-platform safety
+          baseFileName = sanitizeFilename(baseFileName);
 
           const dir = dirname(path);
 
           index++;
           const newFileName = `${baseFileName}(${index})${ext}`;
 
-          path = normalize(join(dir, newFileName));
+          // Sanitize the entire path to ensure cross-platform compatibility for user-created directory structures
+          path = sanitizePath(normalize(join(dir, newFileName)));
           fullPath = join(projectDir, path);
         } while (!(await isAssetPathUnique(projectId, asset.uuid, path)));
       }

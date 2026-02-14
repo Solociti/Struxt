@@ -35,11 +35,6 @@ export function validateMoveLocation(source: string, destination: string) {
     };
   }
 
-  console.log({
-    destination: normalize(destination),
-    source: normalize(source),
-  });
-
   if (normalize(destination) === normalize(source)) {
     return {
       isValid: false,

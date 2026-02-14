@@ -2,6 +2,7 @@ import { BlobReader, BlobWriter, ZipReader } from "@zip.js/zip.js";
 import { createNewAsset, saveAssetContent } from "client/assets/assetApis";
 import { AssetListItem, AssetModel } from "common/models/assets/AssetModel";
 import { join, normalize } from "common/path/path";
+import { sanitizePath } from "common/path/sanitizeFilename";
 
 export interface ZipFileEntry {
   /**
@@ -36,7 +37,16 @@ export async function getZipFileEntries(
       continue;
     }
 
-    const path = normalize(join(baseDir, entry.filename));
+    // Sanitize path to prevent malicious zip entries (skip invalid components like "..")
+    let sanitizedFilename: string;
+    try {
+      sanitizedFilename = sanitizePath(entry.filename, { skipInvalid: true });
+    } catch {
+      // Skip this entry if sanitization results in empty path
+      continue;
+    }
+
+    const path = normalize(join(baseDir, sanitizedFilename));
 
     fileEntries.push({
       filename: entry.filename,

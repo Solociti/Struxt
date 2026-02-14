@@ -1,13 +1,22 @@
-import { addToastInfo, addToastWarning } from "client/components/ErrorSnackBar";
+import {
+  addToastError,
+  addToastInfo,
+  addToastWarning,
+} from "client/components/ErrorSnackBar";
 import Group from "client/components/Group";
 import IconButton from "client/components/IconButton";
 import MaterialIcon from "client/components/MaterialIcon";
 import SimpleModal from "client/components/modals/SimpleModal";
+import { ShowPathValidationErrors } from "client/components/ShowPathValidationErrors";
 import { useAsyncCallback } from "client/components/useAsyncCallback";
 import { AssetMoveApi } from "common/api/assets/assets";
 import { AssetListItem } from "common/models/assets/AssetModel";
 import { reWriteAssetPath } from "common/models/assets/reWriteAssetPath";
 import { basename, dirname, join, normalize } from "common/path/path";
+import {
+  getPathValidationErrors,
+  sanitizePath,
+} from "common/path/sanitizeFilename";
 import { validateMoveLocation } from "common/path/validateMoveLocation";
 import { useEffect, useMemo, useState } from "react";
 import Dropdown from "react-bootstrap/Dropdown";
@@ -36,8 +45,17 @@ export function RenameAssetsModal() {
   const newPath =
     normalize(join(dirname(originalPath), newName)) + (isDir ? "/" : "");
 
+  const validationErrors = useMemo(
+    () => (newName ? getPathValidationErrors(newName) : []),
+    [newName],
+  );
+
   const { isValid, warningMessage } = useMemo(() => {
     if (!newName.trim()) {
+      return { isValid: false, warningMessage: "" };
+    }
+
+    if (validationErrors.length > 0) {
       return { isValid: false, warningMessage: "" };
     }
 
@@ -49,7 +67,7 @@ export function RenameAssetsModal() {
       originalPath,
       isDir ? newPath : dirname(newPath),
     );
-  }, [originalPath, newPath]);
+  }, [originalPath, newPath, validationErrors]);
 
   const [conflictResolution, setConflictResolution] =
     useState<AssetMoveApi["PostBody"]["onConflict"]>("skip");
@@ -158,14 +176,27 @@ export function RenameAssetsModal() {
         </div>
 
         <Group prepend="Name">
-          <Form.Control
-            value={newName}
-            placeholder={originalName}
-            name="name"
-            onChange={(event) => {
-              setNewName(event.target.value);
+          <ShowPathValidationErrors
+            errors={validationErrors}
+            onFix={() => {
+              try {
+                const sanitized = sanitizePath(newName, { skipInvalid: true });
+                setNewName(sanitized);
+              } catch (err) {
+                addToastError(err as Error);
+              }
             }}
-          />
+          >
+            <Form.Control
+              value={newName}
+              placeholder={originalName}
+              name="name"
+              onChange={(event) => {
+                setNewName(event.target.value);
+              }}
+              isInvalid={newName.length > 0 && validationErrors.length > 0}
+            />
+          </ShowPathValidationErrors>
         </Group>
 
         <Group prepend="On Conflict">

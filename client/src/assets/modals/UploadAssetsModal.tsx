@@ -7,13 +7,19 @@ import {
 import { useContentManager } from "client/assets/cm/contentManager";
 import { FileIcon } from "client/assets/list/FileIcon";
 import StatusIcon from "client/assets/modals/upload/StatusIcon";
+import { addToastError } from "client/components/ErrorSnackBar";
 import Group from "client/components/Group";
 import IconButton from "client/components/IconButton";
 import SimpleModal from "client/components/modals/SimpleModal";
 import { ShowError } from "client/components/ShowError";
+import { ShowPathValidationErrors } from "client/components/ShowPathValidationErrors";
 import { useAsyncCallback } from "client/components/useAsyncCallback";
 import { useHtmlId } from "client/components/useHtmlId";
 import { dirname, extname, join } from "common/path/path";
+import {
+  getPathValidationErrors,
+  sanitizePath,
+} from "common/path/sanitizeFilename";
 import { useEffect, useRef, useState } from "react";
 import Form from "react-bootstrap/Form";
 import ListGroup from "react-bootstrap/ListGroup";
@@ -527,6 +533,9 @@ function UploadFileItem({
   const [isEditing, setIsEditing] = useState(false);
   const [editedFileName, setEditedFileName] = useState("");
 
+  const validationErrors =
+    isEditing && editedFileName ? getPathValidationErrors(editedFileName) : [];
+
   // Zip files nested inside another zip are treated as regular files (no extraction)
   const isZip =
     !isNested &&
@@ -572,23 +581,40 @@ function UploadFileItem({
         <div className="flex-grow-1 ms-2">
           <div className="d-flex align-items-center">
             {isEditing ? (
-              <Group>
-                <Form.Control
-                  type="text"
-                  value={editedFileName}
-                  onChange={(e) => setEditedFileName(e.target.value)}
-                  size="sm"
-                  disabled={isUploading}
-                  className="flex-grow-1"
-                />
-                <IconButton
-                  icon="check"
-                  size="sm"
-                  variant="outline-success"
-                  onClick={handleToggleEdit}
-                  disabled={isUploading}
-                />
-              </Group>
+              <div className="flex-grow-1">
+                <Group>
+                  <ShowPathValidationErrors
+                    errors={validationErrors}
+                    onFix={() => {
+                      try {
+                        const sanitized = sanitizePath(editedFileName, {
+                          skipInvalid: true,
+                        });
+                        setEditedFileName(sanitized);
+                      } catch (err) {
+                        addToastError(err as Error);
+                      }
+                    }}
+                  >
+                    <Form.Control
+                      type="text"
+                      value={editedFileName}
+                      onChange={(e) => setEditedFileName(e.target.value)}
+                      size="sm"
+                      disabled={isUploading}
+                      className="flex-grow-1"
+                      isInvalid={validationErrors.length > 0}
+                    />
+                  </ShowPathValidationErrors>
+                  <IconButton
+                    icon="check"
+                    size="sm"
+                    variant="outline-success"
+                    onClick={handleToggleEdit}
+                    disabled={isUploading || validationErrors.length > 0}
+                  />
+                </Group>
+              </div>
             ) : (
               <>
                 <div

@@ -4,25 +4,26 @@ import { AssetModel } from "common/models/assets/AssetModel";
 import { EditorAsset } from "common/models/assets/EditorAsset";
 import { roles } from "common/models/user/Roles";
 import { getFileType } from "common/path/FileExtensions";
+import { sanitizeFilename } from "common/path/sanitizeFilename";
 import express from "express";
 import multer from "multer";
 import { existsSync, realpathSync } from "node:fs";
 import { lstat, rename, unlink } from "node:fs/promises";
 import { basename, extname, join, normalize } from "node:path";
 import { pipeline } from "node:stream/promises";
+import { userFromReq } from "server/api/auth/userFromReq";
+import { getProjectDiskUsage } from "server/api/projects/projectDiskUsage";
+import { protectEndpoint } from "server/auth/protectEndpoint";
 import { isPathInside } from "server/hfs/path";
 import { hfsWriteFileStream } from "server/hfs/writeFile";
 import { createSimpleId } from "server/utils/createId";
-import z from "zod";
-import { protectEndpoint } from "../../auth/protectEndpoint";
-import { mkDirRecursive } from "../../utils/mkDir";
+import { mkDirRecursive } from "server/utils/mkDir";
 import {
   getAssetDir,
   getProjectFilesDir,
   getUploadDir,
-} from "../../utils/uploadDir";
-import { userFromReq } from "../auth/userFromReq";
-import { getProjectDiskUsage } from "../projects/projectDiskUsage";
+} from "server/utils/uploadDir";
+import z from "zod";
 import "./apiRegister";
 import { getAsset } from "./getAssets";
 import { saveAsset } from "./saveAsset";
@@ -222,9 +223,10 @@ router.post(
       let newFilePath = "";
 
       try {
-        // TODO: sanitize the file name, checking for length and invalid characters
         const ext = extname(file.originalname);
-        const originalName = basename(file.originalname, ext);
+        const originalName = sanitizeFilename(
+          basename(file.originalname, ext),
+        );
 
         let newFileName = originalName + ext;
         newFilePath = join(getAssetDir(projectId), newFileName);

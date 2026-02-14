@@ -1,4 +1,5 @@
-import { relative, normalize, join } from "common/path/path";
+import { join, normalize, relative } from "common/path/path";
+import { sanitizePath } from "common/path/sanitizeFilename";
 
 /**
  * Re-write an asset path from one base to another
@@ -11,9 +12,10 @@ import { relative, normalize, join } from "common/path/path";
 export function reWriteAssetPath(path: string, from: string, to: string) {
   const rel = relative(from, path);
   const updated = normalize(join(to, rel));
+  const sanitized = sanitizePath(updated);
 
-  if (path.endsWith("/") && !updated.endsWith("/")) {
-    return updated + "/";
+  if (path.endsWith("/") && !sanitized.endsWith("/")) {
+    return sanitized + "/";
   }
-  return updated;
+  return sanitized;
 }

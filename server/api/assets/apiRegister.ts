@@ -10,6 +10,7 @@ import {
 import { customError } from "common/custom-error/custom-error";
 import { AssetModel } from "common/models/assets/AssetModel";
 import { roles } from "common/models/user/Roles";
+import { sanitizePath } from "common/path/sanitizeFilename";
 import { dirname, isAbsolute, join, normalize } from "node:path";
 import { isPathInside } from "server/hfs/path";
 import { hfsWriteFile } from "server/hfs/writeFile";
@@ -84,8 +85,8 @@ registerApi<AssetCreateApi>("/api/assets/create/:projectId").post(
       );
     }
 
-    // TODO: sanitize the file name, checking for length and invalid characters
-    const path = normalize(parsedBody.path);
+    // Sanitize path for cross-platform safety
+    const path = sanitizePath(parsedBody.path);
     const uuid = await createSimpleId("asset");
 
     // verify that the path is unique
@@ -338,7 +339,6 @@ registerApi<AssetMoveApi>("/api/assets/move/:projectId").post(
       throw customError(400, "Paths must be absolute.");
     }
 
-    // TODO: sanitize the file name, checking for length and invalid characters
     // process the file moves
     const result = await moveAssets(
       projectId,
