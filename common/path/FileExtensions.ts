@@ -1,54 +1,3 @@
-export const images = [
-  "jpg",
-  "jpeg",
-  "png",
-  "gif",
-  "webp",
-  "svg",
-  "bmp",
-  "ico",
-];
-export const videos = ["mp4", "webm", "mov", "avi", "mkv"];
-export const audio = ["mp3", "wav", "ogg", "m4a", "flac"];
-export const documents = ["pdf", "docx", "xlsx", "pptx", "doc", "xls", "ppt"];
-
-export const textFiles = [
-  "txt",
-  "md",
-  "markdown",
-  "js",
-  "ts",
-  "jsx",
-  "tsx",
-  "json",
-  "html",
-  "htm",
-  "css",
-  "scss",
-  "sass",
-  "less",
-  "xml",
-  "yml",
-  "yaml",
-  "toml",
-  "ini",
-  "csv",
-  "log",
-  "sh",
-  "bash",
-  "py",
-  "java",
-  "c",
-  "cpp",
-  "h",
-  "php",
-  "rb",
-  "go",
-  "rs",
-  "sql",
-  "svg",
-];
-
 export type FileType =
   | "text"
   | "image"
@@ -56,6 +5,81 @@ export type FileType =
   | "audio"
   | "document"
   | "other";
+
+interface FileExtensionInfo {
+  type: FileType;
+  mime: string;
+}
+
+const fileExtensions: Record<string, FileExtensionInfo> = {
+  avi: { type: "video", mime: "video/x-msvideo" },
+  bash: { type: "text", mime: "text/plain" },
+  bmp: { type: "image", mime: "image/bmp" },
+  c: { type: "text", mime: "text/plain" },
+  cpp: { type: "text", mime: "text/plain" },
+  css: { type: "text", mime: "text/css" },
+  csv: { type: "text", mime: "text/csv" },
+  doc: { type: "document", mime: "application/msword" },
+  docx: {
+    type: "document",
+    mime: "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+  },
+  flac: { type: "audio", mime: "audio/flac" },
+  gif: { type: "image", mime: "image/gif" },
+  go: { type: "text", mime: "text/plain" },
+  h: { type: "text", mime: "text/plain" },
+  htm: { type: "text", mime: "text/html" },
+  html: { type: "text", mime: "text/html" },
+  ico: { type: "image", mime: "image/x-icon" },
+  ini: { type: "text", mime: "text/plain" },
+  java: { type: "text", mime: "text/plain" },
+  jpeg: { type: "image", mime: "image/jpeg" },
+  jpg: { type: "image", mime: "image/jpeg" },
+  js: { type: "text", mime: "text/javascript" },
+  json: { type: "text", mime: "application/json" },
+  jsx: { type: "text", mime: "text/plain" },
+  less: { type: "text", mime: "text/plain" },
+  log: { type: "text", mime: "text/plain" },
+  m4a: { type: "audio", mime: "audio/mp4" },
+  markdown: { type: "text", mime: "text/markdown" },
+  md: { type: "text", mime: "text/markdown" },
+  mkv: { type: "video", mime: "video/x-matroska" },
+  mov: { type: "video", mime: "video/quicktime" },
+  mp3: { type: "audio", mime: "audio/mpeg" },
+  mp4: { type: "video", mime: "video/mp4" },
+  ogg: { type: "audio", mime: "audio/ogg" },
+  pdf: { type: "document", mime: "application/pdf" },
+  php: { type: "text", mime: "text/plain" },
+  png: { type: "image", mime: "image/png" },
+  ppt: { type: "document", mime: "application/vnd.ms-powerpoint" },
+  pptx: {
+    type: "document",
+    mime: "application/vnd.openxmlformats-officedocument.presentationml.presentation",
+  },
+  py: { type: "text", mime: "text/plain" },
+  rb: { type: "text", mime: "text/plain" },
+  rs: { type: "text", mime: "text/plain" },
+  sass: { type: "text", mime: "text/plain" },
+  scss: { type: "text", mime: "text/plain" },
+  sh: { type: "text", mime: "text/plain" },
+  sql: { type: "text", mime: "text/plain" },
+  svg: { type: "image", mime: "image/svg+xml" },
+  toml: { type: "text", mime: "text/plain" },
+  ts: { type: "text", mime: "text/plain" },
+  tsx: { type: "text", mime: "text/plain" },
+  txt: { type: "text", mime: "text/plain" },
+  wav: { type: "audio", mime: "audio/wav" },
+  webm: { type: "video", mime: "video/webm" },
+  webp: { type: "image", mime: "image/webp" },
+  xls: { type: "document", mime: "application/vnd.ms-excel" },
+  xlsx: {
+    type: "document",
+    mime: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+  },
+  xml: { type: "text", mime: "application/xml" },
+  yaml: { type: "text", mime: "text/plain" },
+  yml: { type: "text", mime: "text/plain" },
+};
 
 /**
  * Get the file type based on the file extension
@@ -65,28 +89,7 @@ export type FileType =
  */
 export function getFileType(extension: string): FileType {
   const ext = extension.toLowerCase();
-
-  if (images.includes(ext)) {
-    return "image";
-  }
-
-  if (videos.includes(ext)) {
-    return "video";
-  }
-
-  if (audio.includes(ext)) {
-    return "audio";
-  }
-
-  if (documents.includes(ext)) {
-    return "document";
-  }
-
-  if (textFiles.includes(ext)) {
-    return "text";
-  }
-
-  return "other";
+  return fileExtensions[ext]?.type ?? "other";
 }
 
 /**
@@ -96,7 +99,7 @@ export function getFileType(extension: string): FileType {
  * @returns True if the file is a text file
  */
 export function isTextFile(extension: string): boolean {
-  return textFiles.includes(extension.toLowerCase());
+  return fileExtensions[extension.toLowerCase()]?.type === "text";
 }
 
 /**
@@ -106,7 +109,7 @@ export function isTextFile(extension: string): boolean {
  * @returns True if the file is an image
  */
 export function isImage(extension: string): boolean {
-  return images.includes(extension.toLowerCase());
+  return fileExtensions[extension.toLowerCase()]?.type === "image";
 }
 
 /**
@@ -116,7 +119,7 @@ export function isImage(extension: string): boolean {
  * @returns True if the file is a video
  */
 export function isVideo(extension: string): boolean {
-  return videos.includes(extension.toLowerCase());
+  return fileExtensions[extension.toLowerCase()]?.type === "video";
 }
 
 /**
@@ -126,7 +129,7 @@ export function isVideo(extension: string): boolean {
  * @returns True if the file is an audio file
  */
 export function isAudio(extension: string): boolean {
-  return audio.includes(extension.toLowerCase());
+  return fileExtensions[extension.toLowerCase()]?.type === "audio";
 }
 
 /**
@@ -136,7 +139,18 @@ export function isAudio(extension: string): boolean {
  * @returns True if the file is a document
  */
 export function isDocument(extension: string): boolean {
-  return documents.includes(extension.toLowerCase());
+  return fileExtensions[extension.toLowerCase()]?.type === "document";
+}
+
+/**
+ * Get the MIME type for a file based on its extension
+ *
+ * @param extension The file extension (without the dot)
+ * @returns The MIME type string
+ */
+export function getMimeTypeLite(extension: string): string {
+  const ext = extension.toLowerCase();
+  return fileExtensions[ext]?.mime ?? "application/octet-stream";
 }
 
 /**

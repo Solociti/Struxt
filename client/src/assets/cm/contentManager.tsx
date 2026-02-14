@@ -371,6 +371,9 @@ function useContentManagerState(): ContentManagerState {
         });
 
         try {
+          // handing the file name to the save method, creates issues with json mime types.
+          // so we are handling everything as text/plain
+
           await saveAssetContent(projectId, uuid, content);
           updateTabState(uuid, { isDirty: false });
         } catch (err) {

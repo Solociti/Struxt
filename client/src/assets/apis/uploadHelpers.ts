@@ -87,10 +87,6 @@ export async function processZipFiles(
  * @param file - The file or blob to upload
  * @param path - The project path where the file should be stored (e.g., /src/file.js)
  * @returns The created asset model
- *
- * @remarks
- * TODO: Binary file support - saveAssetContent currently only accepts text content.
- * Need to modify the endpoint to handle binary data for images, videos, etc.
  */
 export async function uploadFile(
   projectId: string,
@@ -108,8 +104,7 @@ export async function uploadFile(
         });
       }
 
-      const content = await file.text();
-      await saveAssetContent(projectId, asset.uuid, content);
+      await saveAssetContent(projectId, asset.uuid, file, path);
 
       return asset;
     } catch (error) {

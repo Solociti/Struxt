@@ -7,9 +7,10 @@ import {
   AssetRestoreApi,
   AssetSaveExternalApi,
 } from "common/api/assets/assets";
-import { AssetListItem, AssetModel } from "common/models/assets/AssetModel";
-import { getAssetUrl } from "./assetUtils";
 import { deStructureError } from "common/custom-error/custom-error";
+import { AssetListItem, AssetModel } from "common/models/assets/AssetModel";
+import { getFileExtension, getMimeTypeLite } from "common/path/FileExtensions";
+import { getAssetUrl } from "./assetUtils";
 
 /**
  * Get the asset metadata for the provided project and uuid.
@@ -48,7 +49,10 @@ async function errorWrapFetch(url: string, options?: RequestInit) {
     const res = await fetch(url, options);
     responseCode = res.status;
 
-    if (res.headers.get("Content-Type")?.includes("application/json")) {
+    if (
+      !res.ok &&
+      res.headers.get("Content-Type")?.includes("application/json")
+    ) {
       const data = await res.json();
 
       // check if the server sent an error
@@ -74,26 +78,74 @@ async function errorWrapFetch(url: string, options?: RequestInit) {
 }
 
 /**
- * Save asset content (text)
+ * Infer the Content-Type from content and optional filename
  *
- * TODO: This should be modified to allow for binary assets as well.
+ * @param content - The content (string, Blob, or File)
+ * @param filename - Optional filename to infer type from (useful when content is string but type is known)
+ * @returns The inferred Content-Type
+ */
+function inferContentType(
+  content: Blob | File | string,
+  filename?: string,
+): string {
+  if (content instanceof File) {
+    if (content.type) {
+      return content.type;
+    }
+    const ext = getFileExtension(content.name);
+    return getMimeTypeLite(ext);
+  }
+
+  if (content instanceof Blob) {
+    if (content.type) {
+      return content.type;
+    }
+  }
+
+  if (filename) {
+    const ext = getFileExtension(filename);
+    return getMimeTypeLite(ext);
+  }
+
+  if (typeof content === "string") {
+    return "text/plain";
+  }
+
+  return "application/octet-stream";
+}
+
+/**
+ * Save asset content (text or binary)
+ *
+ * @param projectId
+ * @param uuid
+ * @param content
+ * @param filename - Optional filename to help infer Content-Type (e.g., "data.json" for string content)
  */
 export async function saveAssetContent(
   projectId: string,
   uuid: string,
-  content: string,
+  content: Blob | File | string,
+  filename?: string,
 ) {
   const url = `/assets/${projectId}/${uuid}`;
+
+  const contentType = inferContentType(content, filename);
 
   const response = await errorWrapFetch(url, {
     method: "PUT",
     headers: {
-      "Content-Type": "text/plain",
+      "Content-Type": contentType,
     },
     body: content,
   });
 
-  return response;
+  const data = await response.json();
+  if (data.error) {
+    throw deStructureError(data.error, "Failed to save asset content.");
+  }
+
+  return data;
 }
 
 /**
