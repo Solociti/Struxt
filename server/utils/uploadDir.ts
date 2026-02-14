@@ -18,6 +18,19 @@ export function getUploadDir(...paths: string[]) {
 }
 
 /**
+ * Get a temporary directory for the given paths.
+ *
+ * Files inside this directory are expected to be deleted after a short time.
+ * There is a automation that clears files frequently.
+ *
+ * @param paths
+ * @returns
+ */
+export function getTempDir(...paths: string[]) {
+  return getUploadDir("temp", ...paths);
+}
+
+/**
  * Get the backup directory
  *
  * @param paths
@@ -40,7 +53,7 @@ export function getBackupDir(...paths: string[]) {
 export function getCurrentBackupDir() {
   const now = new Date();
   return getBackupDir(
-    [now.getDate(), now.getMonth() + 1, now.getFullYear()].join("-")
+    [now.getDate(), now.getMonth() + 1, now.getFullYear()].join("-"),
   );
 }
 
@@ -133,7 +146,7 @@ export function getBasePublishDir() {
 export function getPublishDir(
   projectId: string,
   projectEnv: EnvironmentTypes,
-  publishId: string
+  publishId: string,
 ) {
   const baseDir = getBasePublishDir();
 

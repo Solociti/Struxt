@@ -21,7 +21,7 @@ import { mkDirRecursive } from "server/utils/mkDir";
 import {
   getAssetDir,
   getProjectFilesDir,
-  getUploadDir,
+  getTempDir,
 } from "server/utils/uploadDir";
 import z from "zod";
 import "./apiRegister";
@@ -129,12 +129,16 @@ assetFilesRouter.put("/:projectId/:uuid", async (req, res) => {
 
   await storage.reserveSpace(filePath, asset.size, fileSize);
 
-  const writeStream = await hfsWriteFileStream(filePath, {
-    restrictedTo: projectFilesDir,
-  });
+  try {
+    const writeStream = await hfsWriteFileStream(filePath, {
+      restrictedTo: projectFilesDir,
+      useTempFile: true,
+    });
 
-  await pipeline(req, writeStream);
-  await storage.clearReservation(filePath);
+    await pipeline(req, writeStream);
+  } finally {
+    await storage.clearReservation(filePath);
+  }
 
   const stats = await lstat(filePath);
 
@@ -165,10 +169,8 @@ router.get("/", async (req, res) => {
 });
 
 // setup multer for file uploads using form data
-const saveDir = getUploadDir("temp");
-
 const upload = multer({
-  dest: saveDir,
+  dest: getTempDir(),
   limits: { fileSize: 50 * 1024 * 1024, files: 25 },
 });
 
@@ -224,9 +226,7 @@ router.post(
 
       try {
         const ext = extname(file.originalname);
-        const originalName = sanitizeFilename(
-          basename(file.originalname, ext),
-        );
+        const originalName = sanitizeFilename(basename(file.originalname, ext));
 
         let newFileName = originalName + ext;
         newFilePath = join(getAssetDir(projectId), newFileName);

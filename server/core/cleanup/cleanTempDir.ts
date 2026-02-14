@@ -1,9 +1,8 @@
 import { lstat, readdir, unlink } from "node:fs/promises";
 import { join } from "node:path";
-import { getUploadDir } from "server/utils/uploadDir";
+import { getTempDir } from "server/utils/uploadDir";
 
 const MAX_AGE = 60 * 60 * 1000;
-const tempDir = getUploadDir("temp");
 
 /**
  * Recursively delete any files older then 1 hour in the temp dir
@@ -41,7 +40,7 @@ export async function cleanTempDir(log: (msg: string) => void) {
     }
   };
 
-  await cleanDir(tempDir);
+  await cleanDir(getTempDir());
 
   return {
     fileCount,
