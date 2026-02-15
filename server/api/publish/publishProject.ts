@@ -8,7 +8,7 @@ import {
 import { FormSettingsField } from "common/models/projects/forms/FormSettingsModel";
 import { PublishModel } from "common/models/projects/PublishModel";
 import { existsSync } from "node:fs";
-import { writeFile } from "node:fs/promises";
+import { rm, writeFile } from "node:fs/promises";
 import { dirname, join } from "node:path";
 import { getFormFieldsFromEditorData } from "server/forms/getFormFieldsFromEditorData";
 import { getFormSettings } from "server/forms/settings/getFormSettings";
@@ -93,6 +93,15 @@ export async function publishProject(
         preserveTimestamps: true,
       });
     } catch (err) {
+      console.log("Error copying public directory:", err);
+
+      rm(siteDir, { recursive: true, force: true }).catch((err) => {
+        console.log(
+          "Error cleaning up publish directory after failed copy:",
+          err,
+        );
+      });
+
       throw customError(500, "Failed to copy public directory.");
     }
   }
