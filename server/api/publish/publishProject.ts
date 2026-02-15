@@ -8,8 +8,8 @@ import {
 import { FormSettingsField } from "common/models/projects/forms/FormSettingsModel";
 import { PublishModel } from "common/models/projects/PublishModel";
 import { existsSync } from "node:fs";
-import { copyFile, writeFile } from "node:fs/promises";
-import path, { dirname, join } from "node:path";
+import { writeFile } from "node:fs/promises";
+import { dirname, join } from "node:path";
 import { getFormFieldsFromEditorData } from "server/forms/getFormFieldsFromEditorData";
 import { getFormSettings } from "server/forms/settings/getFormSettings";
 import {
@@ -19,14 +19,14 @@ import {
 import { copyDir } from "server/utils/copyDir";
 import { createSimpleId } from "server/utils/createId";
 import { mkDirRecursive } from "server/utils/mkDir";
-import { getAssetDir, getPublishDir } from "server/utils/uploadDir";
+import { getProjectPublicDir, getPublishDir } from "server/utils/uploadDir";
 import { getProjectData } from "../projects/getProject";
 import { schedulePublishScreenshot } from "../projects/projectScreenshots";
 import { saveProject } from "../projects/saveProject";
 import { createEditorSnapshot } from "../projects/snapshots/saveEditorSnapshot";
+import { scheduleCleanPublish } from "./queue";
 import { savePublish, setActivePublish } from "./savePublish";
 import { updateProjectProxy } from "./updateProxy";
-import { scheduleCleanPublish } from "./queue";
 
 /**
  * Publish the given project to the given environment.
@@ -38,7 +38,7 @@ export async function publishProject(
   projectId: string,
   projectEnv: EnvironmentTypes,
   files: PublishApi["PostBody"]["files"],
-  user: { userId: string; displayName: string }
+  user: { userId: string; displayName: string },
 ): Promise<Omit<PublishApi["PostResponse"], "success">> {
   // load the editor data and check if the project exists
   // the get project editor data already throws an error if not found
@@ -46,7 +46,7 @@ export async function publishProject(
 
   // remove any deleted domains from the project environment
   project[projectEnv].domains = project[projectEnv].domains.filter(
-    (d) => !d.deleted.active
+    (d) => !d.deleted.active,
   );
 
   // check if the project has domains to publish to
@@ -81,26 +81,20 @@ export async function publishProject(
 
   await mkDirRecursive(siteDir);
 
-  // copy the asset files to the project directory
-  const assetFiles = project.editorData.assets;
+  // copy the project's `public/` directory into the publish output so
+  // default/static assets are present. Editor files are written afterwards
+  // and will overwrite any defaults.
+  const projectPublicDir = getProjectPublicDir(projectId);
 
-  for (const asset of assetFiles) {
-    if (asset.src.startsWith("http")) {
-      continue;
+  if (existsSync(projectPublicDir)) {
+    try {
+      await copyDir(projectPublicDir, siteDir, {
+        replace: false,
+        preserveTimestamps: true,
+      });
+    } catch (err) {
+      throw customError(500, "Failed to copy public directory.");
     }
-
-    const basename = path.basename(asset.src);
-    const srcFile = join(getAssetDir(projectId), basename);
-
-    // check if the src file exists
-    if (!existsSync(srcFile)) {
-      continue;
-    }
-
-    const destFile = join(siteDir, "assets", projectId, basename);
-
-    await mkDirRecursive(dirname(destFile));
-    await copyFile(srcFile, destFile);
   }
 
   // save the project files
@@ -111,15 +105,6 @@ export async function publishProject(
     let content = file.content;
     await writeFile(filePath, content, {
       encoding: "utf-8",
-    });
-  }
-
-  // copy the directory of custom project files
-  const customFilesDir = join(getAssetDir(projectId), "custom");
-  if (existsSync(customFilesDir)) {
-    await copyDir(customFilesDir, siteDir, {
-      replace: true,
-      preserveTimestamps: true,
     });
   }
 
@@ -143,7 +128,7 @@ export async function publishProject(
           name: v.fieldName,
           type: v.fieldType as FormSettingsField["type"],
           required: v.fieldRequired,
-        }))
+        })),
     );
 
     await saveFormSettings(formSettings);
