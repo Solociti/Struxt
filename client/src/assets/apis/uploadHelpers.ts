@@ -17,13 +17,6 @@ export interface ZipFileEntry {
   path: string;
 }
 
-/**
- * Get list of files in a zip archive without extracting them
- *
- * @param file - The zip file to read
- * @param baseDir - The base directory to prepend to file paths
- * @returns Array of file entries with their relative paths
- */
 export async function getZipFileEntries(
   file: File,
   baseDir: string,
@@ -59,14 +52,6 @@ export async function getZipFileEntries(
   return fileEntries;
 }
 
-/**
- * Process files from a zip archive with a callback
- * Opens the zip once and processes all requested files sequentially
- *
- * @param zipFile - The zip file to extract from
- * @param entryFilenames - Array of filenames to extract
- * @param callback - Async callback called for each extracted file
- */
 export async function processZipFiles(
   zipFile: File,
   entryFilenames: string[],
@@ -109,14 +94,6 @@ export async function processZipFiles(
   }
 }
 
-/**
- * Upload a single file to the project
- *
- * @param projectId - The project ID to upload to
- * @param file - The file or blob to upload
- * @param path - The project path where the file should be stored (e.g., /src/file.js)
- * @returns The created asset model
- */
 export async function uploadFile(
   projectId: string,
   file: File | Blob,
@@ -142,9 +119,11 @@ export async function uploadFile(
 
     try {
       if (!asset) {
-        asset = await createNewAsset(projectId, {
+        const response = await createNewAsset(projectId, {
           path: path,
+          returnOnCollision: true,
         });
+        asset = response.asset;
       }
 
       await saveAssetContent(projectId, asset.uuid, file, {
@@ -183,7 +162,7 @@ export async function uploadFile(
 /**
  * Filter files to only those that should be uploaded based on extraction settings
  *
- * @param files - Array of files with their upload metadata
+ * @param files
  * @returns Filtered array containing only files that should be uploaded
  */
 export function getFilesToUpload<
@@ -215,10 +194,10 @@ export function getFilesToUpload<
 /**
  * Upload multiple files, handling zip extraction if needed
  *
- * @param projectId - The project ID to upload to
- * @param basePath - Base path to prepend to relative file paths
- * @param files - Array of file items with upload metadata (paths are relative)
- * @param onProgress - Callback for progress updates (file localId, status, error)
+ * @param projectId
+ * @param basePath
+ * @param files
+ * @param onProgress
  */
 export async function batchUploadFiles(
   projectId: string,
@@ -343,8 +322,8 @@ export async function batchUploadFiles(
 /**
  * Calculate upload status summary
  *
- * @param files - Array of files to analyze
- * @param isUploading - Whether upload is currently in progress
+ * @param files
+ * @param isUploading
  * @returns Status message string
  */
 export function getUploadStatusMessage(

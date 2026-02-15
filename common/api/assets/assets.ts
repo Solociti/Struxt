@@ -72,9 +72,15 @@ export interface AssetCreateApi extends Api {
     projectId: string;
   };
 
-  PostBody: Pick<AssetModel, "path">;
+  PostBody: Pick<AssetModel, "path"> & {
+    /**
+     * If true, return the existing asset on path collision instead of erroring.
+     */
+    returnOnCollision?: boolean;
+  };
   PostResponse: {
     success: boolean;
+    isNew: boolean;
     asset: AssetModel;
   };
 }

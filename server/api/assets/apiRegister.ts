@@ -25,7 +25,7 @@ import {
   permanentlyDeleteAsset,
   restoreAsset,
 } from "./deleteAsset";
-import { getAsset, getAssetList } from "./getAssets";
+import { getAsset, getAssetByPath, getAssetList } from "./getAssets";
 import { moveAssets } from "./moveAssets";
 import { saveAsset } from "./saveAsset";
 
@@ -74,6 +74,7 @@ registerApi<AssetCreateApi>("/api/assets/create/:projectId").post(
     const parsedBody = z
       .object({
         path: z.string(),
+        returnOnCollision: z.boolean().optional(),
       })
       .parse(body);
 
@@ -91,6 +92,19 @@ registerApi<AssetCreateApi>("/api/assets/create/:projectId").post(
 
     // verify that the path is unique
     if (!(await isAssetPathUnique(projectId, uuid, path))) {
+      // we can't just rely on this existing, because a file could match a directory
+      // so we need to check for uniqueness first before trying to find the existing asset.
+      if (parsedBody.returnOnCollision) {
+        // try to find the existing asset with the same path and return it
+        const existingAsset = await getAssetByPath(projectId, path);
+        if (existingAsset) {
+          return {
+            success: true,
+            isNew: false,
+            asset: existingAsset,
+          };
+        }
+      }
       throw customError(400, "Asset path is not unique.");
     }
 
@@ -131,6 +145,7 @@ registerApi<AssetCreateApi>("/api/assets/create/:projectId").post(
 
     return {
       success: true,
+      isNew: true,
       asset,
     };
   },

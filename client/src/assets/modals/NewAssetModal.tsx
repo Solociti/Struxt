@@ -51,7 +51,7 @@ export function NewAssetModal() {
     });
 
     // trigger the new asset event
-    commands.trigger("new-asset", result);
+    commands.trigger("new-asset", result.asset);
     commands.trigger("new-asset:hide");
   });
 

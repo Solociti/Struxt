@@ -183,7 +183,11 @@ export async function createNewAsset(
     ["/api/assets/create", projectId],
     values,
   );
-  return new AssetModel(response.asset);
+
+  return {
+    ...response,
+    asset: new AssetModel(response.asset),
+  };
 }
 
 export async function saveExternalAsset(projectId: string, assetSrc: string) {

@@ -14,6 +14,7 @@ This is like a mono repo setup.
 Do not use useless comments. Code should be self-explanatory as much as possible.
 DO NOT GENERATE ANY COMMENTS ANYWHERE with exception to jsdoc comments.
 Every function should have a jsdoc comment explaining what it does and its parameters.
+Parameter descriptions: include `@param` descriptions only when the parameter name does not fully describe its purpose; otherwise omit the description to keep comments concise.
 Root level react components should always be defined as functional components. Not arrow functions.
 For React Bootstrap components, ALWAYS use default imports from the specific component path (e.g., `import ListGroup from "react-bootstrap/ListGroup"`). Do NOT use destructuring imports (e.g., `import { ListGroup } from "react-bootstrap"`).
 Use react styles when possible for styling components.

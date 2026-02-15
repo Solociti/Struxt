@@ -163,8 +163,8 @@ export default function UploadAssetsModal() {
       setBasePath("/");
       setShow(false);
       setFiles([]);
-      setUploadCompleted(false);
       setIsEditingBasePath(false);
+      // setUploadCompleted is intentionally not reset as the UI changes while the modal is fading out.
     });
 
     return () => {
@@ -374,6 +374,8 @@ export default function UploadAssetsModal() {
   const isUploading = handleUpload.isLoading;
   const statusMessage = getUploadStatusMessage(filesToUpload, isUploading);
 
+  const disableEditing = isUploading || uploadCompleted;
+
   const footer = (
     <>
       <div className="flex-grow-1 text-muted small">{statusMessage}</div>
@@ -410,7 +412,7 @@ export default function UploadAssetsModal() {
           value={basePath}
           onChange={(e) => setBasePath(e.target.value)}
           size="sm"
-          disabled={isUploading || uploadCompleted || !isEditingBasePath}
+          disabled={disableEditing || !isEditingBasePath}
           className="flex-grow-1"
         />
 
@@ -423,7 +425,7 @@ export default function UploadAssetsModal() {
               setBasePath((prev) => (prev.endsWith("/") ? prev : `${prev}/`));
               recheckAllCollisions();
             }}
-            disabled={isUploading || uploadCompleted}
+            disabled={disableEditing}
           />
         ) : (
           <IconButton
@@ -432,7 +434,7 @@ export default function UploadAssetsModal() {
             onClick={() => {
               setIsEditingBasePath(true);
             }}
-            disabled={isUploading || uploadCompleted}
+            disabled={disableEditing}
           />
         )}
       </Group>
@@ -449,9 +451,7 @@ export default function UploadAssetsModal() {
           icon="add"
           variant="outline-primary"
           onClick={() => fileInputRef.current?.click()}
-          disabled={
-            isUploading || handleFileSelect.isLoading || uploadCompleted
-          }
+          disabled={disableEditing || handleFileSelect.isLoading}
           spinner={handleFileSelect.isLoading}
         >
           Select Files
@@ -472,14 +472,14 @@ export default function UploadAssetsModal() {
             return (
               <UploadFileItem
                 key={fileItem.localId}
+                assets={assets.list || []}
                 basePath={basePath}
                 fileItem={fileItem}
                 files={files}
-                assets={assets.list || []}
                 handleZipOptionChange={handleZipOptionChange}
                 htmlId={htmlId}
-                isUploading={isUploading}
                 updateFileState={updateFileState}
+                disabled={disableEditing}
               />
             );
           })}
@@ -494,7 +494,9 @@ interface UploadFileItemProps {
   basePath: string;
   files: FileToUpload[];
   assets: { path: string }[];
-  isUploading: boolean;
+
+  disabled: boolean;
+
   updateFileState: (
     localId: number,
     updates:
@@ -513,26 +515,17 @@ interface UploadFileItemProps {
  * Renders a single file item in the upload list with support for zip extraction and collision handling
  * Recursively renders nested files for zip archives
  *
- * @param fileItem - The file to upload
- * @param basePath - The base path where files are being uploaded
- * @param files - All files in the upload queue (used to find extracted files)
- * @param assets - Existing assets in the project
- * @param isUploading - Whether upload is in progress
- * @param updateFileState - Callback to update file state
- * @param handleZipOptionChange - Callback to handle zip extraction toggle
- * @param htmlId - HTML ID generator for form elements
- * @param isNested - Whether this is a nested file (inside a zip)
  */
 function UploadFileItem({
+  assets,
   basePath,
   fileItem,
   files,
-  assets,
   handleZipOptionChange,
   htmlId,
-  isUploading,
-  updateFileState,
   isNested = false,
+  updateFileState,
+  disabled,
 }: UploadFileItemProps) {
   const [isEditing, setIsEditing] = useState(false);
   const [editedFileName, setEditedFileName] = useState("");
@@ -605,7 +598,7 @@ function UploadFileItem({
                       value={editedFileName}
                       onChange={(e) => setEditedFileName(e.target.value)}
                       size="sm"
-                      disabled={isUploading}
+                      disabled={disabled}
                       className="flex-grow-1"
                       isInvalid={validationErrors.length > 0}
                     />
@@ -615,7 +608,7 @@ function UploadFileItem({
                     size="sm"
                     variant="outline-success"
                     onClick={handleToggleEdit}
-                    disabled={isUploading || validationErrors.length > 0}
+                    disabled={disabled || validationErrors.length > 0}
                   />
                 </Group>
               </div>
@@ -637,7 +630,7 @@ function UploadFileItem({
                     size="sm"
                     variant="outline-secondary"
                     onClick={handleToggleEdit}
-                    disabled={isUploading}
+                    disabled={disabled}
                   />
                 )}
               </>
@@ -665,7 +658,7 @@ function UploadFileItem({
                   overwrite: e.target.checked,
                 })
               }
-              disabled={isUploading}
+              disabled={disabled}
               className="mt-1"
             />
           )}
@@ -688,7 +681,7 @@ function UploadFileItem({
                   e.target.checked,
                 )
               }
-              disabled={isUploading || handleZipOptionChange.isLoading}
+              disabled={disabled || handleZipOptionChange.isLoading}
               className="mt-1"
             />
           )}
@@ -710,9 +703,9 @@ function UploadFileItem({
                 assets={assets}
                 handleZipOptionChange={handleZipOptionChange}
                 htmlId={htmlId}
-                isUploading={isUploading}
                 updateFileState={updateFileState}
                 isNested={true}
+                disabled={disabled}
               />
             ))}
           </ListGroup>
