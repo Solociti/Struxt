@@ -10,7 +10,7 @@ This file summarizes and groups the shell commands you executed while setting up
 
 ```bash
 sudo dnf update
-sudo dnf install git
+sudo dnf install git bash-completion epel-release
 ```
 
 - Install and enable firewalld
@@ -29,7 +29,7 @@ sudo systemctl status firewalld.service
 sudo firewall-cmd --permanent --add-port=22/tcp
 
 # Kubernetes API server
-sudo firewall-cmd --permanent --add-port=6443/tcp
+# sudo firewall-cmd --permanent --add-port=6443/tcp
 
 # Pod and Service network ranges (trusted zone)
 sudo firewall-cmd --permanent --zone=trusted --add-source=10.42.0.0/16
@@ -83,7 +83,7 @@ sudo kubectl get pods --all-namespaces
 
 ## Kubeconfig for local user
 
-Not sure this step is actually needed.
+- Needed for helm
 
 ```bash
 mkdir -p ~/.kube
@@ -110,17 +110,13 @@ rm get_helm.sh
 - Add Fission Helm repo and install Fission (namespace `fission`)
 
 ```bash
+export FISSION_NAMESPACE="fission"
+
+sudo kubectl create namespace $FISSION_NAMESPACE
+sudo kubectl create -k "github.com/fission/fission/crds/v1?ref=v1.22.0"
 helm repo add fission-charts https://fission.github.io/fission-charts/
 helm repo update
-export FISSION_NAMESPACE="fission"
-kubectl create namespace $FISSION_NAMESPACE
-helm install --version 1.22.1 --namespace $FISSION_NAMESPACE fission fission-charts/fission-all
-```
-
-- Apply Fission CRDs (explicit version used during setup)
-
-```bash
-kubectl create -k "github.com/fission/fission/crds/v1?ref=v1.22.0"
+helm install --version 1.22.0 --namespace $FISSION_NAMESPACE fission fission-charts/fission-all
 ```
 
 ---
@@ -135,6 +131,10 @@ curl -Lo fission https://github.com/fission/fission/releases/download/v1.22.0/fi
 # check version and basic health
 fission version
 fission check
+
+# fission command completion
+fission completion bash > fission
+sudo mv fission /etc/bash_completion.d/fission
 ```
 
 ---
@@ -144,7 +144,7 @@ fission check
 Create a reusable Node.js environment for Fission with CPU and memory limits.
 
 ```bash
-fission env create --name node --image ghcr.io/fission/node-env --mincpu 40 --maxcpu 80 --minmemory 64 --maxmemory 128 --poolsize 4
+fission env create --name node --image ghcr.io/fission/node-env --mincpu 40 --maxcpu 80 --minmemory 64 --maxmemory 128 --poolsize 4 --spec
 ```
 
 Quick examples:
@@ -155,4 +155,51 @@ fission env list
 
 # delete the environment
 fission env delete --name node
+```
+
+---
+
+## Install and Setup Wireguard
+
+```bash
+sudo dnf install wireguard-tools
+
+sudo mkdir -p /etc/wireguard
+sudo touch /etc/wireguard/wg0.conf
+wg genkey | sudo tee /etc/wireguard/wg0 | wg pubkey | sudo tee /etc/wireguard/wg0.pub
+sudo vi /etc/wireguard/wg0.conf
+```
+
+Wireguard Config
+
+Replace the server_privatekey and ip address values.
+
+```conf
+[Interface]
+PrivateKey = server_privatekey
+Address = 10.30.1.x/24
+ListenPort = 51820
+```
+
+Turn on IP forwarding for IPV4 and IPV6
+
+```bash
+sudo sysctl -w net.ipv4.ip_forward=1 && sudo sysctl -w net.ipv6.conf.all.forwarding=1
+```
+
+Configure firewalld
+
+```bash
+sudo firewall-cmd --permanent --zone=public --add-port=51820/udp
+sudo firewall-cmd --permanent --add-interface=wg0 --zone=internal
+sudo firewall-cmd --permanent --zone=internal --add-masquerade
+
+sudo firewall-cmd --reload
+```
+
+Enable Wireguard
+
+```bash
+sudo systemctl enable --now wg-quick@wg0
+sudo systemctl status wg-quick@wg0
 ```
