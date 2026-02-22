@@ -3,8 +3,8 @@ import { isAbsolute, relative } from "node:path";
 /**
  * Checks if a path is inside another path.
  *
- * @param childPath - The path to check (must be absolute)
- * @param parentPath - The parent path to check against (must be absolute)
+ * @param childPath The path to check (must be absolute)
+ * @param parentPath The parent path to check against (must be absolute)
  */
 export function isPathInside(childPath: string, parentPath: string): boolean {
   if (!isAbsolute(childPath) || !isAbsolute(parentPath)) {

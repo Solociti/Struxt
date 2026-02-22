@@ -39,7 +39,7 @@ export const DEFAULT_MAX_PATH_LENGTH = 255;
 /**
  * Validates whether a filename contains only valid characters
  *
- * @param filename - The filename to validate (without path)
+ * @param filename The filename to validate (without path)
  * @returns true if the filename is valid, false otherwise
  */
 export function isValidFilename(filename: string): boolean {
@@ -74,7 +74,7 @@ export function isValidFilename(filename: string): boolean {
 /**
  * Gets a list of specific validation errors for a filename
  *
- * @param filename - The filename to validate
+ * @param filename The filename to validate
  * @returns Array of human-readable error messages (empty if valid)
  */
 export function getFilenameValidationErrors(filename: string): string[] {
@@ -137,7 +137,7 @@ export function getFilenameValidationErrors(filename: string): string[] {
  * - Maximum length per component
  * - Control characters
  *
- * @param path - The path to validate (e.g., "folder/file.txt" or "../parent/file.txt")
+ * @param path The path to validate (e.g., "folder/file.txt" or "../parent/file.txt")
  * @returns Array of human-readable error messages (empty if valid)
  *
  * @example
@@ -241,9 +241,9 @@ export function getPathValidationErrors(path: string): string[] {
  * - Rejects special directory names ("." and "..")
  * - Throws error if result would be empty
  *
- * @param filename - The filename to sanitize (without path)
- * @param replaceChar - Character to replace invalid characters with, or empty string to remove them (default: "_")
- * @param maxLength - Maximum filename length (default: 200)
+ * @param filename The filename to sanitize (without path)
+ * @param replaceChar Character to replace invalid characters with, or empty string to remove them (default: "_")
+ * @param maxLength Maximum filename length (default: 200)
  * @returns Sanitized filename safe for cross-platform use
  * @throws Error if sanitization results in an empty filename or "." or ".."
  *
@@ -311,8 +311,8 @@ export function sanitizeFilename(
  * - Preserves trailing slashes (directory indicators)
  * - Can skip invalid components (for untrusted input) or throw errors (for user input)
  *
- * @param path - The path to sanitize (e.g., "/folder/file.txt" or "folder/subfolder/")
- * @param options - Configuration options
+ * @param path The path to sanitize (e.g., "/folder/file.txt" or "folder/subfolder/")
+ * @param options Configuration options
  * @param options.skipInvalid - If true, skip invalid components; if false, throw on invalid components (default: false)
  * @param options.replaceChar - Character to replace invalid characters with, or empty string to remove them (default: "_")
  * @param options.maxLength - Maximum length for each component (default: 200)

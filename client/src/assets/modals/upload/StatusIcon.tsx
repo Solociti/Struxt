@@ -9,7 +9,7 @@ interface StatusIconProps {
 /**
  * Displays an appropriate icon based on the current status of a file item
  *
- * @param fileItem - File item containing status and metadata
+ * @param fileItem File item containing status and metadata
  */
 export default function StatusIcon({ fileItem }: StatusIconProps) {
   if (fileItem.status === "pending") {

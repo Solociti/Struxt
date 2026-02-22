@@ -80,8 +80,8 @@ async function errorWrapFetch(url: string, options?: RequestInit) {
 /**
  * Infer the Content-Type from content and optional filename
  *
- * @param content - The content (string, Blob, or File)
- * @param filename - Optional filename to infer type from (useful when content is string but type is known)
+ * @param content The content (string, Blob, or File)
+ * @param filename Optional filename to infer type from (useful when content is string but type is known)
  * @returns The inferred Content-Type
  */
 function inferContentType(

@@ -15,6 +15,8 @@ Do not use useless comments. Code should be self-explanatory as much as possible
 DO NOT GENERATE ANY COMMENTS ANYWHERE with exception to jsdoc comments.
 Every function should have a jsdoc comment explaining what it does and its parameters.
 Parameter descriptions: include `@param` descriptions only when the parameter name does not fully describe its purpose; otherwise omit the description to keep comments concise.
+**`@param` format**: Write `@param name description` — never use a dash between the name and description (e.g. never `@param name - description`).
+**`@param` descriptions**: Keep descriptions as short as possible. Prefer a single example over a long prose description (e.g. `@param path e.g. \`/v1/archive\``). Never describe what is already obvious from the parameter name or type.
 Root level react components should always be defined as functional components. Not arrow functions.
 For React Bootstrap components, ALWAYS use default imports from the specific component path (e.g., `import ListGroup from "react-bootstrap/ListGroup"`). Do NOT use destructuring imports (e.g., `import { ListGroup } from "react-bootstrap"`).
 Use react styles when possible for styling components.

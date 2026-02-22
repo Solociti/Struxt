@@ -97,9 +97,9 @@ let idCounter = 0;
 /**
  * Check for path collisions between files to upload and existing assets
  *
- * @param files - Files to check for collisions (with relative paths)
- * @param existingAssets - List of existing assets in the project (with absolute paths)
- * @param basePath - Base path to join with relative paths for comparison
+ * @param files Files to check for collisions (with relative paths)
+ * @param existingAssets List of existing assets in the project (with absolute paths)
+ * @param basePath Base path to join with relative paths for comparison
  * @returns Array of files with hasCollision property set
  */
 function detectFileNameCollisions(
