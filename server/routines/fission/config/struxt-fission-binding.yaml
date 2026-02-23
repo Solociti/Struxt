@@ -1,0 +1,19 @@
+# Apply these roles to fission kubernetes with `kubectl apply -f struxt-fission-binding.yaml`
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: struxt-fission-limited-binding
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: struxt-fission-limited
+subjects:
+  - kind: ServiceAccount
+    name: struxt-fission-client-dev
+    namespace: fission
+  - kind: ServiceAccount
+    name: struxt-fission-client-staging
+    namespace: fission
+  - kind: ServiceAccount
+    name: struxt-fission-client-prod
+    namespace: fission

@@ -2,6 +2,10 @@
 .git
 .gitignore
 .vscode
+.fission-config.yml
 dist
 node_modules
 uploads
+
+# ignore dev certs
+certs/*.pem

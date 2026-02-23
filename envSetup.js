@@ -2,14 +2,69 @@
 import chalk from "chalk";
 import { parse } from "dotenv";
 import { randomBytes } from "node:crypto";
-import { readFile, writeFile } from "node:fs/promises";
+import { access, mkdir, readFile, writeFile } from "node:fs/promises";
 import * as path from "node:path";
 import prompts from "prompts";
 import { readJsonFile } from "./scripts/jsonUtils.mjs";
 import { exec } from "node:child_process";
+import * as k8s from "@kubernetes/client-node";
 
+const __dirname = path.dirname(new URL(import.meta.url).pathname);
+
+/**
+ *
+ * @param {number} min
+ * @param {number} max
+ * @returns
+ */
 function randomNumber(min, max) {
   return Math.floor(Math.random() * (max - min + 1)) + min;
+}
+
+/**
+ * Ensures a Fission CA certificate file exists based on the kubeconfig.
+ * Runs only when both FISSION_KUBECONFIG_PATH and FISSION_CA_CERT_PATH
+ * are set and the target CA file does not already exist.
+ *
+ * @param {Record<string, string>} envValues
+ */
+async function ensureFissionCaCert(envValues) {
+  const kubeconfigPath = envValues.FISSION_KUBECONFIG_PATH;
+  const caCertPath = envValues.FISSION_CA_CERT_PATH;
+
+  if (!kubeconfigPath || !caCertPath) {
+    return;
+  }
+
+  try {
+    await access(caCertPath);
+    return;
+  } catch {
+    // fall through to generate the file
+  }
+
+  const kc = new k8s.KubeConfig();
+  kc.loadFromFile(kubeconfigPath);
+
+  const cluster = kc.getCurrentCluster();
+  if (!cluster) {
+    return;
+  }
+
+  let caBuffer = null;
+
+  if (cluster.caData) {
+    caBuffer = Buffer.from(cluster.caData, "base64");
+  } else if (cluster.caFile) {
+    caBuffer = await readFile(cluster.caFile);
+  }
+
+  if (!caBuffer) {
+    return;
+  }
+
+  await mkdir(path.dirname(caCertPath), { recursive: true });
+  await writeFile(caCertPath, caBuffer);
 }
 
 async function main() {
@@ -42,7 +97,7 @@ async function main() {
       "# Setup the upload directory",
       `UPLOAD_DIR=${path.resolve(path.join(__dirname, "uploads"))}`,
       `SITE_STORAGE_DIR=${path.resolve(
-        path.join(__dirname, "uploads/site_storage")
+        path.join(__dirname, "uploads/site_storage"),
       )}`,
       "",
     ].join("\n");
@@ -127,7 +182,7 @@ async function main() {
 
   if (!contents.includes("MAXMIND_LICENSE_KEY")) {
     contents += ["", "# Maxmind license key", "MAXMIND_LICENSE_KEY="].join(
-      "\n"
+      "\n",
     );
   }
 
@@ -202,7 +257,7 @@ async function main() {
   for (const key of aiKeys) {
     if (!contents.includes(key)) {
       contents += ["", `# ${key} is used for AI services`, `${key}=`].join(
-        "\n"
+        "\n",
       );
     }
   }
@@ -241,6 +296,23 @@ async function main() {
       "",
       "# The docker group is is used to run docker commands from the core container.",
       `DOCKER_GROUP_ID=${result || "999"}`,
+    ].join("\n");
+  }
+
+  if (!contents.includes("FISSION_KUBECONFIG_PATH")) {
+    contents += [
+      "",
+      "# Path to the kubeconfig file used to connect to the fission kubernetes cluster",
+      `FISSION_KUBECONFIG_PATH=${process.env.HOME ? path.join(process.env.HOME, ".kube/struxt-config.yml") : path.join(__dirname, "config/kube-config.yml")}`,
+    ].join("\n");
+  }
+
+  if (!contents.includes("FISSION_CA_CERT_PATH")) {
+    contents += [
+      "",
+      "# Path to the CA certificate file used for the fission kubernetes cluster",
+      "# This cert will be auto generated from the kubeconfig if it doesn't exist.",
+      `FISSION_CA_CERT_PATH=${path.resolve(path.join(__dirname, "certs/fission-ca.pem"))}`,
     ].join("\n");
   }
 
@@ -335,10 +407,16 @@ async function main() {
     contents = lines.join("\n");
   }
 
+  // ensure the fission CA cert exists if the kube-config values are set
+  const envValues = parse(contents);
+  await ensureFissionCaCert(envValues);
+
   // remove the version line
   contents = contents.replace(/VERSION=.+$/gm, "").trim();
   // add the current version
-  const packageJson = await readJsonFile("package.json");
+  const packageJson = /** @type {{ version?: string }} */ (
+    await readJsonFile("package.json")
+  );
   const version = packageJson.version ? `v${packageJson.version}` : "latest";
   contents = [`VERSION=${version}`, "", contents, ""].join("\n");
 

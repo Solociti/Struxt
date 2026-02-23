@@ -1,0 +1,26 @@
+apiVersion: v1
+kind: Secret
+metadata:
+  name: struxt-fission-client-dev-token
+  namespace: fission
+  annotations:
+    kubernetes.io/service-account.name: struxt-fission-client-dev
+type: kubernetes.io/service-account-token
+---
+apiVersion: v1
+kind: Secret
+metadata:
+  name: struxt-fission-client-staging-token
+  namespace: fission
+  annotations:
+    kubernetes.io/service-account.name: struxt-fission-client-staging
+type: kubernetes.io/service-account-token
+---
+apiVersion: v1
+kind: Secret
+metadata:
+  name: struxt-fission-client-prod-token
+  namespace: fission
+  annotations:
+    kubernetes.io/service-account.name: struxt-fission-client-prod
+type: kubernetes.io/service-account-token

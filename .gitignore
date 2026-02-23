@@ -27,6 +27,7 @@ puppeteer-package.json
 *.sln
 *.sw?
 .env
+.fission-config.yml
 
 # ignore dev certs
 certs/*.pem

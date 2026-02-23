@@ -1,0 +1,32 @@
+# Apply these roles to fission kubernetes with `kubectl apply -f struxt-fission-role.yaml`
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: struxt-fission-limited
+rules:
+  # Fission environments: read-only
+  - apiGroups: ["fission.io"]
+    resources: ["environments"]
+    verbs: ["get", "list", "watch"]
+
+  # Fission functions, packages, HTTP/Time triggers: full CRUD
+  - apiGroups: ["fission.io"]
+    resources:
+      - "functions"
+      - "packages"
+      - "httptriggers"
+      - "timetriggers"
+    verbs:
+      - "get"
+      - "list"
+      - "watch"
+      - "create"
+      - "update"
+      - "patch"
+      - "delete"
+
+  # Access to storagesvc via the Kubernetes service proxy
+  - apiGroups: [""]
+    resources: ["services/proxy"]
+    resourceNames: ["storagesvc"]
+    verbs: ["get"]

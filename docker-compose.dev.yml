@@ -109,6 +109,7 @@ services:
       - CONTAINER_NAME=editor-api
       - GEOTMPDIR=/uploads/geoip/tmp
       - GEODATADIR=/uploads/geoip/data
+      - NODE_EXTRA_CA_CERTS=/secrets/fission-ca.pem
     command: bash -c "sleep 10 && nodemon --delay 2 server/apiEntry.js"
     healthcheck:
       test: curl --fail http://localhost:3000/hc --max-time 5 --connect-timeout 5 || exit 1
@@ -127,6 +128,8 @@ services:
       - ./client/dist/:/app/client/dist
       - ${UPLOAD_DIR}:/uploads
       - ${SITE_STORAGE_DIR}:/sites
+      - ${FISSION_KUBECONFIG_PATH}:/secrets/kubeconfig:ro
+      - ${FISSION_CA_CERT_PATH}:/secrets/fission-ca.pem:ro
     depends_on:
       - dragonfly
       - nginx
