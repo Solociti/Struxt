@@ -203,3 +203,53 @@ Enable Wireguard
 sudo systemctl enable --now wg-quick@wg0
 sudo systemctl status wg-quick@wg0
 ```
+
+## Get Service Accounts
+
+Create service accounts for dev, staging, and prod environments, and generate long-lived tokens by creating Secrets.
+
+```bash
+kubectl -n fission create serviceaccount struxt-fission-client-dev
+kubectl -n fission create serviceaccount struxt-fission-client-staging
+kubectl -n fission create serviceaccount struxt-fission-client-prod
+
+kubectl apply -f fission/config/struxt-fission-role.yaml
+kubectl apply -f fission/config/struxt-fission-binding.yaml
+kubectl apply -f fission/config/struxt-fission-token.yaml
+
+# Get Dev Token
+kubectl -n fission get secret struxt-fission-client-dev-token -o jsonpath='{.data.token}' | base64 --decode
+
+# Get Staging Token
+kubectl -n fission get secret struxt-fission-client-staging-token -o jsonpath='{.data.token}' | base64 --decode
+
+# Get Prod Token
+kubectl -n fission get secret struxt-fission-client-prod-token -o jsonpath='{.data.token}' | base64 --decode
+```
+
+Simplified kube config to use in struxt.
+
+```yaml
+apiVersion: v1
+kind: Config
+clusters:
+  - name: fission-cluster
+    cluster:
+      # Copy these two from your normal kubeconfig:
+      server: https://your-k8s-api:6443
+      certificate-authority-data: <base64-of-cluster-CA>
+
+users:
+  - name: struxt-fission-client-<account-type>
+    user:
+      token: <service-account-token>
+
+contexts:
+  - name: struxt-fission-<account-type>
+    context:
+      cluster: fission-cluster
+      user: struxt-fission-client-<account-type>
+      namespace: fission
+
+current-context: struxt-fission-<account-type>
+```

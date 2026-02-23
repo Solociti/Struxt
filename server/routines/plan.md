@@ -13,7 +13,7 @@ The goal is to provide a serverless environment where users can write JavaScript
 ## 2. Infrastructure Architecture
 
 - **Host Isolation**: Fission/K3s runs on a separate host/cluster from the main Dashboard.
-- **Networking**: Secure communication between the Dashboard host and the Serverless host via **Wireguard**.
+- **Networking**: Secure communication between the Dashboard host and the Serverless host via **Wireguard**. (`10.30.1.1`)
 - **Execution Model**:
   - **Background Jobs**: Tasks such as zipping code, deploying to Fission, and provisioning databases are handled by the **`editor-api`** service (utilizing BullMQ). The legacy `function-runner` service is removed.
   - **Free Tier**: Scale-to-zero (New-Deploy) for cost efficiency (~500ms - 2s cold start, 250 executions per month).
@@ -85,12 +85,12 @@ To simplify development, Struxt provides a pre-bundled "Standard Library" in the
 
 ### Phase 1: Communication & Infrastructure
 
-- [ ] **Step 0**: Implement `@kubernetes/client-node` for Dashboard-to-K3s communication.
-- [ ] **Step 1**: Setup Wireguard bridge between Docker Compose (Management) and K3s (Serverless).
-  - *Detail*: Add `wireguard` service to `docker-compose.yml` to tunnel traffic from the Editor API container to the remote K3s cluster.
+- [x] **Step 0**: Implement `@kubernetes/client-node` for Dashboard-to-K3s communication.
+- [x] **Step 1**: Setup Wireguard bridge between the Management host and K3s (Serverless).
+  - _Detail_: Wireguard is configured directly on the host (not as a Docker Compose service). The Editor API container reaches the K3s cluster via the host's Wireguard interface (`10.30.1.1`).
 - [ ] **Step 2**: Remove legacy execution code.
-  - *Detail*: Uninstall `isolated-vm` dependencies.
-  - *Detail*: Remove `function-runner` service from docker-compose files and delete `server/routinesEntry.ts`.
+  - _Detail_: Uninstall `isolated-vm` dependencies.
+  - _Detail_: Remove `function-runner` service from docker-compose files and delete `server/routinesEntry.ts`.
 
 ### Phase 2: Packaging & Provisioning
 
@@ -101,7 +101,7 @@ To simplify development, Struxt provides a pre-bundled "Standard Library" in the
 ### Phase 3: Deployment & Lifecycle
 
 - [ ] **Step 6**: Implement Fission Function/Package/Trigger management.
-  - *Detail*: Implement logic within `editor-api` to create/update Fission resources using the K8s client.
+  - _Detail_: Implement logic within `editor-api` to create/update Fission resources using the K8s client.
 - [ ] **Step 7**: Update Nginx proxy logic to route `/routines/` traffic with timeout/payload limits.
 - [ ] **Step 8**: Implement Log streaming/viewer in the Dashboard.
 - [ ] **Step 9**: Implementation of **Asset Cleanup** to purge old Fission environments, packages, and zip archives when deployments are retired.
