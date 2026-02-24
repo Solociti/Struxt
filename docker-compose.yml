@@ -123,4 +123,3 @@ volumes:
 
 networks:
   struxt-net:
-  struxt-runner-net:

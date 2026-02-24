@@ -68,27 +68,6 @@ services:
     networks:
       - struxt-net
 
-  function-runner:
-    build:
-      context: .
-      dockerfile: dev.Dockerfile
-    user: "1000:1000"
-    environment:
-      - IS_DOCKER=true
-      - CONTAINER_NAME=function-runner
-    command: node --no-node-snapshot server/routinesEntry.js
-    stop_grace_period: 15s
-    healthcheck:
-      test: curl --fail http://localhost:3000/hc --max-time 5 --connect-timeout 5 || exit 1
-      interval: 1m
-      timeout: 6s
-      retries: 5
-      start_period: 30s
-    depends_on:
-      - dragonfly
-    networks:
-      - struxt-runner-net
-
   core:
     image: ghcr.io/solociti/struxt:${VERSION:-latest}
     user: "1000:1000"

@@ -34,7 +34,6 @@ import "server/api/assets/worker";
 import "server/api/projects/queues/projectWorker";
 import "server/api/projects/snapshots/worker";
 import "server/api/publish/worker";
-import "server/routines/queue/worker";
 
 // run init scripts and then start the server
 main();

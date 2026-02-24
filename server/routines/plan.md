@@ -88,7 +88,7 @@ To simplify development, Struxt provides a pre-bundled "Standard Library" in the
 - [x] **Step 0**: Implement `@kubernetes/client-node` for Dashboard-to-K3s communication.
 - [x] **Step 1**: Setup Wireguard bridge between the Management host and K3s (Serverless).
   - _Detail_: Wireguard is configured directly on the host (not as a Docker Compose service). The Editor API container reaches the K3s cluster via the host's Wireguard interface (`10.30.1.1`).
-- [ ] **Step 2**: Remove legacy execution code.
+- [x] **Step 2**: Remove legacy execution code.
   - _Detail_: Uninstall `isolated-vm` dependencies.
   - _Detail_: Remove `function-runner` service from docker-compose files and delete `server/routinesEntry.ts`.
 
