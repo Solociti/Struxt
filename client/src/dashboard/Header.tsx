@@ -13,11 +13,6 @@ export function DashboardHeader() {
 
   return (
     <Navbar className="p-2 border-bottom sticky-top" bg={theme}>
-      {/* Logo */}
-      <div className="d-md-none fs-4">
-        <img src="/logo.svg" alt="Logo" width="32" height="32" />
-      </div>
-
       <div className="flex-grow-1" style={{ width: "16rem" }}>
         <SelectProject allowAll project={project} updateProject={setProject} />
       </div>
