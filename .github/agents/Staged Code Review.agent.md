@@ -16,10 +16,10 @@ tools:
     edit,
     search,
     web,
-    undefined_publisher.struxt-code-comments/addComment,
-    undefined_publisher.struxt-code-comments/addReply,
-    undefined_publisher.struxt-code-comments/getComments,
-    undefined_publisher.struxt-code-comments/deleteComment,
+    solociti.inline-annotate/addComment,
+    solociti.inline-annotate/addReply,
+    solociti.inline-annotate/getComments,
+    solociti.inline-annotate/deleteComment,
     todo,
   ]
 ---
