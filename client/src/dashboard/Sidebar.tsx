@@ -45,6 +45,7 @@ export function DashboardSidebar() {
   const sidebarWidth = isWide ? wideWidth : narrowWidth;
   const sidebarTransition = {
     width: sidebarWidth,
+    minWidth: sidebarWidth,
     transition: "width 0.2s ease",
   };
 
