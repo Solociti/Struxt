@@ -46,7 +46,6 @@ export function DashboardSidebar() {
   const sidebarTransition = {
     width: sidebarWidth,
     transition: "width 0.2s ease",
-    overflow: "hidden",
   };
 
   function toggleMode() {
@@ -79,7 +78,7 @@ export function DashboardSidebar() {
 
   return (
     <div
-      className="d-flex flex-column bg-primary bg-500 text-white h-100 align-items-center"
+      className="d-flex flex-column bg-primary bg-500 text-white h-100 align-items-center overflow-x-hidden overflow-y-auto"
       style={sidebarTransition}
     >
       <div
@@ -111,6 +110,7 @@ export function DashboardSidebar() {
             className={navLinkClass("/")}
             href="#/"
             active={location.pathname === "/"}
+            aria-label="Projects"
           >
             <MaterialIcon>home</MaterialIcon>
             {isWide && "Projects"}
@@ -122,6 +122,7 @@ export function DashboardSidebar() {
             className={navLinkClass("/metrics")}
             href="#/metrics"
             active={location.pathname === "/metrics"}
+            aria-label="Metrics"
           >
             <MaterialIcon>analytics</MaterialIcon>
             {isWide && "Metrics"}
@@ -133,6 +134,7 @@ export function DashboardSidebar() {
             className={navLinkClass("/snapshots")}
             href="#/snapshots"
             active={location.pathname === "/snapshots"}
+            aria-label="Snapshots"
           >
             <MaterialIcon>heap_snapshot_large</MaterialIcon>
             {isWide && "Snapshots"}
@@ -144,6 +146,7 @@ export function DashboardSidebar() {
             className={navLinkClass("/settings")}
             href="#/settings"
             active={location.pathname === "/settings"}
+            aria-label="Settings"
           >
             <MaterialIcon>settings</MaterialIcon>
             {isWide && "Settings"}
@@ -153,7 +156,11 @@ export function DashboardSidebar() {
         <hr />
 
         <Nav.Item>
-          <Nav.Link className="text-light" href="/auth/logout">
+          <Nav.Link
+            className="text-light"
+            href="/auth/logout"
+            aria-label="Logout"
+          >
             <MaterialIcon>logout</MaterialIcon>
             {isWide && "Logout"}
           </Nav.Link>
@@ -168,6 +175,7 @@ export function DashboardSidebar() {
                 className={navLinkClass("/admin")}
                 href="#/admin"
                 active={location.pathname === "/admin"}
+                aria-label="Admin"
               >
                 <MaterialIcon>admin_panel_settings</MaterialIcon>
                 {isWide && "Admin"}
