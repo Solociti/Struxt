@@ -29,28 +29,62 @@ The goal is to provide a serverless environment where users can write JavaScript
 - **Secret UI**: A dedicated UI in the **Assets Tab** for managing environment-specific variables (**Dev**, **Staging**, **Prod**). Values are stored encrypted in MongoDB and provisioned as K8s Secrets. Keys are visible; values are "write-once" or hidden after saving.
 - **Engine Requirements**: Projects must specify engine requirements (e.g., Node.js version). The build process validates these against supported Fission environment images.
 
-### 3.2. The "Ziperator"
+### 3.2. Fission Runtime Environments
+
+Fission environments are **pre-created on the K3s cluster by a Struxt admin** (e.g. `fission env create --name node-22 --image ghcr.io/fission/node-env-22 --builder ghcr.io/fission/node-builder-22`). Struxt does not manage their lifecycle — it only references them by name when creating packages and functions.
+
+A Struxt-side registry (MongoDB collection `fission_environments`) tracks the environments available for use:
+
+| Field         | Description                                                                                               |
+| ------------- | --------------------------------------------------------------------------------------------------------- |
+| `name`        | Exact Fission environment name (e.g. `node-22`). Used directly in `--env` flag.                           |
+| `displayName` | Display name shown in the UI (e.g. `Node.js 22`).                                                         |
+| `runtime`     | Language identifier (e.g. `nodejs`).                                                                      |
+| `files`       | Default patterns that determine which files are included in the zip (e.g. `["**/*.js", "package.json"]`). |
+| `isDefault`   | Boolean. Only one environment per runtime may be the default.                                             |
+
+**Multiple Node versions** (e.g. `node-lts`, `node-22`) may exist as separate registry entries, but only one may be marked `isDefault` per runtime. The default is pre-selected when a user creates a project.
+
+#### Project Environment Configuration
+
+Projects store an `environments` array — they can target **one environment per runtime** (e.g. both `node-22` and `python-env` if the project supports multiple languages). **Only one environment per runtime is permitted.** Each entry supports **per-project overrides** of the environment defaults:
+
+```jsonc
+// Stored on the project document
+"environments": [
+  {
+    "name": "node-22",          // references fission_environments.name
+    "files": ["src/**/*.js", "package.json"] // overrides environment default; omit to use default
+  }
+]
+```
+
+- If `files` is omitted in the project entry, the environment's default globs are used.
+- Overrides are **merged at deploy time** — the project value fully replaces the environment default for that field (no deep merge).
+- The UI exposes overrides as an "advanced" option; most projects use the environment defaults.
+
+### 3.3. `routines/zip`
 
 A utility in the `editor-api` that packages the project's source code for Fission.
 
-- **Scope**: Includes the entire project directory to support relative imports.
+- **Scope**: Files are selected using the **resolved `files`** globs for the target environment (environment default, overridden by any project-level value).
 - **Constraints**: Maximum archive size of **50MB**. If the size is exceeded, the upload is rejected with a descriptive error.
 - **Filtering**: Skips non-text files (images, binaries) based on `common/path/FileExtensions.ts`.
 - **Validation**: Performs linting to detect forbidden imports (e.g., `child_process`) and blacklisted NPM modules before upload.
 
-### 3.3. Multi-tenant Database & Secret Provisioning
+### 3.4. Multi-tenant Database & Secret Provisioning
 
 - **Database**: `editor-api` programmatically provisions dedicated MongoDB databases/users per project.
 - **K8s Secrets**: Credentials and user secrets are injected into Fission functions via Kubernetes Secrets.
 
-### 3.4. Routing & Proxying
+### 3.5. Routing & Proxying
 
 - **Nginx Integration**: The `updateProxy.ts` logic adds `/routines/` location blocks only when routines are published.
 - **Transparency**: Nginx acts as a transparent proxy. Authentication/Authorization is handled by the user's routine code.
 - **Web Host**: The routing is handled from the web host docker container, not the `editor-api`.
 - **Payload Constraints**: Enforce default/configurable max header sizes and body sizes (e.g., 10MB) at the proxy level.
 
-### 3.5. Routines Standard Library
+### 3.6. Routines Standard Library
 
 To simplify development, Struxt provides a pre-bundled "Standard Library" in the environment image:
 
@@ -70,7 +104,7 @@ To simplify development, Struxt provides a pre-bundled "Standard Library" in the
 - **No Local Execution**: All user code runs in Fission (Dev/Staging/Prod environments).
 - **Fast Feedback**:
   - Source-only updates when `package.json` is unchanged.
-  - Optimized Ziperator for delta-only updates.
+  - Optimized `routines/zip` for delta-only updates.
   - Maintenance of warm Builder pods for fast packaging.
 
 ## 6. Observability
@@ -94,22 +128,25 @@ To simplify development, Struxt provides a pre-bundled "Standard Library" in the
 
 ### Phase 2: Packaging & Provisioning
 
-- [ ] **Step 3**: Build the **Ziperator** utility.
-- [ ] **Step 4**: Implement the **Secret Manager** logic (MongoDB encryption + K8s Secret creation).
-- [ ] **Step 5**: Programmatic MongoDB database/user provisioning.
+- [ ] **Step 3**: Build the **Environment Registry** — MongoDB collection, admin CRUD API, and isDefault enforcement.
+  - _Detail_: Seed with initial `node-22` entry matching the environments the admin has created in Fission.
+- [ ] **Step 4**: Build the **`routines/zip`** utility with glob-based file selection resolved from the environment registry + project overrides.
+- [ ] **Step 5**: Implement the **Secret Manager** logic (MongoDB encryption + K8s Secret creation).
+- [ ] **Step 6**: Programmatic MongoDB database/user provisioning.
 
 ### Phase 3: Deployment & Lifecycle
 
-- [ ] **Step 6**: Implement Fission Function/Package/Trigger management.
-  - _Detail_: Implement logic within `editor-api` to create/update Fission resources using the K8s client.
-- [ ] **Step 7**: Update Nginx proxy logic to route `/routines/` traffic with timeout/payload limits.
-- [ ] **Step 8**: Implement Log streaming/viewer in the Dashboard.
-- [ ] **Step 9**: Implementation of **Asset Cleanup** to purge old Fission environments, packages, and zip archives when deployments are retired.
+- [ ] **Step 7**: Implement Fission Function/Package/Trigger management.
+  - _Detail_: Implement logic within `editor-api` to create/update Fission packages and functions using the K8s client, passing `--env <name>` from the project's environment list.
+  - _Detail_: When a project targets multiple environments, deploy a separate Fission package+function per environment.
+- [ ] **Step 8**: Update Nginx proxy logic to route `/routines/` traffic with timeout/payload limits.
+- [ ] **Step 9**: Implement Log streaming/viewer in the Dashboard.
+- [ ] **Step 10**: Implementation of **Asset Cleanup** to purge old Fission packages and zip archives when deployments are retired.
 
 ### Phase 4: Hardening & Optimization
 
-- [ ] **Step 10**: Resource quotas and Namespace-level RBAC.
-- [ ] **Step 11**: Builder caching and "New-Deploy" optimizations.
-- [ ] **Step 12**: Tier-based execution strategy (Pool Manager vs Scale-to-zero) and execution quota enforcement (250/mo Free | 250k/mo Pro).
-- [ ] **Step 13**: Blacklisted module validation and routine "Takedown" mechanism.
-- [ ] **Step 14**: Usage tracking and billing integration ($15/mo base fee + $1/25k overage + Compute Time).
+- [ ] **Step 11**: Resource quotas and Namespace-level RBAC.
+- [ ] **Step 12**: Builder caching and "New-Deploy" optimizations.
+- [ ] **Step 13**: Tier-based execution strategy (Pool Manager vs Scale-to-zero) and execution quota enforcement (250/mo Free | 250k/mo Pro).
+- [ ] **Step 14**: Blacklisted module validation and routine "Takedown" mechanism.
+- [ ] **Step 15**: Usage tracking and billing integration ($15/mo base fee + $1/25k overage + Compute Time).

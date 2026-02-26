@@ -56,6 +56,7 @@ export type CollectionNames =
   | "ai_pilot_token_transactions"
   | "assets"
   | "editor_snapshots"
+  | "fission_environments"
   | "form_settings"
   | "form_submissions"
   | "id_counters"

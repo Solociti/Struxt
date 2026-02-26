@@ -13,3 +13,10 @@
   margin-top: -0.15em;
   margin-bottom: -0.15em;
 }
+
+.bg-darken-1 {
+  background-color: rgba(0, 0, 0, 0.05) !important;
+}
+.bg-darken-2 {
+  background-color: rgba(0, 0, 0, 0.1) !important;
+}
