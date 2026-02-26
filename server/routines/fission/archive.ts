@@ -16,7 +16,7 @@ async function resolveFetchOptions(kc: k8s.KubeConfig): Promise<RequestInit> {
   return init as RequestInit;
 }
 
-const STORAGESVC_PROXY_PATH =
+const storagesvcProxyPath =
   "/api/v1/namespaces/fission/services/http:storagesvc:80/proxy";
 
 /**
@@ -31,7 +31,7 @@ function storageSvcUrl(
   path: string,
   params?: Record<string, string>,
 ): string {
-  const url = new URL(`${STORAGESVC_PROXY_PATH}${path}`, clusterServer);
+  const url = new URL(`${storagesvcProxyPath}${path}`, clusterServer);
   if (params) {
     Object.entries(params).forEach(([k, v]) => url.searchParams.set(k, v));
   }

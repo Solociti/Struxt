@@ -1,13 +1,13 @@
-import { getK8sApi } from "server/routines/kubeSetup";
 import {
-  FISSION_GROUP,
-  FISSION_RESOURCE_NAMESPACE,
-  FISSION_VERSION,
+  fissionGroup,
   FissionHttpTrigger,
   FissionHttpTriggerSpec,
+  fissionResourceNamespace,
+  fissionVersion,
 } from "server/routines/fission/types";
+import { getK8sApi } from "server/routines/kubeSetup";
 
-const PLURAL = "httptriggers";
+const plural = "httptriggers";
 
 export interface CreateHttpTriggerOptions {
   /** Unique name for the trigger CRD resource. */
@@ -31,7 +31,7 @@ export async function createHttpTrigger(
   opts: CreateHttpTriggerOptions,
 ): Promise<FissionHttpTrigger> {
   const { custom } = await getK8sApi();
-  const namespace = opts.namespace ?? FISSION_RESOURCE_NAMESPACE;
+  const namespace = opts.namespace ?? fissionResourceNamespace;
 
   const spec: FissionHttpTriggerSpec = {
     relativeurl: opts.relativeUrl,
@@ -53,10 +53,10 @@ export async function createHttpTrigger(
   };
 
   const res = await custom.createNamespacedCustomObject({
-    group: FISSION_GROUP,
-    version: FISSION_VERSION,
+    group: fissionGroup,
+    version: fissionVersion,
     namespace,
-    plural: PLURAL,
+    plural,
     body,
   });
 
@@ -71,15 +71,15 @@ export async function createHttpTrigger(
  */
 export async function getHttpTrigger(
   name: string,
-  namespace = FISSION_RESOURCE_NAMESPACE,
+  namespace = fissionResourceNamespace,
 ): Promise<FissionHttpTrigger> {
   const { custom } = await getK8sApi();
 
   const res = await custom.getNamespacedCustomObject({
-    group: FISSION_GROUP,
-    version: FISSION_VERSION,
+    group: fissionGroup,
+    version: fissionVersion,
     namespace,
-    plural: PLURAL,
+    plural,
     name,
   });
 
@@ -92,15 +92,15 @@ export async function getHttpTrigger(
  * @param namespace
  */
 export async function listHttpTriggers(
-  namespace = FISSION_RESOURCE_NAMESPACE,
+  namespace = fissionResourceNamespace,
 ): Promise<FissionHttpTrigger[]> {
   const { custom } = await getK8sApi();
 
   const res = await custom.listNamespacedCustomObject({
-    group: FISSION_GROUP,
-    version: FISSION_VERSION,
+    group: fissionGroup,
+    version: fissionVersion,
     namespace,
-    plural: PLURAL,
+    plural,
   });
 
   return (res as { items: FissionHttpTrigger[] }).items;
@@ -116,7 +116,7 @@ export async function listHttpTriggers(
 export async function updateHttpTrigger(
   name: string,
   patch: Partial<Pick<FissionHttpTriggerSpec, "relativeurl" | "methods">>,
-  namespace = FISSION_RESOURCE_NAMESPACE,
+  namespace = fissionResourceNamespace,
 ): Promise<FissionHttpTrigger> {
   const { custom } = await getK8sApi();
 
@@ -124,10 +124,10 @@ export async function updateHttpTrigger(
   existing.spec = { ...existing.spec, ...patch };
 
   const res = await custom.replaceNamespacedCustomObject({
-    group: FISSION_GROUP,
-    version: FISSION_VERSION,
+    group: fissionGroup,
+    version: fissionVersion,
     namespace,
-    plural: PLURAL,
+    plural,
     name,
     body: existing,
   });
@@ -143,15 +143,15 @@ export async function updateHttpTrigger(
  */
 export async function deleteHttpTrigger(
   name: string,
-  namespace = FISSION_RESOURCE_NAMESPACE,
+  namespace = fissionResourceNamespace,
 ): Promise<void> {
   const { custom } = await getK8sApi();
 
   await custom.deleteNamespacedCustomObject({
-    group: FISSION_GROUP,
-    version: FISSION_VERSION,
+    group: fissionGroup,
+    version: fissionVersion,
     namespace,
-    plural: PLURAL,
+    plural,
     name,
   });
 }

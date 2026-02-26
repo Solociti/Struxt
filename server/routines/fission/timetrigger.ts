@@ -1,13 +1,13 @@
-import { getK8sApi } from "server/routines/kubeSetup";
 import {
-  FISSION_GROUP,
-  FISSION_RESOURCE_NAMESPACE,
-  FISSION_VERSION,
+  fissionGroup,
+  fissionResourceNamespace,
   FissionTimeTrigger,
   FissionTimeTriggerSpec,
+  fissionVersion,
 } from "server/routines/fission/types";
+import { getK8sApi } from "server/routines/kubeSetup";
 
-const PLURAL = "timetriggers";
+const plural = "timetriggers";
 
 /**
  * Options for creating a Fission TimeTrigger
@@ -16,7 +16,6 @@ export interface CreateTimeTriggerOptions {
   name: string;
   cron: string;
   functionName: string;
-  timezone?: string;
   namespace?: string;
 }
 
@@ -29,7 +28,7 @@ export async function createTimeTrigger(
   opts: CreateTimeTriggerOptions,
 ): Promise<FissionTimeTrigger> {
   const { custom } = await getK8sApi();
-  const namespace = opts.namespace ?? FISSION_RESOURCE_NAMESPACE;
+  const namespace = opts.namespace ?? fissionResourceNamespace;
 
   const spec: FissionTimeTriggerSpec = {
     cron: opts.cron,
@@ -38,7 +37,6 @@ export async function createTimeTrigger(
       name: opts.functionName,
       functionweights: null,
     },
-    ...(opts.timezone ? { timezone: opts.timezone } : {}),
   };
 
   const body: FissionTimeTrigger = {
@@ -49,10 +47,10 @@ export async function createTimeTrigger(
   };
 
   const res = await custom.createNamespacedCustomObject({
-    group: FISSION_GROUP,
-    version: FISSION_VERSION,
+    group: fissionGroup,
+    version: fissionVersion,
     namespace,
-    plural: PLURAL,
+    plural: plural,
     body,
   });
 
@@ -67,15 +65,15 @@ export async function createTimeTrigger(
  */
 export async function getTimeTrigger(
   name: string,
-  namespace = FISSION_RESOURCE_NAMESPACE,
+  namespace = fissionResourceNamespace,
 ): Promise<FissionTimeTrigger> {
   const { custom } = await getK8sApi();
 
   const res = await custom.getNamespacedCustomObject({
-    group: FISSION_GROUP,
-    version: FISSION_VERSION,
+    group: fissionGroup,
+    version: fissionVersion,
     namespace,
-    plural: PLURAL,
+    plural: plural,
     name,
   });
 
@@ -88,22 +86,22 @@ export async function getTimeTrigger(
  * @param namespace resource namespace
  */
 export async function listTimeTriggers(
-  namespace = FISSION_RESOURCE_NAMESPACE,
+  namespace = fissionResourceNamespace,
 ): Promise<FissionTimeTrigger[]> {
   const { custom } = await getK8sApi();
 
   const res = await custom.listNamespacedCustomObject({
-    group: FISSION_GROUP,
-    version: FISSION_VERSION,
+    group: fissionGroup,
+    version: fissionVersion,
     namespace,
-    plural: PLURAL,
+    plural: plural,
   });
 
   return (res as { items: FissionTimeTrigger[] }).items;
 }
 
 /**
- * Update cron or timezone for a TimeTrigger
+ * Update cron for a TimeTrigger
  *
  * @param name trigger name
  * @param patch partial spec patch
@@ -112,7 +110,7 @@ export async function listTimeTriggers(
 export async function updateTimeTrigger(
   name: string,
   patch: Partial<Pick<FissionTimeTriggerSpec, "cron">>,
-  namespace = FISSION_RESOURCE_NAMESPACE,
+  namespace = fissionResourceNamespace,
 ): Promise<FissionTimeTrigger> {
   const { custom } = await getK8sApi();
 
@@ -120,10 +118,10 @@ export async function updateTimeTrigger(
   existing.spec = { ...existing.spec, ...patch };
 
   const res = await custom.replaceNamespacedCustomObject({
-    group: FISSION_GROUP,
-    version: FISSION_VERSION,
+    group: fissionGroup,
+    version: fissionVersion,
     namespace,
-    plural: PLURAL,
+    plural: plural,
     name,
     body: existing,
   });
@@ -139,15 +137,15 @@ export async function updateTimeTrigger(
  */
 export async function deleteTimeTrigger(
   name: string,
-  namespace = FISSION_RESOURCE_NAMESPACE,
+  namespace = fissionResourceNamespace,
 ): Promise<void> {
   const { custom } = await getK8sApi();
 
   await custom.deleteNamespacedCustomObject({
-    group: FISSION_GROUP,
-    version: FISSION_VERSION,
+    group: fissionGroup,
+    version: fissionVersion,
     namespace,
-    plural: PLURAL,
+    plural: plural,
     name,
   });
 }

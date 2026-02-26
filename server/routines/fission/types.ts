@@ -1,28 +1,22 @@
-export const FISSION_GROUP = "fission.io";
-export const FISSION_VERSION = "v1";
+export const fissionGroup = "fission.io";
+export const fissionVersion = "v1";
 
 /**
- * Namespace where Fission system resources live (environments, storagesvc, etc.).
+ * Namespace where Fission system resources live (storagesvc, etc.).
  */
-export const FISSION_NAMESPACE = "fission";
+export const fissionNamespace = "fission";
 
 /**
- * Namespace where user-facing resources (packages, functions, triggers) are created.
+ * Namespace where user-facing resources (packages, functions, triggers, environments) are created.
  */
-export const FISSION_RESOURCE_NAMESPACE = "default";
-
-// TODO: make this into a struxt setting for environments. Planning to add more environments, and will need settings for each such as which files are packaged up for each environment, etc.
-/**
- * Default Node.js environment name created during Fission setup.
- */
-export const FISSION_NODE_ENV = "node";
+export const fissionResourceNamespace = "default";
 
 /**
  * Internal K8s service URL for the Fission storage service.
  * Used as the base for archive references inside package specs — reachable by
  * Fission builder/executor pods running on the cluster.
  */
-export const FISSION_STORAGESVC_INTERNAL =
+export const fissionStoragesvcInternal =
   "http://storagesvc.fission.svc.cluster.local";
 
 export interface FissionObjectMeta {

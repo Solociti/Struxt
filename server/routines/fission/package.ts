@@ -1,15 +1,16 @@
-import { getK8sApi } from "server/routines/kubeSetup";
 import {
-  FISSION_GROUP,
-  FISSION_RESOURCE_NAMESPACE,
-  FISSION_STORAGESVC_INTERNAL,
-  FISSION_VERSION,
+  fissionGroup,
+  fissionNamespace,
   FissionPackage,
   FissionPackageBuildStatus,
   FissionPackageSpec,
+  fissionResourceNamespace,
+  fissionStoragesvcInternal,
+  fissionVersion,
 } from "server/routines/fission/types";
+import { getK8sApi } from "server/routines/kubeSetup";
 
-const PLURAL = "packages";
+const plural = "packages";
 
 /**
  * Constructs the internal URL for a Fission archive by ID.
@@ -17,13 +18,13 @@ const PLURAL = "packages";
  * @param sourceArchiveId
  */
 function getArchiveUrl(sourceArchiveId: string): string {
-  const archiveUrl = new URL("/v1/archive", FISSION_STORAGESVC_INTERNAL);
+  const archiveUrl = new URL("/v1/archive", fissionStoragesvcInternal);
   archiveUrl.searchParams.set("id", sourceArchiveId);
   return archiveUrl.toString();
 }
 
 export interface CreatePackageOptions {
-  /** 
+  /**
    * Unique name for the package CRD resource.
    */
   name: string;
@@ -40,7 +41,7 @@ export interface CreatePackageOptions {
    */
   buildCommand?: string;
   /**
-   * Namespace to create the package in (defaults to FISSION_RESOURCE_NAMESPACE).
+   * Namespace to create the package in (defaults to `fissionResourceNamespace`).
    */
   namespace?: string;
 }
@@ -54,10 +55,10 @@ export async function createPackage(
   opts: CreatePackageOptions,
 ): Promise<FissionPackage> {
   const { custom } = await getK8sApi();
-  const namespace = opts.namespace ?? FISSION_RESOURCE_NAMESPACE;
+  const namespace = opts.namespace ?? fissionResourceNamespace;
 
   const spec: FissionPackageSpec = {
-    environment: { name: opts.environmentName, namespace: "fission" },
+    environment: { name: opts.environmentName, namespace: fissionNamespace },
     source: {
       type: "url",
       url: getArchiveUrl(opts.sourceArchiveId),
@@ -74,10 +75,10 @@ export async function createPackage(
   };
 
   const res = await custom.createNamespacedCustomObject({
-    group: FISSION_GROUP,
-    version: FISSION_VERSION,
+    group: fissionGroup,
+    version: fissionVersion,
     namespace,
-    plural: PLURAL,
+    plural,
     body,
   });
 
@@ -92,15 +93,15 @@ export async function createPackage(
  */
 export async function getPackage(
   name: string,
-  namespace = FISSION_RESOURCE_NAMESPACE,
+  namespace = fissionResourceNamespace,
 ): Promise<FissionPackage> {
   const { custom } = await getK8sApi();
 
   const res = await custom.getNamespacedCustomObject({
-    group: FISSION_GROUP,
-    version: FISSION_VERSION,
+    group: fissionGroup,
+    version: fissionVersion,
     namespace,
-    plural: PLURAL,
+    plural,
     name,
   });
 
@@ -113,15 +114,15 @@ export async function getPackage(
  * @param namespace
  */
 export async function listPackages(
-  namespace = FISSION_RESOURCE_NAMESPACE,
+  namespace = fissionResourceNamespace,
 ): Promise<FissionPackage[]> {
   const { custom } = await getK8sApi();
 
   const res = await custom.listNamespacedCustomObject({
-    group: FISSION_GROUP,
-    version: FISSION_VERSION,
+    group: fissionGroup,
+    version: fissionVersion,
     namespace,
-    plural: PLURAL,
+    plural,
   });
 
   return (res as { items: FissionPackage[] }).items;
@@ -137,7 +138,7 @@ export async function listPackages(
 export async function updatePackageSource(
   name: string,
   sourceArchiveId: string,
-  namespace = FISSION_RESOURCE_NAMESPACE,
+  namespace = fissionResourceNamespace,
 ): Promise<FissionPackage> {
   const { custom } = await getK8sApi();
 
@@ -150,10 +151,10 @@ export async function updatePackageSource(
   };
 
   const res = await custom.replaceNamespacedCustomObject({
-    group: FISSION_GROUP,
-    version: FISSION_VERSION,
+    group: fissionGroup,
+    version: fissionVersion,
     namespace,
-    plural: PLURAL,
+    plural,
     name,
     body: existing,
   });
@@ -169,15 +170,15 @@ export async function updatePackageSource(
  */
 export async function deletePackage(
   name: string,
-  namespace = FISSION_RESOURCE_NAMESPACE,
+  namespace = fissionResourceNamespace,
 ): Promise<void> {
   const { custom } = await getK8sApi();
 
   await custom.deleteNamespacedCustomObject({
-    group: FISSION_GROUP,
-    version: FISSION_VERSION,
+    group: fissionGroup,
+    version: fissionVersion,
     namespace,
-    plural: PLURAL,
+    plural,
     name,
   });
 }
@@ -193,7 +194,7 @@ export async function deletePackage(
  */
 export async function waitForPackageBuild(
   name: string,
-  namespace = FISSION_RESOURCE_NAMESPACE,
+  namespace = fissionResourceNamespace,
   timeoutMs = 120_000,
   pollIntervalMs = 2_000,
 ): Promise<FissionPackage> {

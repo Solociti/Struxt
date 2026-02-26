@@ -1,7 +1,7 @@
 import {
-  FISSION_GROUP,
-  FISSION_RESOURCE_NAMESPACE,
-  FISSION_VERSION,
+  fissionGroup,
+  fissionResourceNamespace,
+  fissionVersion,
   FissionEnvironment,
 } from "server/routines/fission/types";
 import { getK8sApi } from "server/routines/kubeSetup";
@@ -13,9 +13,9 @@ export async function listEnvironments(): Promise<FissionEnvironment[]> {
   const { custom } = await getK8sApi();
 
   const res = await custom.listNamespacedCustomObject({
-    group: FISSION_GROUP,
-    version: FISSION_VERSION,
-    namespace: FISSION_RESOURCE_NAMESPACE,
+    group: fissionGroup,
+    version: fissionVersion,
+    namespace: fissionResourceNamespace,
     plural: "environments",
   });
 
@@ -34,9 +34,9 @@ export async function getEnvironment(
 
   try {
     const res = await custom.getNamespacedCustomObject({
-      group: FISSION_GROUP,
-      version: FISSION_VERSION,
-      namespace: FISSION_RESOURCE_NAMESPACE,
+      group: fissionGroup,
+      version: fissionVersion,
+      namespace: fissionResourceNamespace,
       plural: "environments",
       name,
     });
