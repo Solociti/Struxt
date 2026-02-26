@@ -41,17 +41,16 @@ export default function DashboardApp() {
         <DashboardSidebar />
 
         <div
-          className="d-flex flex-column flex-grow-1"
+          className="d-flex flex-column flex-grow-1 overflow-auto"
           style={{ height: "100vh" }}
         >
           <DashboardHeader />
 
           {/* Content Area */}
-          <div className="p-3 overflow-auto">
-            <Suspense
-              fallback={
-                <div className="d-flex flex-column justify-content-center align-items-center my-5">
-                  <Spinner animation="border" variant="secondary" />
+          <Suspense
+            fallback={
+              <div className="d-flex flex-column justify-content-center align-items-center my-5">
+                <Spinner animation="border" variant="secondary" />
 
                 <span className="ms-2 text-muted">Loading Page...</span>
               </div>

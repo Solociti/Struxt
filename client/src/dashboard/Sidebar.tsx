@@ -116,31 +116,16 @@ export function DashboardSidebar() {
             {isWide && "Projects"}
           </Nav.Link>
         </Nav.Item>
-        <Nav.Item className="">
-          <Nav.Link
-            className={
-              "text-light" +
-              (location.pathname === "/" ? " bg-primary bg-600" : "")
-            }
-            href="#/"
-            active={location.pathname === "/"}
-          >
-            <MaterialIcon>home</MaterialIcon>
-            Projects
-          </Nav.Link>
-        </Nav.Item>
 
-        <Nav.Item className="">
+        <Nav.Item>
           <Nav.Link
-            className={
-              "text-light" +
-              (location.pathname === "/assets" ? " bg-primary bg-600" : "")
-            }
+            className={navLinkClass("/assets")}
             href="#/assets"
             active={location.pathname === "/assets"}
+            aria-label="Assets"
           >
             <MaterialIcon>snippet_folder</MaterialIcon>
-            Assets
+            {isWide && "Assets"}
           </Nav.Link>
         </Nav.Item>
 
