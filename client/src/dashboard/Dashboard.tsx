@@ -47,10 +47,11 @@ export default function DashboardApp() {
           <DashboardHeader />
 
           {/* Content Area */}
-          <Suspense
-            fallback={
-              <div className="d-flex flex-column justify-content-center align-items-center p-3 my-5">
-                <Spinner animation="border" variant="secondary" />
+          <div className="p-3 overflow-auto">
+            <Suspense
+              fallback={
+                <div className="d-flex flex-column justify-content-center align-items-center my-5">
+                  <Spinner animation="border" variant="secondary" />
 
                 <span className="ms-2 text-muted">Loading Page...</span>
               </div>
