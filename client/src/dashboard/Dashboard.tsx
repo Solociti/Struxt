@@ -11,17 +11,17 @@ import { DashboardSidebar } from "./Sidebar";
 import "client/bootstrap/bootstrap.scss";
 
 const DashboardContent = lazy(
-  () => import("client/dashboard/DashboardContent")
+  () => import("client/dashboard/DashboardContent"),
 );
 const SettingsContent = lazy(
-  () => import("client/dashboard/settings/SettingsContent")
+  () => import("client/dashboard/settings/SettingsContent"),
 );
 const MetricsPage = lazy(() => import("client/dashboard/metrics/MetricsPage"));
 const AdminSettingsPage = lazy(
-  () => import("client/dashboard/admin/AdminSettingsPage")
+  () => import("client/dashboard/admin/AdminSettingsPage"),
 );
 const SnapshotsContent = lazy(
-  () => import("client/dashboard/snapshots/EditorSnapshotsContent")
+  () => import("client/dashboard/snapshots/EditorSnapshotsContent"),
 );
 
 export default function DashboardApp() {
@@ -43,7 +43,7 @@ export default function DashboardApp() {
           <DashboardHeader />
 
           {/* Content Area */}
-          <div className="p-3">
+          <div className="p-3 overflow-auto">
             <Suspense
               fallback={
                 <div className="d-flex flex-column justify-content-center align-items-center my-5">
