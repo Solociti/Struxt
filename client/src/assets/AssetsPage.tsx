@@ -6,7 +6,7 @@ import Spinner from "react-bootstrap/Spinner";
 import { ContentManagerProvider, useContentManager } from "./cm/contentManager";
 import { EditorContent } from "./EditorContent";
 import { EditorTabs } from "./EditorTabs";
-import { AssetList } from "./list/AssetList";
+import { AssetSidebar } from "./sidebar/AssetSidebar";
 
 /**
  * Show the assets lists and editor
@@ -82,7 +82,7 @@ function AssetsPageContent() {
     <div className="d-flex h-100" style={{ overflowY: "hidden" }}>
       <ErrorBoundary>
         {/* show a sidebar with the list of files */}
-        <AssetList />
+        <AssetSidebar />
 
         {/* Show the code editor */}
         <div
