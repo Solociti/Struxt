@@ -62,7 +62,7 @@ registerApi<RoutineEnvApi>("/api/routines/env")
         env: z.object({
           uuid: z.string().optional(),
           name: z.string(),
-          displayName: z.string(),
+          displayName: z.string().min(1),
           isDefault: z.boolean(),
           disabled: z.object({
             active: z.boolean(),

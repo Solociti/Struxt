@@ -4,6 +4,7 @@ import {
   AssetRestoreApi,
 } from "common/api/assets/assets";
 import { AssetListItem, AssetModel } from "common/models/assets/AssetModel";
+import { ProjectDetails } from "common/models/projects/ProjectDetails";
 import { useMemo, useRef } from "react";
 import { DirectoryNode } from "../list/DirectoryView";
 
@@ -16,6 +17,13 @@ interface CommandResult {
 type UnregisterCallback = () => void;
 
 export interface CommandManager {
+  // generate data update propagation
+  trigger(command: "update:project-details", details: ProjectDetails): void;
+  on(
+    event: "update:project-details",
+    cb: (details: ProjectDetails) => void,
+  ): UnregisterCallback;
+
   // tabs:open
   trigger(command: "tabs:open", item: AssetListItem): void;
   on(event: "tabs:open", cb: (item: AssetListItem) => void): UnregisterCallback;

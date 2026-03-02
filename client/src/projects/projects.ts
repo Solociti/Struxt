@@ -94,7 +94,7 @@ export async function getProjectDetails(projectId: string) {
 export async function updateProjectDetails(
   projectId: string,
   propPath: ProjectDetailsApi["PostBody"]["propPath"],
-  value: string | number | boolean | null
+  value: string | number | boolean | null,
 ) {
   const body: ProjectDetailsApi["PostBody"] = {
     propPath,
@@ -103,7 +103,7 @@ export async function updateProjectDetails(
 
   const response = await postApi<ProjectDetailsApi>(
     ["/api/projects", projectId, "details"],
-    body
+    body,
   );
 
   return response;

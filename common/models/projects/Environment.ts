@@ -5,6 +5,19 @@ export type EnvironmentTypes = "staging" | "production";
 
 export const validEnvironments: EnvironmentTypes[] = ["staging", "production"];
 
+export interface VariableState {
+  name: string;
+  /**
+   * Will be empty for secrets
+   */
+  value: string;
+  /**
+   * A preview of the value for secrets
+   */
+  preview: string;
+  isSecret: boolean;
+}
+
 /**
  * Environment specific settings for a project
  */
@@ -47,6 +60,13 @@ export interface ProjectEnvSettings {
   hsts: boolean;
 
   domains: ProjectDomain[];
+
+  /**
+   * Set environment variables for the project.
+   *
+   * Secrets will be stored in a separate collection, but we will reference them here with a preview of the value
+   */
+  variables: VariableState[];
 }
 
 export interface ProjectDomain {
@@ -89,7 +109,7 @@ export interface ProjectDomain {
 }
 
 export function setupProjectEnvSettings(
-  data: DeepPartial<ProjectEnvSettings>
+  data: DeepPartial<ProjectEnvSettings>,
 ): ProjectEnvSettings {
   const setting: ProjectEnvSettings = {
     forceSsl: true,
@@ -100,13 +120,27 @@ export function setupProjectEnvSettings(
       certificateId: 0,
     },
     domains: [],
+    variables: [],
   };
 
-  mergeDeep(setting, data, ["domains"]);
+  mergeDeep(setting, data, ["domains", "variables"]);
 
   if (data.domains) {
     setting.domains = data.domains.map((data) => {
       return setupDomainData(data as ProjectDomain);
+    });
+  }
+
+  if (data.variables) {
+    setting.variables = data.variables.map((variable) => {
+      const original: ProjectEnvSettings["variables"][number] = {
+        isSecret: false,
+        name: "",
+        value: "",
+        preview: "",
+      };
+
+      return Object.assign(original, variable);
     });
   }
 
@@ -120,7 +154,7 @@ export function setupProjectEnvSettings(
  * @returns
  */
 export function setupDomainData(
-  data: DeepPartial<ProjectDomain>
+  data: DeepPartial<ProjectDomain>,
 ): ProjectDomain {
   const domain: ProjectDomain = {
     domain: "",
@@ -163,12 +197,12 @@ export function getValidDomains(envSettings: ProjectEnvSettings): {
   primaryDomain: ProjectDomain | null;
 } {
   const domains = envSettings.domains.filter(
-    (d) => d.enabled.active && d.dnsVerified.active && !d.deleted.active
+    (d) => d.enabled.active && d.dnsVerified.active && !d.deleted.active,
   );
 
   const primaryDomain = getPrimaryDomain(domains);
   const redirectDomains = domains.filter(
-    (d) => !primaryDomain || d.domain !== primaryDomain.domain
+    (d) => !primaryDomain || d.domain !== primaryDomain.domain,
   );
 
   return { domains, redirectDomains, primaryDomain };
@@ -181,7 +215,7 @@ export function getValidDomains(envSettings: ProjectEnvSettings): {
  * @returns
  */
 export function getPrimaryDomain(
-  domains: ProjectDomain[]
+  domains: ProjectDomain[],
 ): ProjectDomain | null {
   const primaryDomain = domains.find((d) => d.isPrimary);
   if (primaryDomain) {

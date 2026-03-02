@@ -77,6 +77,69 @@ A utility in the `editor-api` that packages the project's source code for Fissio
 - **Database**: `editor-api` programmatically provisions dedicated MongoDB databases/users per project.
 - **K8s Secrets**: Credentials and user secrets are injected into Fission functions via Kubernetes Secrets.
 
+#### Secret Encryption Scheme
+
+Secrets use an **envelope encryption** model with hybrid X25519 + AES-256-GCM. Plaintext values are never persisted anywhere — not in MongoDB, not in logs, not on the project document.
+
+**Key hierarchy:**
+
+```
+SECRETS_MASTER_KEY (env var, AES-256-GCM)
+  └── encrypts ──▶ project private key  (stored in `project_keys` collection)
+                        │
+                        └── ECDH ──▶ decrypts AES-256 session key
+                                           │
+                                           └── decrypts ──▶ secret plaintext
+```
+
+**Per-project keypair (generated once at project creation or first secret save):**
+
+- An **X25519 keypair** is generated for each project.
+- The **public key** is stored on the `ProjectModel` (safe to expose to clients — it can only encrypt).
+- The **private key** is AES-256-GCM encrypted with `SECRETS_MASTER_KEY` and stored in a dedicated `project_keys` collection. It is **never returned by any API**.
+
+**Saving a secret (client-side hybrid encryption):**
+
+1. Client fetches the project public key.
+2. Client generates a **throwaway ephemeral X25519 keypair** in-browser (`SubtleCrypto`).
+3. ECDH key agreement between the ephemeral private key and the project public key produces a **shared AES-256-GCM session key**.
+4. The secret value is encrypted with the session key.
+5. The **ephemeral public key** + **encrypted value** are sent to the server and stored in the `project_secrets` collection. The ephemeral private key is discarded immediately.
+6. The server never sees the plaintext.
+
+**Decryption (only at Fission deploy time):**
+
+1. Load the encrypted project private key from `project_keys`.
+2. Decrypt it in-memory using `SECRETS_MASTER_KEY`.
+3. For each secret: ECDH between the project private key and the stored ephemeral public key reproduces the session key → decrypt the value.
+4. Write plaintext values to a K8s Secret.
+5. Plaintext is discarded when the deploy job completes — never written to disk or logs.
+
+**Collections:**
+
+**`project_keys`** — one document per `projectId + siteEnv`. No public API.
+
+- `projectId` — the project this keypair belongs to.
+- `siteEnv` — `"staging"` or `"production"`.
+- `publicKeyHex` — X25519 public key. Safe to expose to clients.
+- `encryptedPrivateKeyHex` — X25519 private key encrypted with `SECRETS_MASTER_KEY`. Never returned by any API.
+
+> `getProjectSecretKey` or `getProjectPublicKey` will generate keys if they don't exist for the `projectId` and `siteEnv` combo
+
+**`project_secrets`** — one document per `projectId + siteEnv + key`. Secret values never returned by any API.
+
+- `projectId` — the project this secret belongs to.
+- `siteEnv` — `"staging"` or `"production"`.
+- `key` — the env var name (e.g. `DATABASE_URL`). Visible in UI.
+- `ephemeralPublicKeyHex` — the throwaway X25519 public key used during encryption. Required to reproduce the session key at decrypt time.
+- `encryptedValueHex` — AES-256-GCM ciphertext of the secret value. Never returned by any API.
+
+> `getSecrets` will not decrypt the values. Add a separate `decryptSecrets` method that'll decrypt the values.
+
+The resulting K8s Secret (one per `projectId + siteEnv`) is shared by all Fission functions deployed under that project env, regardless of which Fission runtime environment they use.
+
+**RBAC:** The Fission service account role (`struxt-fission-role.yaml`) must include `secrets` CRUD in the `default` namespace so the deploy job can create/update the K8s Secret that Fission mounts into the function pod.
+
 ### 3.5. Routing & Proxying
 
 - **Nginx Integration**: The `updateProxy.ts` logic adds `/routines/` location blocks only when routines are published.
@@ -131,7 +194,7 @@ To simplify development, Struxt provides a pre-bundled "Standard Library" in the
 - [ ] **Step 3**: Build the **Environment Registry** — MongoDB collection, admin CRUD API, and isDefault enforcement.
   - _Detail_: Seed with initial `node-22` entry matching the environments the admin has created in Fission.
 - [ ] **Step 4**: Build the **`routines/zip`** utility with glob-based file selection resolved from the environment registry + project overrides.
-- [ ] **Step 5**: Implement the **Secret Manager** logic (MongoDB encryption + K8s Secret creation).
+- [ ] **Step 5**: Implement the **Secret Manager** — per-project X25519 keypair generation, hybrid encryption on the client, server-side key storage in `project_keys`, and K8s Secret provisioning at deploy time. See §3.4 for the full scheme.
 - [ ] **Step 6**: Programmatic MongoDB database/user provisioning.
 
 ### Phase 3: Deployment & Lifecycle

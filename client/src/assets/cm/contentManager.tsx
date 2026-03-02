@@ -1,7 +1,9 @@
 import { useLoadAsync } from "client/api/useLoadAsync";
 import { addToastError } from "client/components/ErrorSnackBar";
 import { useCurrentProject } from "client/projects/ProjectContext";
+import { getProjectDetails } from "client/projects/projects";
 import { AssetListItem, AssetModel } from "common/models/assets/AssetModel";
+import { ProjectDetails } from "common/models/projects/ProjectDetails";
 import { ProjectListItem } from "common/models/projects/ProjectItem";
 import {
   FileType,
@@ -60,6 +62,12 @@ interface ContentManagerState {
   project: ProjectListItem;
   isSingleProject: boolean;
 
+  projectDetails: {
+    data: ProjectDetails | null;
+    loading: boolean;
+    error: Error | null;
+  };
+
   assets: {
     list: AssetListItem[];
     loading: boolean;
@@ -93,6 +101,26 @@ function useContentManagerState(): ContentManagerState {
   const projectId = project.projectId;
 
   const commands = useCommandManager();
+
+  // load project details
+  const [projectDetails, setProjectDetails] = useState<ProjectDetails | null>(
+    null,
+  );
+  useEffect(() => {
+    return commands.on("update:project-details", (details) => {
+      setProjectDetails(details);
+    });
+  }, [commands]);
+  const { isLoading: projectDetailsLoading, error: projectDetailsError } =
+    useLoadAsync(async () => {
+      if (!isSingleProject) {
+        return null;
+      }
+
+      const details = await getProjectDetails(projectId);
+      commands.trigger("update:project-details", details);
+      return null;
+    }, [projectId]);
 
   // Load and keep track of the list of assets
   const {
@@ -358,6 +386,11 @@ function useContentManagerState(): ContentManagerState {
     commands,
     project,
     isSingleProject,
+    projectDetails: {
+      data: projectDetails ?? null,
+      loading: projectDetailsLoading,
+      error: projectDetailsError,
+    },
     clipboard: {
       state: assetClipboard,
     },

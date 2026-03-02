@@ -13,3 +13,19 @@ export function centerTruncateText(text: string, maxLength: number) {
 
   return `${text.substring(0, halfLength)}...${text.substring(text.length - halfLength)}`;
 }
+
+/**
+ * Capitalize the first letter of each word in the given text.
+ *
+ * @param text
+ * @returns
+ */
+export function textCapitalize(text: string) {
+  if (!text) {
+    return text;
+  }
+  return text
+    .split(" ")
+    .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
+    .join(" ");
+}

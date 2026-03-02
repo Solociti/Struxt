@@ -1,4 +1,5 @@
 import { Model, UserModelAction } from "common/models/Model";
+import { RoutineEnvModel } from "../routines/RoutineEnv";
 import { DeepPartial, mergeDeep } from "../utils";
 import { EditorData } from "./editorDataTypes";
 import { ProjectEnvSettings, setupProjectEnvSettings } from "./Environment";
@@ -52,6 +53,19 @@ export interface ProjectContextItem {
   deleted: UserModelAction;
 }
 
+export interface ProjectFeatureFlags {
+  aiPilot: {
+    enabled: boolean;
+    settings: {
+      monthlyAllowance: number;
+    };
+  };
+  routines: {
+    enabled: boolean;
+    environments: Pick<RoutineEnvModel, "uuid" | "files" | "ignore">[];
+  };
+}
+
 export class ProjectModel extends Model {
   /**
    * The project db id
@@ -97,12 +111,16 @@ export class ProjectModel extends Model {
   /**
    * Feature flags for the project
    */
-  public featureFlags = {
+  public featureFlags: ProjectFeatureFlags = {
     aiPilot: {
       enabled: false,
       settings: {
         monthlyAllowance: 0,
       },
+    },
+    routines: {
+      enabled: false,
+      environments: [],
     },
   };
 
@@ -168,7 +186,26 @@ export class ProjectModel extends Model {
       this.editorData = data.editorData as EditorData;
     }
 
-    mergeDeep(this, data, ["staging", "production", "editorData"]);
+    if (data.featureFlags?.routines?.environments) {
+      this.featureFlags.routines.environments =
+        data.featureFlags.routines.environments.map((env) => {
+          const original: ProjectFeatureFlags["routines"]["environments"][number] =
+            {
+              uuid: "",
+              files: [],
+              ignore: [],
+            };
+
+          return Object.assign(original, env);
+        });
+    }
+
+    mergeDeep(this, data, [
+      "staging",
+      "production",
+      "editorData",
+      "featureFlags.routines.environments",
+    ]);
   }
 
   clone(): ProjectModel {
@@ -177,7 +214,7 @@ export class ProjectModel extends Model {
   }
 
   static createContextItem(
-    data: DeepPartial<ProjectContextItem>
+    data: DeepPartial<ProjectContextItem>,
   ): ProjectContextItem {
     const date = Math.floor(Date.now() / 1000);
     const item: ProjectContextItem = {

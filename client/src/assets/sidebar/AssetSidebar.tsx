@@ -19,7 +19,7 @@ interface SidebarStoredState {
 const defaultStoredState: SidebarStoredState = {
   width: 250,
   heights: [150, 150],
-  collapsed: [false, false, false],
+  collapsed: [false, true, false],
 };
 
 /**
@@ -360,7 +360,7 @@ interface SectionHeaderProps {
 function SectionHeader({ title, isCollapsed, onToggle }: SectionHeaderProps) {
   return (
     <div
-      className="d-flex align-items-center gap-1 px-2 border-bottom"
+      className="d-flex align-items-center gap-1 px-2 border-bottom text-nowrap"
       style={{
         height: headerHeight,
         flexShrink: 0,

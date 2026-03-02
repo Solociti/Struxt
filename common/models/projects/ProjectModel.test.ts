@@ -31,6 +31,7 @@ describe("ProjectModel", () => {
           hostId: 0,
           redirectId: 0,
         },
+        variables: [],
       },
       production: {
         forceSsl: true,
@@ -41,6 +42,7 @@ describe("ProjectModel", () => {
           hostId: 0,
           redirectId: 0,
         },
+        variables: [],
       },
       featureFlags: {
         aiPilot: {
@@ -48,6 +50,10 @@ describe("ProjectModel", () => {
           settings: {
             monthlyAllowance: 0,
           },
+        },
+        routines: {
+          enabled: false,
+          environments: [],
         },
       },
       created: { date: 0, userId: "", displayName: "" },
@@ -69,6 +75,12 @@ describe("ProjectModel", () => {
             },
           },
         ],
+        variables: [
+          {
+            name: "API_KEY",
+            value: "abc123",
+          },
+        ],
       },
       production: {
         domains: [
@@ -83,6 +95,21 @@ describe("ProjectModel", () => {
       // editor data should not get transformed
       editorData: {
         assets: [{}],
+      },
+      featureFlags: {
+        routines: {
+          enabled: true,
+          environments: [
+            {
+              uuid: "env1",
+              files: ["**/*.js"],
+              ignore: ["**/**.test.js"],
+            },
+            {
+              uuid: "env2",
+            },
+          ],
+        },
       },
     });
 
@@ -111,6 +138,14 @@ describe("ProjectModel", () => {
           hostId: 0,
           redirectId: 0,
         },
+        variables: [
+          {
+            name: "API_KEY",
+            value: "abc123",
+            preview: "",
+            isSecret: false,
+          },
+        ],
       },
       production: {
         forceSsl: true,
@@ -130,6 +165,7 @@ describe("ProjectModel", () => {
           hostId: 0,
           redirectId: 0,
         },
+        variables: [],
       },
       featureFlags: {
         aiPilot: {
@@ -137,6 +173,21 @@ describe("ProjectModel", () => {
           settings: {
             monthlyAllowance: 0,
           },
+        },
+        routines: {
+          enabled: true,
+          environments: [
+            {
+              uuid: "env1",
+              files: ["**/*.js"],
+              ignore: ["**/**.test.js"],
+            },
+            {
+              uuid: "env2",
+              files: [],
+              ignore: [],
+            },
+          ],
         },
       },
       created: { date: 1234, userId: "", displayName: "" },
