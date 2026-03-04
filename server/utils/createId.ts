@@ -10,7 +10,8 @@ export type IdCounterName =
   | "publish"
   | "invite"
   | "file"
-  | "routine";
+  | "routine"
+  | "env_variable";
 
 async function counter(name: IdCounterName) {
   const collection = await getCollection<{ value: number; name: string }>(

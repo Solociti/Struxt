@@ -142,7 +142,7 @@ describe("ProjectModel", () => {
           {
             name: "API_KEY",
             value: "abc123",
-            preview: "",
+            secretLength: 0,
             isSecret: false,
           },
         ],

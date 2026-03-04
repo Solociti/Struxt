@@ -1,3 +1,7 @@
+import {
+  EnvironmentTypes,
+  VariableState,
+} from "common/models/projects/Environment";
 import { ProjectDetails } from "common/models/projects/ProjectDetails";
 import { ProjectListItem } from "common/models/projects/ProjectItem";
 import { Api } from "../api";
@@ -75,6 +79,46 @@ export interface ProjectDetailsApi extends Api {
     success: boolean;
 
     details: ProjectDetails;
+  };
+}
+
+export interface ProjectEnvVariablesApi extends Api {
+  Endpoint: "/api/projects/:projectId/env-variables";
+  EndpointParts: ["/api/projects", string, "env-variables"];
+
+  UrlParams: {
+    projectId: string;
+  };
+
+  PostBody: {
+    changes: (
+      | {
+          env: EnvironmentTypes;
+          update: VariableState;
+          ephemeralPublicKeyHex?: string;
+        }
+      | { env: EnvironmentTypes; remove: string }
+    )[];
+  };
+  PostResponse: {
+    success: boolean;
+    details: ProjectDetails;
+  };
+}
+
+export interface ProjectEnvVariableKeysApi extends Api {
+  Endpoint: "/api/projects/:projectId/env-variables/public-key";
+  EndpointParts: ["/api/projects", string, "env-variables/public-key"];
+
+  UrlParams: {
+    projectId: string;
+  };
+
+  GetQuery: {
+    env: EnvironmentTypes;
+  };
+  GetResponse: {
+    publicKeyHex: string;
   };
 }
 

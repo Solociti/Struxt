@@ -45,3 +45,4 @@ Do not modify comments that are unrelated to the work you are doing, unless expl
   - Include descriptions only when the parameter name does not fully describe its purpose; otherwise, omit the description.
   - Never describe what is already obvious from the parameter name or type.
 - **Examples over Prose**: Prefer a single example over a long prose description (e.g., `@param path e.g. /v1/archive`).
+- **Destructured params**: When a function uses a destructured parameter, still include `@param0` to label it. Only add a description if it is needed to clarify its purpose.

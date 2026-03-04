@@ -6,15 +6,19 @@ export type EnvironmentTypes = "staging" | "production";
 export const validEnvironments: EnvironmentTypes[] = ["staging", "production"];
 
 export interface VariableState {
+  /**
+   * Stable identifier assigned by the server. Client-side new variables use `new-${counter}` until saved.
+   */
+  uuid: string;
   name: string;
   /**
    * Will be empty for secrets
    */
   value: string;
   /**
-   * A preview of the value for secrets
+   * The length of the secret value.
    */
-  preview: string;
+  secretLength: number;
   isSecret: boolean;
 }
 
@@ -134,10 +138,11 @@ export function setupProjectEnvSettings(
   if (data.variables) {
     setting.variables = data.variables.map((variable) => {
       const original: ProjectEnvSettings["variables"][number] = {
+        uuid: "",
         isSecret: false,
         name: "",
         value: "",
-        preview: "",
+        secretLength: 0,
       };
 
       return Object.assign(original, variable);

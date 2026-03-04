@@ -43,6 +43,30 @@ export async function up() {
     { unique: true, name: "name_unique_index" },
   );
 
+  await createIndex(
+    "project_secrets",
+    { varUuid: 1 },
+    { unique: true, name: "var_uuid_unique_index" },
+  );
+  await createIndex(
+    "project_secrets",
+    {
+      projectId: 1,
+      siteEnv: 1,
+      key: 1,
+    },
+    { unique: true, name: "project_env_key_unique_index" },
+  );
+
+  await createIndex(
+    "project_keys",
+    {
+      projectId: 1,
+      siteEnv: 1,
+    },
+    { unique: true, name: "project_env_unique_index" },
+  );
+
   await setupRoutineEnvs();
 }
 

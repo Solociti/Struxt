@@ -6,7 +6,7 @@ import {
 } from "common/models/projects/Environment";
 import { useState } from "react";
 import ListGroup from "react-bootstrap/ListGroup";
-import { SiteEnvModal } from "./SiteEnvModal";
+import { SiteEnvModal } from "../../projects/envVariables/SiteEnvModal";
 
 const envIcons: Record<EnvironmentTypes, string> = {
   staging: "science",

@@ -2,6 +2,8 @@ import {
   ProjectCreateApi,
   ProjectDetailsApi,
   ProjectEditorApi,
+  ProjectEnvVariableKeysApi,
+  ProjectEnvVariablesApi,
   ProjectListApi,
 } from "common/api/projects/project";
 import {
@@ -11,6 +13,7 @@ import {
 import { ProjectRoutinesEnvApi } from "common/api/projects/projectRoutines";
 import { customError } from "common/custom-error/custom-error";
 import { EditorData } from "common/models/projects/editorDataTypes";
+import { validEnvironments } from "common/models/projects/Environment";
 import { roles } from "common/models/user/Roles";
 import { DEFAULT_MAX_FILENAME_LENGTH } from "common/path/sanitizeFilename";
 import "server/api/domains/register";
@@ -20,6 +23,8 @@ import { validateUserId } from "server/auth/user/getUser";
 import { validateEmailAddress } from "server/utils/validateEmailAddress";
 import z from "zod";
 import { createNewProject } from "./createNewProject";
+import { getProjectEnvPublicKey } from "./envVariables/secretKey";
+import { updateProjectEnvVariables } from "./envVariables/updateEnvVars";
 import { getProjectEditorData } from "./getProject";
 import { getProjectDetails } from "./getProjectDetails";
 import { getProjectsAdmin, getProjectsForUser } from "./getProjectList";
@@ -205,6 +210,75 @@ registerApi<ProjectDetailsApi>("/api/projects/:projectId/details")
       details: await getProjectDetails(projectId),
     };
   });
+
+registerApi<ProjectEnvVariablesApi>(
+  "/api/projects/:projectId/env-variables",
+).post([], async ({ user, params, body }) => {
+  const projectId = params.projectId;
+
+  if (
+    !user.hasPermission(roles.struxt.admin) &&
+    !user.hasProjectPermission(projectId, [roles.projects.edit])
+  ) {
+    throw customError(
+      403,
+      "You do not have permission to modify this project.",
+      "Forbidden",
+    );
+  }
+
+  const envType = z.enum(validEnvironments);
+  const variableSchema = z.object({
+    uuid: z.string().min(5).max(64),
+    name: z.string().min(1).max(128),
+    value: z.string().max(2048),
+    secretLength: z.number(),
+    isSecret: z.boolean(),
+  });
+  const parsed = z
+    .object({
+      changes: z.array(
+        z.union([
+          z.object({
+            env: envType,
+            update: variableSchema,
+            ephemeralPublicKeyHex: z.string().optional(),
+          }),
+          z.object({ env: envType, remove: z.string().min(1) }),
+        ]),
+      ),
+    })
+    .parse(body);
+
+  await updateProjectEnvVariables(projectId, parsed.changes);
+
+  const details = await getProjectDetails(projectId);
+  return {
+    success: true,
+    details,
+  };
+});
+
+registerApi<ProjectEnvVariableKeysApi>(
+  "/api/projects/:projectId/env-variables/public-key",
+).get([], async ({ user, params, query }) => {
+  const projectId = params.projectId;
+
+  if (
+    !user.hasPermission(roles.struxt.admin) &&
+    !user.hasProjectPermission(projectId, [roles.projects.edit])
+  ) {
+    throw customError(
+      403,
+      "You do not have permission to view this project.",
+      "Forbidden",
+    );
+  }
+
+  const env = z.enum(validEnvironments).parse(query.env);
+  const publicKeyHex = await getProjectEnvPublicKey(projectId, env);
+  return { publicKeyHex };
+});
 
 registerApi<ProjectRolesApi>("/api/projects/:projectId/roles")
   .get([], async ({ user, params }) => {

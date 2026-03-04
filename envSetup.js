@@ -316,6 +316,14 @@ async function main() {
     ].join("\n");
   }
 
+  if (!contents.includes("PROJECT_SECRETS_MASTER_KEY")) {
+    contents += [
+      "",
+      "# Master key used to encrypt project secrets. Must be 32 bytes (64 hex characters).",
+      `PROJECT_SECRETS_MASTER_KEY=${randomBytes(32).toString("hex")}`,
+    ].join("\n");
+  }
+
   if (contents !== original) {
     // allow the value to be edited
     const lines = contents.split("\n");
