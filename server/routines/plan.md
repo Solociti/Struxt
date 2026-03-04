@@ -191,10 +191,12 @@ To simplify development, Struxt provides a pre-bundled "Standard Library" in the
 
 ### Phase 2: Packaging & Provisioning
 
-- [ ] **Step 3**: Build the **Environment Registry** — MongoDB collection, admin CRUD API, and isDefault enforcement.
+- [x] **Step 3**: Build the **Environment Registry** — MongoDB collection, admin CRUD API, and isDefault enforcement.
   - _Detail_: Seed with initial `node-22` entry matching the environments the admin has created in Fission.
+  - _Note_: DELETE endpoint intentionally omitted to prevent breaking active deployments.
 - [ ] **Step 4**: Build the **`routines/zip`** utility with glob-based file selection resolved from the environment registry + project overrides.
-- [ ] **Step 5**: Implement the **Secret Manager** — per-project X25519 keypair generation, hybrid encryption on the client, server-side key storage in `project_keys`, and K8s Secret provisioning at deploy time. See §3.4 for the full scheme.
+- [~] **Step 5**: Implement the **Secret Manager** — per-project X25519 keypair generation, hybrid encryption on the client, server-side key storage in `project_keys`, and K8s Secret provisioning at deploy time. See §3.4 for the full scheme.
+  - _Status_: Encryption/decryption infrastructure complete. K8s Secret provisioning and RBAC updates will be completed during Step 7 (deploy integration).
 - [ ] **Step 6**: Programmatic MongoDB database/user provisioning.
 
 ### Phase 3: Deployment & Lifecycle
