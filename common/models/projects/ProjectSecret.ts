@@ -1,4 +1,4 @@
-import { Model, ModelAction } from "common/models/Model";
+import { Model, ModelAction, UserModelAction } from "common/models/Model";
 import { DeepPartial, mergeDeep } from "common/models/utils";
 import { EnvironmentTypes } from "./Environment";
 
@@ -49,22 +49,32 @@ export class ProjectKeyModel extends Model {
  * The encrypted value is never decrypted by the API — only at Fission deploy time.
  */
 export class ProjectSecretModel extends Model {
-  projectId: string = "";
-  siteEnv: EnvironmentTypes = "staging";
+  public projectId: string = "";
+  public siteEnv: EnvironmentTypes = "staging";
   /**
    * Stable identifier matching `VariableState.uuid`.
    */
-  varUuid: string = "";
+  public varUuid: string = "";
   /**
    * The variable name (key). May change on rename — `varUuid` is the stable lookup key.
    */
-  key: string = "";
+  public key: string = "";
 
-  ephemeralPublicKeyHex: string = "";
+  public ephemeralPublicKeyHex: string = "";
 
-  encryptedValueHex: string = "";
+  public encryptedValueHex: string = "";
 
-  // TODO: add the created information
+  public created: Omit<UserModelAction, "active"> = {
+    date: Math.floor(Date.now() / 1000),
+    userId: "",
+    displayName: "",
+  };
+
+  public updated: Omit<UserModelAction, "active"> = {
+    date: Math.floor(Date.now() / 1000),
+    userId: "",
+    displayName: "",
+  };
 
   constructor(data?: DeepPartial<ProjectSecretModel>) {
     super();

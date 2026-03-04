@@ -250,7 +250,10 @@ registerApi<ProjectEnvVariablesApi>(
     })
     .parse(body);
 
-  await updateProjectEnvVariables(projectId, parsed.changes);
+  await updateProjectEnvVariables(projectId, parsed.changes, {
+    userId: user.id,
+    displayName: user.name,
+  });
 
   const details = await getProjectDetails(projectId);
   return {

@@ -22,6 +22,7 @@ import {
   hasInvalidEntries,
   nextClientUuid,
 } from "./envUtils";
+import { ShowError } from "client/components/ShowError";
 
 /**
  * Modal for editing environment variables and secrets for a specific environment of a project.
@@ -125,6 +126,8 @@ export function SiteEnvModal({
       }
     >
       <div className="mt-2">
+        <ShowError error={handleSave.error} />
+
         <div className="d-flex align-items-center justify-content-between mb-3">
           <h5 className="mb-0">Environment Variables</h5>
           <IconButton

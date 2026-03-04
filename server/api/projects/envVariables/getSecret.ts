@@ -10,8 +10,7 @@ import { getProjectEnvSecretKeys } from "server/api/projects/envVariables/secret
 import { getCollection } from "server/database/mongodb";
 
 /**
- * Retrieves and decrypts a project environment secret using the stored X25519 private key.
- * Returns null if no secret exists for the given key.
+ * Get the project environment secret model data from database.
  *
  * @param projectId
  * @param env
@@ -21,17 +20,50 @@ export async function getProjectEnvSecret(
   projectId: string,
   env: EnvironmentTypes,
   key: string,
-): Promise<string | null> {
+): Promise<ProjectSecretModel | null> {
   const collection = await getCollection<ProjectSecretModel>("project_secrets");
-  const secret = await collection.findOne({ projectId, siteEnv: env, key });
 
+  const secret = await collection.findOne({ projectId, siteEnv: env, key });
   if (!secret) {
     return null;
   }
 
+  return new ProjectSecretModel(secret);
+}
+
+/**
+ * Get the project environment secret model data from database by its stable UUID.
+ *
+ * @param projectId
+ * @param env
+ * @param varUuid Stable UUID from `VariableState.uuid`.
+ */
+export async function getProjectEnvSecretByUuid(
+  projectId: string,
+  env: EnvironmentTypes,
+  varUuid: string,
+): Promise<ProjectSecretModel | null> {
+  const collection = await getCollection<ProjectSecretModel>("project_secrets");
+
+  const secret = await collection.findOne({ projectId, siteEnv: env, varUuid });
+  if (!secret) {
+    return null;
+  }
+
+  return new ProjectSecretModel(secret);
+}
+
+/**
+ * Decrypts a project environment secret using the stored X25519 private key.
+ *
+ * @param secret
+ */
+export async function decryptProjectSecretValue(
+  secret: ProjectSecretModel,
+): Promise<string> {
   const { privateKeyHex, publicKeyHex } = await getProjectEnvSecretKeys(
-    projectId,
-    env,
+    secret.projectId,
+    secret.siteEnv,
   );
 
   const serverPrivKey = createPrivateKey({
