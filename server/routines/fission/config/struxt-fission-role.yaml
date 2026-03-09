@@ -28,5 +28,9 @@ rules:
   # Access to storagesvc via the Kubernetes service proxy
   - apiGroups: [""]
     resources: ["services/proxy"]
-    resourceNames: ["storagesvc"]
-    verbs: ["get"]
+    resourceNames: ["http:storagesvc:80"]
+    verbs: 
+      - "get"
+      - "list"
+      - "create"
+      - "delete"

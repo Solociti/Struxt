@@ -27,6 +27,7 @@ import { createEditorSnapshot } from "../projects/snapshots/saveEditorSnapshot";
 import { scheduleCleanPublish } from "./queue";
 import { savePublish, setActivePublish } from "./savePublish";
 import { updateProjectProxy } from "./updateProxy";
+import { publishRoutines } from "server/routines/publish/publishRoutine";
 
 /**
  * Publish the given project to the given environment.
@@ -141,6 +142,11 @@ export async function publishProject(
     );
 
     await saveFormSettings(formSettings);
+  }
+
+  if (project.featureFlags.routines.enabled) {
+    // publish the routines and schedule removal of old publishes
+    await publishRoutines(project, publishModel);
   }
 
   // save the publish details to database

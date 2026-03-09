@@ -12,6 +12,7 @@ describe("PublishModel", () => {
       uuid: "",
       projectId: "",
       siteEnv: "staging",
+      routines: [],
       isActive: false,
       screenshotUrl: "",
       created: { date: 0, userId: "", displayName: "" },
@@ -25,12 +26,24 @@ describe("PublishModel", () => {
         date: 1234,
       },
       projectId: "test-project",
+      routines: [
+        {
+          uuid: "routine-1",
+        },
+      ],
     });
 
     expect(model).toEqual({
       uuid: "",
       projectId: "test-project",
       siteEnv: "staging",
+      routines: [
+        {
+          uuid: "routine-1",
+          routineUuid: "",
+          assetIds: [],
+        },
+      ],
       isActive: false,
       screenshotUrl: "",
       created: { date: 1234, userId: "", displayName: "" },

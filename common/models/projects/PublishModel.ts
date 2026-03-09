@@ -2,6 +2,25 @@ import { Model, ModelAction, UserModelAction } from "common/models/Model";
 import { DeepPartial, mergeDeep } from "common/models/utils";
 import { EnvironmentTypes } from "./Environment";
 
+export interface PublishRoutineItem {
+  /**
+   * A unique identifier for this routine item.
+   *
+   * Concat the publish uuid with a integer index to create it.
+   */
+  uuid: string;
+
+  /**
+   * The uuid of the routine environment this routine belongs to.
+   */
+  routineUuid: string;
+
+  /**
+   * The list of asset uuids that were included in the zip file.
+   */
+  assetIds: string[];
+}
+
 export class PublishModel extends Model {
   /**
    * The publish db id
@@ -17,6 +36,8 @@ export class PublishModel extends Model {
    * The environment this publish is for
    */
   public siteEnv: EnvironmentTypes = "staging";
+
+  public routines: PublishRoutineItem[] = [];
 
   /**
    * Tells if this is the active publish for this project + env combination
@@ -52,11 +73,28 @@ export class PublishModel extends Model {
   }
 
   update(data: DeepPartial<PublishModel>) {
-    mergeDeep(this, data);
+    if (data.routines) {
+      this.routines = data.routines.map((routine) => {
+        const defaultRoutine: PublishRoutineItem = {
+          uuid: "",
+          routineUuid: "",
+          assetIds: [],
+        };
+
+        return mergeDeep(defaultRoutine, routine!);
+      });
+    }
+
+    mergeDeep(this, data, ["routines"]);
   }
 
   clone(): PublishModel {
     const data = JSON.parse(JSON.stringify(this));
     return new PublishModel(data);
+  }
+
+  createNextRoutineId() {
+    const index = this.routines.length;
+    return `${this.uuid}-${index}`;
   }
 }

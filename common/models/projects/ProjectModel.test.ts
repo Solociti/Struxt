@@ -77,6 +77,7 @@ describe("ProjectModel", () => {
         ],
         variables: [
           {
+            uuid: "var-1",
             name: "API_KEY",
             value: "abc123",
           },
@@ -140,6 +141,7 @@ describe("ProjectModel", () => {
         },
         variables: [
           {
+            uuid: "var-1",
             name: "API_KEY",
             value: "abc123",
             secretLength: 0,

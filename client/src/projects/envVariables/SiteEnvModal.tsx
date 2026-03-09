@@ -1,6 +1,7 @@
 import IconButton from "client/components/IconButton";
 import MaterialIcon from "client/components/MaterialIcon";
 import SimpleModal from "client/components/modals/SimpleModal";
+import { ShowError } from "client/components/ShowError";
 import { useAsyncCallback } from "client/components/useAsyncCallback";
 import {
   EnvTable,
@@ -22,7 +23,6 @@ import {
   hasInvalidEntries,
   nextClientUuid,
 } from "./envUtils";
-import { ShowError } from "client/components/ShowError";
 
 /**
  * Modal for editing environment variables and secrets for a specific environment of a project.

@@ -71,7 +71,7 @@ export async function listArchives(): Promise<string[]> {
  * Returns the archive ID and the internal cluster URL to embed in a Package spec.
  *
  * @param stream
- * @param filename e.g. `{projectId}.zip`
+ * @param filename
  * @param knownLength
  */
 export async function uploadArchive(
@@ -107,7 +107,9 @@ export async function uploadArchive(
       Object.assign(headers, fetchOpts.headers);
     }
   }
-  Object.assign(headers, form.getHeaders());
+  Object.assign(headers, form.getHeaders(), {
+    "X-File-Size": knownLength?.toString() ?? "",
+  });
 
   const res = await fetch(url, {
     ...fetchOpts,
