@@ -38,7 +38,7 @@ export function AssetFileSection() {
           node={fileTree}
           level={0}
           onClick={(file) => {
-            commands.trigger("tabs:open", file);
+            commands.trigger("tabs:open:file", file);
           }}
           onContextMenu={(file, target) => {
             commands.trigger("context-menu:show", target, file);

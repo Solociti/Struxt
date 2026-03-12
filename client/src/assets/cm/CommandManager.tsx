@@ -7,6 +7,7 @@ import { AssetListItem, AssetModel } from "common/models/assets/AssetModel";
 import { ProjectDetails } from "common/models/projects/ProjectDetails";
 import { useMemo, useRef } from "react";
 import { DirectoryNode } from "../list/DirectoryView";
+import { NoneFileTabType } from "./contentManager";
 
 interface CommandResult {
   success: boolean;
@@ -25,8 +26,17 @@ export interface CommandManager {
   ): UnregisterCallback;
 
   // tabs:open
-  trigger(command: "tabs:open", item: AssetListItem): void;
-  on(event: "tabs:open", cb: (item: AssetListItem) => void): UnregisterCallback;
+  trigger(command: "tabs:open", item: NoneFileTabType | AssetListItem): void;
+  on(
+    event: "tabs:open",
+    cb: (item: NoneFileTabType | AssetListItem) => void,
+  ): UnregisterCallback;
+
+  trigger(command: "tabs:open:file", item: AssetListItem): void;
+  on(
+    event: "tabs:open:file",
+    cb: (item: AssetListItem) => void,
+  ): UnregisterCallback;
 
   // tabs:close
   trigger(command: "tabs:close", uuid: string): void;

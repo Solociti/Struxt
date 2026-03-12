@@ -28,7 +28,27 @@ import {
 } from "../assetApis";
 import { CommandManager, useCommandManager } from "./CommandManager";
 
+export type NoneFileTabType = "settings:triggers";
+
+export type TabType = FileType | NoneFileTabType;
+
 interface Tab {
+  type: TabType;
+
+  /**
+   * For file tabs, this is the asset being edited.
+   *
+   * for non-file tabs, the type of tab that is open. Prevents multiple settings tabs open at once, etc.
+   */
+  tabId: string;
+
+  name: string;
+
+  isActive: boolean;
+  isDirty: boolean;
+}
+
+export interface FileTab extends Tab {
   item: AssetListItem;
   type: FileType;
 
@@ -41,10 +61,45 @@ interface Tab {
   isDirty: boolean;
 }
 
-function createNewTab(item: AssetListItem): Tab {
+/**
+ * Type guard to determine if a given tab is a file tab or a non-file tab.
+ *
+ * @param tab
+ * @returns
+ */
+export function isFileTab(tab: Tab | FileTab): tab is FileTab {
+  return "item" in tab;
+}
+
+/**
+ * Factory for creating a new tab object based on the type of tab to be opened.
+ *
+ * @param type
+ * @returns
+ */
+function createNewTab(type: NoneFileTabType): Tab {
+  return {
+    tabId: type,
+    type,
+    name: type === "settings:triggers" ? "Triggers" : type,
+    isActive: false,
+    isDirty: false,
+  };
+}
+
+/**
+ * Factory for creating a new file tab object based on the asset to be edited.
+ *
+ * @param item
+ * @returns
+ */
+function createNewFileTab(item: AssetListItem): FileTab {
   const type = getFileType(getFileExtension(item.path));
 
   return {
+    tabId: item.uuid,
+    name: "",
+
     item,
     type,
 
@@ -85,11 +140,11 @@ interface ContentManagerState {
   };
 
   tabs: {
-    list: Tab[];
+    list: (Tab | FileTab)[];
     setActiveTab: (uuid: string) => void;
-    activeTab: Tab | null;
-    addTab: (item: AssetListItem) => void;
-    removeTab: (uuid: string) => void;
+    activeTab: Tab | FileTab | null;
+    addTab: (item: NoneFileTabType | AssetListItem) => void;
+    removeTab: (tabId: string) => void;
     markDirty(uuid: string): void;
   };
 }
@@ -182,26 +237,30 @@ function useContentManagerState(): ContentManagerState {
   }, [reloadAssetList]);
 
   // Keep track of the open editor tabs
-  const [tabs, setTabs] = useState<Tab[]>([]);
+  const [tabs, setTabs] = useState<(Tab | FileTab)[]>([]);
 
-  const updateTabState = useCallback((uuid: string, tab: Partial<Tab>) => {
+  const updateTabState = useCallback(
+    (tabId: string, tab: Partial<Tab> | Partial<FileTab>) => {
+      setTabs((tabs) =>
+        tabs.map((t) => {
+          if (t.tabId === tabId) {
+            return { ...t, ...tab };
+          }
+          return t;
+        }),
+      );
+    },
+    [],
+  );
+
+  const setActiveTab = useCallback((tabId: string) => {
     setTabs((tabs) =>
-      tabs.map((t) => {
-        if (t.item.uuid === uuid) {
-          return { ...t, ...tab };
-        }
-        return t;
+      tabs.map((tab) => {
+        tab.isActive = tab.tabId === tabId;
+
+        return tab;
       }),
     );
-  }, []);
-
-  const setActiveTab = useCallback((uuid: string) => {
-    setTabs((tabs) => {
-      for (const tab of tabs) {
-        tab.isActive = tab.item.uuid === uuid;
-      }
-      return tabs.slice();
-    });
   }, []);
 
   const activeTab = tabs.find((t) => t.isActive) || null;
@@ -211,7 +270,12 @@ function useContentManagerState(): ContentManagerState {
       // update any open tabs with the new path
       setTabs((tabs) =>
         tabs.map((tab) => {
-          const asset = result.completed.find((i) => i.uuid === tab.item.uuid);
+          // only run this for file tabs
+          if (!isFileTab(tab)) {
+            return tab;
+          }
+
+          const asset = result.completed.find((i) => i.uuid === tab.tabId);
           if (asset) {
             return {
               ...tab,
@@ -264,14 +328,14 @@ function useContentManagerState(): ContentManagerState {
       return;
     }
 
-    const loadTab = (tab: Tab) => {
+    const loadTab = (tab: FileTab) => {
       if (!tab.hasAssetLoaded) {
         loadAssetForTab(tab.item.uuid);
       }
     };
 
     // Always load for the active tab immediately
-    if (activeTab) {
+    if (activeTab && isFileTab(activeTab)) {
       loadTab(activeTab);
     }
   }, [projectId, activeTab, tabs, updateTabState, loadAssetForTab]);
@@ -281,14 +345,40 @@ function useContentManagerState(): ContentManagerState {
 
     unregister.push(
       commands.on("tabs:open", (item) => {
+        if (typeof item === "string") {
+          // handle non-file tabs
+          setTabs((tabs) => {
+            // check if the tab is already open
+            if (tabs.find((t) => t.tabId === item)) {
+              setActiveTab(item);
+              return tabs;
+            }
+
+            const tab = createNewTab(item);
+            tab.isActive = true;
+
+            for (const tab of tabs) {
+              tab.isActive = false;
+            }
+
+            return [...tabs, tab as FileTab];
+          });
+        } else {
+          commands.trigger("tabs:open:file", item);
+        }
+      }),
+    );
+
+    unregister.push(
+      commands.on("tabs:open:file", (item) => {
         setTabs((tabs) => {
           // check if the item is already open
-          if (tabs.find((t) => t.item.uuid === item.uuid)) {
+          if (tabs.find((t) => t.tabId === item.uuid)) {
             setActiveTab(item.uuid);
             return tabs;
           }
 
-          const tab = createNewTab(item);
+          const tab = createNewFileTab(item);
           tab.isActive = true;
 
           for (const tab of tabs) {
@@ -301,21 +391,21 @@ function useContentManagerState(): ContentManagerState {
     );
 
     unregister.push(
-      commands.on("tabs:close", (uuid) => {
+      commands.on("tabs:close", (tabId) => {
         setTabs((tabs) => {
           const activeTab = tabs.find((t) => t.isActive) || null;
-          let isActive = activeTab?.item.uuid === uuid;
+          let wasActive = activeTab?.tabId === tabId;
           let index = -1;
 
           tabs = tabs.filter((tab, i) => {
-            if (tab.item.uuid === uuid) {
+            if (tab.tabId === tabId) {
               index = i;
               return false;
             }
             return true;
           });
 
-          if (isActive && tabs.length > 0) {
+          if (wasActive && tabs.length > 0) {
             index = Math.max(0, Math.min(index, tabs.length - 1));
             if (tabs[index]) {
               tabs[index].isActive = true;
@@ -420,14 +510,14 @@ function useContentManagerState(): ContentManagerState {
       list: tabs,
       setActiveTab,
       activeTab,
-      addTab: (item: AssetListItem) => {
+      addTab: (item: NoneFileTabType | AssetListItem) => {
         commands.trigger("tabs:open", item);
       },
-      removeTab: (uuid: string) => {
-        commands.trigger("tabs:close", uuid);
+      removeTab: (tabId: string) => {
+        commands.trigger("tabs:close", tabId);
       },
-      markDirty(uuid: string) {
-        updateTabState(uuid, { isDirty: true });
+      markDirty(tabId: string) {
+        updateTabState(tabId, { isDirty: true });
       },
     },
   };
