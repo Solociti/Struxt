@@ -56,9 +56,6 @@ export interface FileTab extends Tab {
   hasAssetLoaded: boolean;
   isAssetLoading: boolean;
   assetLoadError: Error | null;
-
-  isActive: boolean;
-  isDirty: boolean;
 }
 
 /**
@@ -141,11 +138,11 @@ interface ContentManagerState {
 
   tabs: {
     list: (Tab | FileTab)[];
-    setActiveTab: (uuid: string) => void;
+    setActiveTab: (tabId: string) => void;
     activeTab: Tab | FileTab | null;
     addTab: (item: NoneFileTabType | AssetListItem) => void;
     removeTab: (tabId: string) => void;
-    markDirty(uuid: string): void;
+    markDirty(tabId: string): void;
   };
 }
 
@@ -255,11 +252,7 @@ function useContentManagerState(): ContentManagerState {
 
   const setActiveTab = useCallback((tabId: string) => {
     setTabs((tabs) =>
-      tabs.map((tab) => {
-        tab.isActive = tab.tabId === tabId;
-
-        return tab;
-      }),
+      tabs.map((tab) => ({ ...tab, isActive: tab.tabId === tabId })),
     );
   }, []);
 
@@ -361,7 +354,7 @@ function useContentManagerState(): ContentManagerState {
               tab.isActive = false;
             }
 
-            return [...tabs, tab as FileTab];
+            return [...tabs, tab];
           });
         } else {
           commands.trigger("tabs:open:file", item);
