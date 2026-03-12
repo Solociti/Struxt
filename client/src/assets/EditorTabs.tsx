@@ -83,7 +83,7 @@ export function EditorTabs() {
               <FileTab tab={tab} />
             ) : (
               <Nav.Link
-                eventKey={tab.type}
+                eventKey={tab.tabId}
                 className={`d-flex px-2 align-items-center cursor-pointer editor-tab-item ${
                   isDirty ? "dirty" : ""
                 }`}
@@ -105,6 +105,11 @@ export function EditorTabs() {
   );
 }
 
+/**
+ * Render a file tab in the editor tab bar
+ *
+ * @param param0
+ */
 function FileTab({ tab }: { tab: FileTabInterface }) {
   const { item, isDirty } = tab;
 
