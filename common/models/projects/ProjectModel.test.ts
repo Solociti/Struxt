@@ -54,6 +54,8 @@ describe("ProjectModel", () => {
         routines: {
           enabled: false,
           environments: [],
+          httpTriggers: [],
+          cronTriggers: [],
         },
       },
       created: { date: 0, userId: "", displayName: "" },
@@ -108,6 +110,12 @@ describe("ProjectModel", () => {
             },
             {
               uuid: "env2",
+            },
+          ],
+          httpTriggers: [
+            {
+              endpoint: "/example",
+              assetId: "asset1",
             },
           ],
         },
@@ -190,6 +198,16 @@ describe("ProjectModel", () => {
               ignore: [],
             },
           ],
+          httpTriggers: [
+            {
+              assetId: "asset1",
+              endpoint: "/example",
+              method: "GET",
+              handler: "",
+              environmentId: "",
+            },
+          ],
+          cronTriggers: [],
         },
       },
       created: { date: 1234, userId: "", displayName: "" },

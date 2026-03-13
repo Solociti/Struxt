@@ -3,10 +3,10 @@ import CodeEditor, {
   updateEditorModel,
 } from "client/components/codeEditor/CodeEditor";
 import { ShowError } from "client/components/ShowError";
+import { useCallback } from "react";
 import Spinner from "react-bootstrap/Spinner";
 import { getTextAssetContents } from "../assetApis";
-import { useContentManager } from "../cm/contentManager";
-import { useCallback } from "react";
+import { isFileTab, useContentManager } from "../cm/contentManager";
 
 /**
  * Load the asset contents and setup the monaco editor
@@ -19,7 +19,7 @@ export default function AssetCodeEditor() {
 
   // load the text content for the active tab
   const { response, isLoading, error } = useLoadAsync(async () => {
-    if (!tabs.activeTab) {
+    if (!tabs.activeTab || !isFileTab(tabs.activeTab)) {
       return null;
     }
 
@@ -30,26 +30,35 @@ export default function AssetCodeEditor() {
       content: updateEditorModel(item.path, text),
       filePath: item.path,
     };
-  }, [projectId, tabs.activeTab?.item.uuid || null]);
+  }, [projectId, tabs.activeTab?.tabId || null]);
 
   const handleChange = useCallback(() => {
     if (!tabs.activeTab) {
       return;
     }
 
-    tabs.markDirty(tabs.activeTab.item.uuid);
-  }, [tabs.activeTab?.item.uuid || null]);
+    tabs.markDirty(tabs.activeTab.tabId);
+  }, [tabs.activeTab?.tabId || null]);
 
   const handleSave = useCallback(
     async (content: string) => {
-      if (!tabs.activeTab) {
+      if (!tabs.activeTab || !isFileTab(tabs.activeTab)) {
         return;
       }
 
       return assets.saveTextAsset(tabs.activeTab.item.uuid, content);
     },
-    [tabs.activeTab?.item.uuid || null],
+    [tabs.activeTab?.tabId || null],
   );
+
+  if (tabs.activeTab && !isFileTab(tabs.activeTab)) {
+    // This should never happen, but typescript and llm's like to complain, so here we are
+    return (
+      <div className="d-flex justify-content-center align-items-center h-100 p-2 gap-2">
+        <div style={{ fontSize: "0.95rem" }}>No file selected</div>
+      </div>
+    );
+  }
 
   const item = tabs.activeTab?.item;
   if (!item || isLoading || !response) {

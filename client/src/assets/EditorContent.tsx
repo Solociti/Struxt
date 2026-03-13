@@ -5,6 +5,7 @@ import { getAssetUrl } from "./assetUtils";
 import { isFileTab, useContentManager } from "./cm/contentManager";
 
 const AssetCodeEditor = lazy(() => import("./editors/AssetCodeEditor"));
+const TriggerSettings = lazy(() => import("./triggers/TriggerSettings"));
 
 /**
  * Render the content for the editor
@@ -21,10 +22,26 @@ export function EditorContent() {
 
   if (activeTab.type === "settings:triggers") {
     return (
-      <div className="d-flex justify-content-center align-items-center h-100 p-2 flex-column text-muted">
-        <MaterialIcon style={{ fontSize: "3rem" }}>settings</MaterialIcon>
-        <p className="mt-2">No preview available for trigger settings.</p>
-      </div>
+      <Suspense
+        fallback={
+          <div
+            style={{
+              position: "absolute",
+              top: 0,
+              left: 0,
+              right: 0,
+              bottom: 0,
+            }}
+          >
+            <div className="d-flex justify-content-center align-items-center h-100 p-2 gap-2 flex-column">
+              <Spinner animation="border" />
+              <div style={{ fontSize: "0.95rem" }}>Loading</div>
+            </div>
+          </div>
+        }
+      >
+        <TriggerSettings />
+      </Suspense>
     );
   }
 
@@ -65,7 +82,7 @@ export function EditorContent() {
                 bottom: 0,
               }}
             >
-              <div className="d-flex justify-content-center align-items-center h-100 p-2 gap-2">
+              <div className="d-flex justify-content-center align-items-center h-100 p-2 gap-2 flex-column">
                 <Spinner animation="border" />
                 <div style={{ fontSize: "0.95rem" }}>Loading Editor</div>
               </div>

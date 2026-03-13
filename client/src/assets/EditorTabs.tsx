@@ -90,8 +90,8 @@ export function EditorTabs() {
                 as="div"
                 title={tab.type}
               >
-                <MaterialIcon style={{ fontSize: "1rem" }}>
-                  settings
+                <MaterialIcon style={{ fontSize: "1rem" }} className="pe-1">
+                  alt_route
                 </MaterialIcon>
                 {centerTruncateText(tab.name, 15)}
 

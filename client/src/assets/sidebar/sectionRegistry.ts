@@ -2,7 +2,7 @@ import { ComponentType } from "react";
 import { AssetFileSection } from "./AssetFileSection";
 import { EnvironmentSection } from "./EnvironmentSection";
 import { RoutineEnvSection } from "./RoutineEnvSection";
-import { ExtraSettings } from "./ExtraSettings";
+import { ExtraSettingsSection } from "./ExtraSettingsSection";
 
 export interface SidebarSectionDef {
   id: string;
@@ -51,9 +51,9 @@ export const sidebarSections: SidebarSectionDef[] = [
     title: "Settings",
     isFlex: false,
     canCollapse: true,
-    defaultHeight: 150,
+    defaultHeight: 100,
     defaultCollapsed: true,
-    contentComponent: ExtraSettings,
+    contentComponent: ExtraSettingsSection,
   },
 ];
 

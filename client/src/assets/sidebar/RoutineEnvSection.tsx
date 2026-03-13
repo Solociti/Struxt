@@ -12,7 +12,6 @@ import Dropdown from "react-bootstrap/Dropdown";
 import ListGroup from "react-bootstrap/ListGroup";
 import Spinner from "react-bootstrap/Spinner";
 import { EditRoutineEnvModal } from "./RoutineEnvModal";
-import IconButton from "client/components/IconButton";
 
 /**
  * Renders the routine environments configured for the current project.
@@ -130,18 +129,6 @@ function ShowRoutineInfo({ allEnvs }: { allEnvs: RoutineEnvModel[] }) {
           No environments configured.
         </p>
       )}
-
-      <div className="text-center py-2">
-        <IconButton
-          icon="settings"
-          variant="outline-secondary"
-          size="sm"
-          disabled={!projectDetails.data}
-          onClick={() => commands.trigger("tabs:open", "settings:triggers")}
-        >
-          Triggers
-        </IconButton>
-      </div>
 
       <div className="text-center py-2">
         <Dropdown>

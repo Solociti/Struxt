@@ -3,6 +3,12 @@ import { RoutineEnvModel } from "../routines/RoutineEnv";
 import { DeepPartial, mergeDeep } from "../utils";
 import { EditorData } from "./editorDataTypes";
 import { ProjectEnvSettings, setupProjectEnvSettings } from "./Environment";
+import {
+  createCronTrigger,
+  createHttpTrigger,
+  CronTrigger,
+  HttpTrigger,
+} from "./Triggers";
 
 export interface ProjectEditorData {
   /**
@@ -63,6 +69,16 @@ export interface ProjectFeatureFlags {
   routines: {
     enabled: boolean;
     environments: Pick<RoutineEnvModel, "uuid" | "files" | "ignore">[];
+
+    /**
+     * The list of http triggers for the project.
+     */
+    httpTriggers: HttpTrigger[];
+
+    /**
+     * The list of cron triggers for the project.
+     */
+    cronTriggers: CronTrigger[];
   };
 }
 
@@ -121,6 +137,8 @@ export class ProjectModel extends Model {
     routines: {
       enabled: false,
       environments: [],
+      httpTriggers: [],
+      cronTriggers: [],
     },
   };
 
@@ -200,11 +218,27 @@ export class ProjectModel extends Model {
         });
     }
 
+    if (data.featureFlags?.routines?.httpTriggers) {
+      this.featureFlags.routines.httpTriggers =
+        data.featureFlags.routines.httpTriggers.map((trigger) =>
+          createHttpTrigger(trigger),
+        );
+    }
+
+    if (data.featureFlags?.routines?.cronTriggers) {
+      this.featureFlags.routines.cronTriggers =
+        data.featureFlags.routines.cronTriggers.map((trigger) =>
+          createCronTrigger(trigger),
+        );
+    }
+
     mergeDeep(this, data, [
       "staging",
       "production",
       "editorData",
       "featureFlags.routines.environments",
+      "featureFlags.routines.httpTriggers",
+      "featureFlags.routines.cronTriggers",
     ]);
   }
 

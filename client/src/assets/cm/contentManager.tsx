@@ -46,6 +46,14 @@ interface Tab {
 
   isActive: boolean;
   isDirty: boolean;
+
+  /**
+   * Store a arbitrary state for the tab.
+   * Useful for storing unsaved changes.
+   *
+   * This will be cleared when the tab is closed.
+   */
+  state?: unknown;
 }
 
 export interface FileTab extends Tab {
@@ -143,6 +151,10 @@ interface ContentManagerState {
     addTab: (item: NoneFileTabType | AssetListItem) => void;
     removeTab: (tabId: string) => void;
     markDirty(tabId: string): void;
+    useState<S>(
+      tabId: string | undefined,
+      initialState?: S,
+    ): [S | undefined, (val: S | ((prev: S) => S)) => void];
   };
 }
 
@@ -511,6 +523,59 @@ function useContentManagerState(): ContentManagerState {
       },
       markDirty(tabId: string) {
         updateTabState(tabId, { isDirty: true });
+      },
+      useState<S>(
+        tabId: string | undefined,
+        initialState?: S,
+      ): [S | undefined, (val: S | ((prev: S) => S)) => void] {
+        const initialRef = useRef(initialState);
+        useEffect(() => {
+          initialRef.current = initialState;
+        }, [tabId]);
+
+        const tab = tabs.find((t) => t.tabId === tabId);
+
+        const currentVal = tabId
+          ? (tab?.state ?? initialRef.current)
+          : undefined;
+
+        const setState = useCallback(
+          (newState: S | ((prev: S) => S)) => {
+            if (!tabId) {
+              return;
+            }
+
+            setTabs((prevTabs) =>
+              prevTabs.map((t) => {
+                if (t.tabId !== tabId) {
+                  return t;
+                }
+
+                const prevValue = t.state ?? initialRef.current;
+                const nextValue =
+                  typeof newState === "function"
+                    ? (newState as any)(prevValue)
+                    : newState;
+                return { ...t, state: nextValue };
+              }),
+            );
+          },
+          [tabId],
+        );
+
+        // Sync initial state to the store if it's missing
+        useEffect(() => {
+          if (
+            tabId &&
+            tab &&
+            typeof tab.state === "undefined" &&
+            typeof initialRef.current !== "undefined"
+          ) {
+            setState(initialRef.current);
+          }
+        }, [tabId, tab, setState]);
+
+        return [currentVal as S, setState];
       },
     },
   };
