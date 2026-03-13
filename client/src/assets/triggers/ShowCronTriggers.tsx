@@ -56,9 +56,9 @@ export function ShowCronTriggers({
     <>
       <div className="d-flex align-items-center justify-content-between mb-3">
         <div>
-          <h4 className="mb-1">Cron Triggers</h4>
+          <h4 className="mb-1">Schedules</h4>
           <p className="small text-muted mb-0">
-            Scheduled cron expressions mapped to an asset file and exported
+            Automated time-based intervals mapped to an asset file and exported
             function.
           </p>
         </div>
@@ -66,95 +66,103 @@ export function ShowCronTriggers({
         <IconButton
           icon="add"
           size="sm"
-          variant="outline-secondary"
+          variant="outline-primary"
           onClick={addCronTrigger}
         >
-          Cron Trigger
+          Schedule
         </IconButton>
       </div>
 
-      <Table size="sm" responsive borderless className="align-middle my-1">
-        <thead>
-          <tr className="text-muted small uppercase">
-            <th className="px-0" style={{ minWidth: "10rem", width: "30%" }}>
-              Cron
-            </th>
-            <th className="px-0" style={{ minWidth: "12rem", width: "35%" }}>
-              Asset File
-            </th>
-            <th className="px-0" style={{ minWidth: "10rem", width: "30%" }}>
-              Exported Function
-            </th>
-            <th style={{ minWidth: "2rem" }}></th>
-          </tr>
-        </thead>
+      {cronTriggers && cronTriggers.length === 0 && (
+        <div className="my-1 text-center">
+          <span className="text-muted small">No configured schedules.</span>
+        </div>
+      )}
 
-        <tbody>
-          {cronTriggers && cronTriggers.length === 0 && (
-            <tr>
-              <td colSpan={4} className="text-center">
-                <span className="text-muted small">
-                  No cron triggers configured.
-                </span>
-              </td>
+      {cronTriggers && cronTriggers.length > 0 && (
+        <Table size="sm" responsive borderless className="align-middle my-1">
+          <thead>
+            <tr className="text-muted small uppercase">
+              <th className="px-0" style={{ minWidth: "10rem", width: "30%" }}>
+                Cron
+              </th>
+              <th className="px-0" style={{ minWidth: "12rem", width: "35%" }}>
+                Asset File
+              </th>
+              <th className="px-0" style={{ minWidth: "10rem", width: "30%" }}>
+                Exported Function
+              </th>
+              <th style={{ minWidth: "2rem" }}></th>
             </tr>
-          )}
+          </thead>
 
-          {cronTriggers?.map((trigger, index) => (
-            <tr key={index}>
-              <td className="p-1">
-                <FormInput
-                  className="form-control form-control-sm border-0 bg-light-subtle"
-                  placeholder="0 * * * *"
-                  value={trigger.cronExpression}
-                  onRealChange={(value) => {
-                    updateCronTrigger(index, { cronExpression: value });
-                  }}
-                  type="text"
-                />
-              </td>
+          <tbody>
+            {cronTriggers && cronTriggers.length === 0 && (
+              <tr>
+                <td colSpan={4} className="text-center">
+                  <span className="text-muted small">
+                    No configured schedules.
+                  </span>
+                </td>
+              </tr>
+            )}
 
-              <td className="p-1">
-                <FormInput
-                  className="form-control form-control-sm border-0 bg-light-subtle"
-                  value={trigger.assetId}
-                  onRealChange={(value) => {
-                    updateCronTrigger(index, { assetId: value });
-                  }}
-                  type="text"
-                />
-              </td>
+            {cronTriggers.map((trigger, index) => (
+              <tr key={index}>
+                <td className="p-1">
+                  <FormInput
+                    className="form-control form-control-sm border-0 bg-light-subtle"
+                    placeholder="0 * * * *"
+                    value={trigger.cronExpression}
+                    onRealChange={(value) => {
+                      updateCronTrigger(index, { cronExpression: value });
+                    }}
+                    type="text"
+                  />
+                </td>
 
-              <td className="p-1">
-                <FormInput
-                  className="form-control form-control-sm border-0 bg-light-subtle"
-                  value={trigger.handler}
-                  onRealChange={(value) => {
-                    updateCronTrigger(index, { handler: value });
-                  }}
-                  type="text"
-                />
-              </td>
+                <td className="p-1">
+                  <FormInput
+                    className="form-control form-control-sm border-0 bg-light-subtle"
+                    value={trigger.assetId}
+                    onRealChange={(value) => {
+                      updateCronTrigger(index, { assetId: value });
+                    }}
+                    type="text"
+                  />
+                </td>
 
-              <td className="p-1">
-                <IconButton
-                  icon="close_small"
-                  size="sm"
-                  variant="outline-warning"
-                  onClick={() => {
-                    const updatedTriggers = cronTriggers.filter(
-                      (_, i) => i !== index,
-                    );
+                <td className="p-1">
+                  <FormInput
+                    className="form-control form-control-sm border-0 bg-light-subtle"
+                    value={trigger.handler}
+                    onRealChange={(value) => {
+                      updateCronTrigger(index, { handler: value });
+                    }}
+                    type="text"
+                  />
+                </td>
 
-                    setCronTriggers(updatedTriggers);
-                    markDirty();
-                  }}
-                />
-              </td>
-            </tr>
-          ))}
-        </tbody>
-      </Table>
+                <td className="p-1">
+                  <IconButton
+                    icon="close_small"
+                    size="sm"
+                    variant="outline-warning"
+                    onClick={() => {
+                      const updatedTriggers = cronTriggers.filter(
+                        (_, i) => i !== index,
+                      );
+
+                      setCronTriggers(updatedTriggers);
+                      markDirty();
+                    }}
+                  />
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </Table>
+      )}
     </>
   );
 }

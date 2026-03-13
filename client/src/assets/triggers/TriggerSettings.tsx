@@ -29,7 +29,7 @@ export default function TriggerSettings() {
 
   return (
     <div className="h-100 overflow-auto p-3 d-flex flex-column gap-3 w-100">
-      <section className="px-1 pt-1 pb-3 border-bottom">
+      <section className="px-1 py-1">
         {triggers && (
           <ShowHttpTriggers
             httpTriggers={triggers.httpTriggers}
@@ -39,6 +39,8 @@ export default function TriggerSettings() {
           />
         )}
       </section>
+
+      <hr className="my-2" />
 
       <section className="px-1 py-1">
         {triggers && (

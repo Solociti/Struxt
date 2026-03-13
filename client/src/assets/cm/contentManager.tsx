@@ -86,7 +86,7 @@ function createNewTab(type: NoneFileTabType): Tab {
   return {
     tabId: type,
     type,
-    name: type === "settings:triggers" ? "Triggers" : type,
+    name: type === "settings:triggers" ? "Entrypoints" : type,
     isActive: false,
     isDirty: false,
   };

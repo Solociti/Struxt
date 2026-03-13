@@ -57,131 +57,128 @@ export function ShowHttpTriggers({
     <>
       <div className="d-flex align-items-center justify-content-between mb-3">
         <div>
-          <h4 className="mb-1">HTTP Triggers</h4>
+          <h4 className="mb-1">Routes</h4>
           <p className="small text-muted mb-0">
-            Incoming HTTP requests mapped to an asset file and exported
-            function.
+            Incoming web requests mapped to an asset file and exported function.
           </p>
         </div>
 
         <IconButton
           icon="add"
           size="sm"
-          variant="outline-secondary"
+          variant="outline-primary"
           onClick={addHttpTrigger}
         >
-          HTTP Trigger
+          Route
         </IconButton>
       </div>
 
-      <Table size="sm" responsive borderless className="align-middle my-1">
-        <thead>
-          <tr className="text-muted small uppercase">
-            <th className="px-0" style={{ minWidth: "6rem", width: "5%" }}>
-              Method
-            </th>
-            <th className="px-0" style={{ minWidth: "15rem", width: "35%" }}>
-              Endpoint
-            </th>
-            <th className="px-0" style={{ minWidth: "12rem", width: "35%" }}>
-              Asset File
-            </th>
-            <th className="px-0" style={{ minWidth: "10rem", width: "20%" }}>
-              Exported Function
-            </th>
-            <th style={{ minWidth: "2rem" }}></th>
-          </tr>
-        </thead>
+      {httpTriggers && httpTriggers.length === 0 && (
+        <div className="my-1 text-center">
+          <span className="text-muted small">No configured routes.</span>
+        </div>
+      )}
 
-        <tbody>
-          {httpTriggers && httpTriggers.length === 0 && (
-            <tr>
-              <td colSpan={5} className="text-center">
-                <span className="text-muted small">
-                  No HTTP triggers configured.
-                </span>
-              </td>
+      {httpTriggers && httpTriggers.length > 0 && (
+        <Table size="sm" responsive borderless className="align-middle my-1">
+          <thead>
+            <tr className="text-muted small uppercase">
+              <th className="px-0" style={{ minWidth: "6rem", width: "5%" }}>
+                Method
+              </th>
+              <th className="px-0" style={{ minWidth: "15rem", width: "35%" }}>
+                Endpoint
+              </th>
+              <th className="px-0" style={{ minWidth: "12rem", width: "35%" }}>
+                Asset File
+              </th>
+              <th className="px-0" style={{ minWidth: "10rem", width: "20%" }}>
+                Exported Function
+              </th>
+              <th style={{ minWidth: "2rem" }}></th>
             </tr>
-          )}
+          </thead>
 
-          {httpTriggers?.map((trigger, index) => (
-            <tr key={index}>
-              <td className="p-1">
-                <select
-                  className="form-select form-select-sm border-0 bg-light-subtle"
-                  value={trigger.method}
-                  onChange={(e) => {
-                    if (!e.target.value) {
-                      return;
-                    }
+          <tbody>
+            {httpTriggers.map((trigger, index) => (
+              <tr key={index}>
+                <td className="p-1">
+                  <select
+                    className="form-select form-select-sm border-0 bg-light-subtle"
+                    value={trigger.method}
+                    onChange={(e) => {
+                      if (!e.target.value) {
+                        return;
+                      }
 
-                    updateHttpTrigger(index, {
-                      method: e.target.value as HttpTrigger["method"],
-                    });
-                  }}
-                >
-                  <option>GET</option>
-                  <option>POST</option>
-                  <option>PUT</option>
-                  <option>PATCH</option>
-                  <option>DELETE</option>
-                </select>
-              </td>
+                      updateHttpTrigger(index, {
+                        method: e.target.value as HttpTrigger["method"],
+                      });
+                    }}
+                  >
+                    <option>GET</option>
+                    <option>POST</option>
+                    <option>PUT</option>
+                    <option>PATCH</option>
+                    <option>DELETE</option>
+                  </select>
+                </td>
 
-              <td className="p-1">
-                <FormInput
-                  className="form-control form-control-sm border-0 bg-light-subtle"
-                  placeholder="/routines/example-1"
-                  value={trigger.endpoint}
-                  onRealChange={(value) => {
-                    updateHttpTrigger(index, { endpoint: value });
-                  }}
-                  type="text"
-                />
-              </td>
+                <td className="p-1">
+                  <FormInput
+                    className="form-control form-control-sm border-0 bg-light-subtle"
+                    placeholder="/routines/example-1"
+                    value={trigger.endpoint}
+                    onRealChange={(value) => {
+                      updateHttpTrigger(index, { endpoint: value });
+                    }}
+                    type="text"
+                  />
+                </td>
 
-              <td className="p-1">
-                <FormInput
-                  className="form-control form-control-sm border-0 bg-light-subtle"
-                  value={trigger.assetId}
-                  onRealChange={(value) => {
-                    updateHttpTrigger(index, { assetId: value });
-                  }}
-                  type="text"
-                />
-                {/* TODO: Add a button to select the asset file instead of typed file name */}
-              </td>
+                <td className="p-1">
+                  <FormInput
+                    className="form-control form-control-sm border-0 bg-light-subtle"
+                    value={trigger.assetId}
+                    onRealChange={(value) => {
+                      updateHttpTrigger(index, { assetId: value });
+                    }}
+                    type="text"
+                  />
+                  {/* TODO: Add a button to select the asset file instead of typed file name */}
+                </td>
 
-              <td className="p-1">
-                <FormInput
-                  className="form-control form-control-sm border-0 bg-light-subtle"
-                  value={trigger.handler}
-                  onRealChange={(value) => {
-                    updateHttpTrigger(index, { handler: value });
-                  }}
-                  type="text"
-                />
-              </td>
+                <td className="p-1">
+                  <FormInput
+                    className="form-control form-control-sm border-0 bg-light-subtle"
+                    value={trigger.handler}
+                    onRealChange={(value) => {
+                      updateHttpTrigger(index, { handler: value });
+                    }}
+                    type="text"
+                  />
+                </td>
 
-              <td className="p-1">
-                <IconButton
-                  icon="close_small"
-                  size="sm"
-                  variant="outline-warning"
-                  onClick={() => {
-                    const updatedTriggers = httpTriggers.filter(
-                      (_, i) => i !== index,
-                    );
+                <td className="p-1">
+                  <IconButton
+                    icon="close_small"
+                    size="sm"
+                    variant="outline-warning"
+                    onClick={() => {
+                      const updatedTriggers = httpTriggers.filter(
+                        (_, i) => i !== index,
+                      );
 
-                    setHttpTriggers(updatedTriggers);
-                    markDirty();
-                  }}
-                />
-              </td>
-            </tr>
-          ))}
-        </tbody>
-      </Table>
+                      setHttpTriggers(updatedTriggers);
+                      markDirty();
+                    }}
+                  />
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </Table>
+      )}
     </>
   );
 }

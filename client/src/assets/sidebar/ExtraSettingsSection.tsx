@@ -20,7 +20,7 @@ export function ExtraSettingsSection() {
       >
         <MaterialIcon style={{ fontSize: "1rem" }}>alt_route</MaterialIcon>
 
-        <span className="small">Triggers</span>
+        <span className="small">Entrypoints</span>
       </ListGroup.Item>
     ),
   ].filter(Boolean);
