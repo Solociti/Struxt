@@ -18,6 +18,7 @@ import { roles } from "common/models/user/Roles";
 import { DEFAULT_MAX_FILENAME_LENGTH } from "common/path/sanitizeFilename";
 import "server/api/domains/register";
 import "server/api/projects/snapshots/register";
+import "server/api/projects/triggers/register";
 import { registerApi } from "server/api/registerApi";
 import { validateUserId } from "server/auth/user/getUser";
 import { validateEmailAddress } from "server/utils/validateEmailAddress";

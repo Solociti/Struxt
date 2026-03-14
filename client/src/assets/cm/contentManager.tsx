@@ -151,6 +151,7 @@ interface ContentManagerState {
     addTab: (item: NoneFileTabType | AssetListItem) => void;
     removeTab: (tabId: string) => void;
     markDirty(tabId: string): void;
+    markClean(tabId: string): void;
     useState<S>(
       tabId: string | undefined,
       initialState?: S,
@@ -523,6 +524,9 @@ function useContentManagerState(): ContentManagerState {
       },
       markDirty(tabId: string) {
         updateTabState(tabId, { isDirty: true });
+      },
+      markClean(tabId: string) {
+        updateTabState(tabId, { isDirty: false });
       },
       useState<S>(
         tabId: string | undefined,
