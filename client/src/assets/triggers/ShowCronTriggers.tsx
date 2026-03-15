@@ -1,8 +1,11 @@
 import { FormInput } from "client/components/FormInput";
 import IconButton from "client/components/IconButton";
 import { CronTrigger } from "common/models/projects/Triggers";
+import { RoutineEnvModel } from "common/models/routines/RoutineEnv";
 import Table from "react-bootstrap/Table";
 import { useContentManager } from "../cm/contentManager";
+import { ChooseAsset } from "./inputs/ChooseAsset";
+import { SelectRoutineEnv } from "./inputs/SelectRoutineEnv";
 
 /**
  * Renders and manages cron trigger rows.
@@ -12,11 +15,13 @@ import { useContentManager } from "../cm/contentManager";
 export function ShowCronTriggers({
   cronTriggers,
   setCronTriggers,
+  environments,
 }: {
   cronTriggers?: CronTrigger[];
   setCronTriggers: (triggers: CronTrigger[]) => void;
+  environments: RoutineEnvModel[];
 }) {
-  const { tabs } = useContentManager();
+  const { tabs, assets } = useContentManager();
 
   const markDirty = () => {
     if (tabs.activeTab?.tabId) {
@@ -83,6 +88,9 @@ export function ShowCronTriggers({
         <Table size="sm" responsive borderless className="align-middle my-1">
           <thead>
             <tr className="text-muted small uppercase">
+              <th className="px-0" style={{ minWidth: "7.5rem", width: "5%" }}>
+                Env
+              </th>
               <th className="px-0" style={{ minWidth: "10rem", width: "30%" }}>
                 Cron
               </th>
@@ -97,18 +105,18 @@ export function ShowCronTriggers({
           </thead>
 
           <tbody>
-            {cronTriggers && cronTriggers.length === 0 && (
-              <tr>
-                <td colSpan={4} className="text-center">
-                  <span className="text-muted small">
-                    No configured schedules.
-                  </span>
-                </td>
-              </tr>
-            )}
-
             {cronTriggers.map((trigger, index) => (
               <tr key={index}>
+                <td className="p-1">
+                  <SelectRoutineEnv
+                    environmentId={trigger.environmentId}
+                    onChange={(envId) =>
+                      updateCronTrigger(index, { environmentId: envId })
+                    }
+                    environments={environments}
+                  />
+                </td>
+
                 <td className="p-1">
                   <FormInput
                     className="form-control form-control-sm border-0 bg-light-subtle"
@@ -122,13 +130,12 @@ export function ShowCronTriggers({
                 </td>
 
                 <td className="p-1">
-                  <FormInput
-                    className="form-control form-control-sm border-0 bg-light-subtle"
-                    value={trigger.assetId}
-                    onRealChange={(value) => {
-                      updateCronTrigger(index, { assetId: value });
+                  <ChooseAsset
+                    assetId={trigger.assetId}
+                    list={assets.list}
+                    onChange={(id) => {
+                      updateCronTrigger(index, { assetId: id });
                     }}
-                    type="text"
                   />
                 </td>
 

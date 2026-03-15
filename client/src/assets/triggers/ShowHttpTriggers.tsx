@@ -1,8 +1,11 @@
 import { FormInput } from "client/components/FormInput";
 import IconButton from "client/components/IconButton";
 import { HttpTrigger } from "common/models/projects/Triggers";
+import { RoutineEnvModel } from "common/models/routines/RoutineEnv";
 import Table from "react-bootstrap/Table";
 import { useContentManager } from "../cm/contentManager";
+import { ChooseAsset } from "./inputs/ChooseAsset";
+import { SelectRoutineEnv } from "./inputs/SelectRoutineEnv";
 
 /**
  * Show and manage the HTTP triggers
@@ -12,11 +15,13 @@ import { useContentManager } from "../cm/contentManager";
 export function ShowHttpTriggers({
   httpTriggers,
   setHttpTriggers,
+  environments,
 }: {
   httpTriggers?: HttpTrigger[];
   setHttpTriggers: (triggers: HttpTrigger[]) => void;
+  environments: RoutineEnvModel[];
 }) {
-  const { tabs } = useContentManager();
+  const { tabs, assets } = useContentManager();
 
   const markDirty = () => {
     if (tabs.activeTab?.tabId) {
@@ -83,6 +88,9 @@ export function ShowHttpTriggers({
         <Table size="sm" responsive borderless className="align-middle my-1">
           <thead>
             <tr className="text-muted small uppercase">
+              <th className="px-0" style={{ minWidth: "7.5rem", width: "5%" }}>
+                Env
+              </th>
               <th className="px-0" style={{ minWidth: "6rem", width: "5%" }}>
                 Method
               </th>
@@ -102,6 +110,16 @@ export function ShowHttpTriggers({
           <tbody>
             {httpTriggers.map((trigger, index) => (
               <tr key={index}>
+                <td className="p-1">
+                  <SelectRoutineEnv
+                    environmentId={trigger.environmentId}
+                    onChange={(envId) =>
+                      updateHttpTrigger(index, { environmentId: envId })
+                    }
+                    environments={environments}
+                  />
+                </td>
+
                 <td className="p-1">
                   <select
                     className="form-select form-select-sm border-0 bg-light-subtle"
@@ -137,15 +155,13 @@ export function ShowHttpTriggers({
                 </td>
 
                 <td className="p-1">
-                  <FormInput
-                    className="form-control form-control-sm border-0 bg-light-subtle"
-                    value={trigger.assetId}
-                    onRealChange={(value) => {
-                      updateHttpTrigger(index, { assetId: value });
+                  <ChooseAsset
+                    assetId={trigger.assetId}
+                    list={assets.list}
+                    onChange={(id) => {
+                      updateHttpTrigger(index, { assetId: id });
                     }}
-                    type="text"
                   />
-                  {/* TODO: Add a button to select the asset file instead of typed file name */}
                 </td>
 
                 <td className="p-1">
