@@ -16,10 +16,12 @@ export function ShowCronTriggers({
   cronTriggers,
   setCronTriggers,
   environments,
+  highlightIndex,
 }: {
-  cronTriggers?: CronTrigger[];
+  cronTriggers: CronTrigger[];
   setCronTriggers: (triggers: CronTrigger[]) => void;
   environments: RoutineEnvModel[];
+  highlightIndex: number | null;
 }) {
   const { tabs, assets } = useContentManager();
 
@@ -37,7 +39,7 @@ export function ShowCronTriggers({
       environmentId: "",
     };
 
-    setCronTriggers([...(cronTriggers ?? []), newTrigger]);
+    setCronTriggers([...cronTriggers, newTrigger]);
     markDirty();
   };
 
@@ -45,10 +47,6 @@ export function ShowCronTriggers({
     index: number,
     updatedTrigger: Partial<CronTrigger>,
   ) => {
-    if (!cronTriggers) {
-      return;
-    }
-
     const updatedTriggers = cronTriggers.map((trigger, i) =>
       i === index ? { ...trigger, ...updatedTrigger } : trigger,
     );
@@ -78,13 +76,13 @@ export function ShowCronTriggers({
         </IconButton>
       </div>
 
-      {cronTriggers && cronTriggers.length === 0 && (
+      {cronTriggers.length === 0 && (
         <div className="my-1 text-center">
           <span className="text-muted small">No configured schedules.</span>
         </div>
       )}
 
-      {cronTriggers && cronTriggers.length > 0 && (
+      {cronTriggers.length > 0 && (
         <Table size="sm" responsive borderless className="align-middle my-1">
           <thead>
             <tr className="text-muted small uppercase">
@@ -106,7 +104,12 @@ export function ShowCronTriggers({
 
           <tbody>
             {cronTriggers.map((trigger, index) => (
-              <tr key={index}>
+              <tr
+                key={index}
+                className={
+                  index === highlightIndex ? "border border-primary" : ""
+                }
+              >
                 <td className="p-1">
                   <SelectRoutineEnv
                     environmentId={trigger.environmentId}

@@ -27,6 +27,7 @@ import {
   saveAssetContent,
 } from "../assetApis";
 import { CommandManager, useCommandManager } from "./CommandManager";
+import { TriggerSettingsTabState } from "../triggers/TriggerSettings";
 
 export type NoneFileTabType = "settings:triggers";
 
@@ -248,6 +249,8 @@ function useContentManagerState(): ContentManagerState {
 
   // Keep track of the open editor tabs
   const [tabs, setTabs] = useState<(Tab | FileTab)[]>([]);
+  const tabsRef = useRef(tabs);
+  tabsRef.current = tabs;
 
   const updateTabState = useCallback(
     (tabId: string, tab: Partial<Tab> | Partial<FileTab>) => {
@@ -477,6 +480,37 @@ function useContentManagerState(): ContentManagerState {
       commands.trigger("paste", result);
     });
   }, [commands, assetClipboard, projectId]);
+
+  // listen for add trigger command, and open the triggers tab if it's not already open
+  useEffect(() => {
+    const isTabReady = () => {
+      const activeTab = tabsRef.current.find(
+        (t) => t.tabId === "settings:triggers",
+      );
+
+      return Boolean(
+        activeTab && (activeTab.state as TriggerSettingsTabState)?.ready,
+      );
+    };
+
+    return commands.on("settings:triggers:add", (data) => {
+      let count = 0;
+      commands.trigger("tabs:open", "settings:triggers");
+
+      let iId = setInterval(() => {
+        count++;
+        if (isTabReady()) {
+          clearInterval(iId);
+          commands.trigger("settings:triggers:add:internal", data);
+        }
+
+        if (count > 50) {
+          clearInterval(iId);
+          addToastError(new Error("Failed to open triggers tab"));
+        }
+      }, 50);
+    });
+  }, [commands]);
 
   return {
     commands,

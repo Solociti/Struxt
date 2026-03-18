@@ -3,8 +3,13 @@ import IconButton from "client/components/IconButton";
 import { ShowError } from "client/components/ShowError";
 import { useAsyncCallback } from "client/components/useAsyncCallback";
 import { getRoutineEnvList } from "client/dashboard/admin/routines/routineEnvApi";
-import { CronTrigger, HttpTrigger } from "common/models/projects/Triggers";
-import { useCallback, useRef } from "react";
+import {
+  createCronTrigger,
+  createHttpTrigger,
+  CronTrigger,
+  HttpTrigger,
+} from "common/models/projects/Triggers";
+import { useCallback, useEffect, useRef, useState } from "react";
 import Spinner from "react-bootstrap/Spinner";
 import { useContentManager } from "../cm/contentManager";
 import { ShowCronTriggers } from "./ShowCronTriggers";
@@ -21,6 +26,10 @@ import { saveTriggers } from "./saveTriggers";
 interface Triggers {
   httpTriggers: HttpTrigger[];
   cronTriggers: CronTrigger[];
+}
+
+export interface TriggerSettingsTabState extends Partial<Triggers> {
+  ready: boolean;
 }
 
 /**
@@ -41,29 +50,70 @@ export default function TriggerSettings() {
 
   // This state is only set once changes have been made.
   // If there are no pending changes, we want to show the triggers from the project details.
-  const [triggers, setTriggers] = tabs.useState<Partial<Triggers> | null>(
+  const [triggers, setTriggers] = tabs.useState<TriggerSettingsTabState>(
     tabs.activeTab?.tabId,
-    null,
+    { ready: false },
   );
 
-  const renderedTriggers: Partial<Triggers> = {
-    httpTriggers: triggers?.httpTriggers ?? routines?.httpTriggers ?? [],
-    cronTriggers: triggers?.cronTriggers ?? routines?.cronTriggers ?? [],
+  useEffect(() => {
+    if (!isLoading) {
+      setTriggers((prev) => {
+        if (prev.ready) {
+          return prev;
+        }
+        return { ...prev, ready: true };
+      });
+    }
+  }, [isLoading]);
+
+  const renderedTriggers: Triggers = {
+    httpTriggers: triggers?.httpTriggers || routines?.httpTriggers || [],
+    cronTriggers: triggers?.cronTriggers || routines?.cronTriggers || [],
   };
+  const _renderedTriggers = useRef(renderedTriggers);
+  _renderedTriggers.current = renderedTriggers;
 
   const saveCb = useAsyncCallback(async (triggers) => {
     const result = await saveTriggers(project.projectId, triggers);
 
     commands.trigger("update:project-details", result.details);
     tabs.markClean(tabs.activeTab?.tabId ?? "");
-    setTriggers(null);
+    setTriggers({ ready: true });
   }, {});
+
+  const [highlightHttpIndex, setHighlightHttpIndex] = useState<number | null>(
+    null,
+  );
+  const [highlightCronIndex, setHighlightCronIndex] = useState<number | null>(
+    null,
+  );
+
+  useEffect(() => {
+    const timeoutId = setTimeout(() => {
+      setHighlightHttpIndex(null);
+    }, 3000);
+
+    return () => {
+      clearTimeout(timeoutId);
+    };
+  }, [highlightHttpIndex]);
+  useEffect(() => {
+    const timeoutId = setTimeout(() => {
+      setHighlightCronIndex(null);
+    }, 3000);
+
+    return () => {
+      clearTimeout(timeoutId);
+    };
+  }, [highlightCronIndex]);
 
   const saveTimeout = useRef<NodeJS.Timeout | null>(null);
   // Auto-save changes after 5 second of inactivity
   const handleChange = useCallback((change: Partial<Triggers>) => {
     setTriggers((prev) => {
-      const updatedTriggers = prev ? { ...prev, ...change } : change;
+      const updatedTriggers = prev
+        ? { ...prev, ...change }
+        : { ...change, ready: true };
       // TODO: Ensure that the triggers are valid before saving, and show errors if not
 
       if (saveTimeout.current) {
@@ -78,6 +128,54 @@ export default function TriggerSettings() {
     });
   }, []);
 
+  // listen for add trigger command
+  useEffect(() => {
+    return commands.on("settings:triggers:add:internal", (data) => {
+      const httpProps = Object.keys(createHttpTrigger({}));
+      const cronProps = Object.keys(createCronTrigger({}));
+      const sharedProps = httpProps.filter((prop) => cronProps.includes(prop));
+
+      // determine what type of trigger to add based on the presence of certain properties
+      const isHttpTrigger = Object.keys(data).some(
+        (key) => httpProps.includes(key) && !sharedProps.includes(key),
+      );
+      const isCronTrigger = Object.keys(data).some(
+        (key) => cronProps.includes(key) && !sharedProps.includes(key),
+      );
+
+      if (isHttpTrigger === isCronTrigger) {
+        // in this case, we need to show a window for the user to select the type of trigger they want to create
+        console.error("Unable to determine trigger type for data", data);
+        return;
+      }
+
+      const triggers = _renderedTriggers.current;
+
+      if (isHttpTrigger) {
+        const newTrigger: HttpTrigger = createHttpTrigger(data);
+
+        handleChange({
+          httpTriggers: [...triggers.httpTriggers, newTrigger],
+        });
+        setHighlightHttpIndex(triggers.httpTriggers.length);
+        return;
+      }
+
+      if (isCronTrigger) {
+        const newTrigger: CronTrigger = createCronTrigger(data);
+
+        handleChange({
+          cronTriggers: [...triggers.cronTriggers, newTrigger],
+        });
+        setHighlightCronIndex(triggers.cronTriggers.length);
+        return;
+      }
+    });
+  }, [commands]);
+
+  const hasChanges =
+    triggers && (triggers.httpTriggers || triggers.cronTriggers);
+
   return (
     <div className="h-100 overflow-auto p-3 d-flex flex-column gap-3 w-100">
       {/* Add a status bar to show the current save and loading states */}
@@ -88,7 +186,7 @@ export default function TriggerSettings() {
           {isLoading && <Spinner animation="border" size="sm" />}
           <span className="small text-muted">
             {isLoading && "Loading..."}
-            {!isLoading && !saveCb.isLoading && triggers && "Unsaved changes"}
+            {!isLoading && !saveCb.isLoading && hasChanges && "Unsaved changes"}
           </span>
 
           <IconButton
@@ -96,7 +194,7 @@ export default function TriggerSettings() {
             size="sm"
             variant="outline-success"
             className="ms-2"
-            disabled={saveCb.isLoading || !triggers}
+            disabled={saveCb.isLoading || !hasChanges}
             spinner={saveCb.isLoading}
             onClick={() => saveCb.callback(renderedTriggers)}
           >
@@ -117,6 +215,7 @@ export default function TriggerSettings() {
             handleChange({ httpTriggers });
           }}
           environments={allEnvs || []}
+          highlightIndex={highlightHttpIndex}
         />
       </section>
 
@@ -129,6 +228,7 @@ export default function TriggerSettings() {
             handleChange({ cronTriggers });
           }}
           environments={allEnvs || []}
+          highlightIndex={highlightCronIndex}
         />
       </section>
     </div>

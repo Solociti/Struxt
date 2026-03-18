@@ -16,10 +16,12 @@ export function ShowHttpTriggers({
   httpTriggers,
   setHttpTriggers,
   environments,
+  highlightIndex,
 }: {
-  httpTriggers?: HttpTrigger[];
+  httpTriggers: HttpTrigger[];
   setHttpTriggers: (triggers: HttpTrigger[]) => void;
   environments: RoutineEnvModel[];
+  highlightIndex: number | null;
 }) {
   const { tabs, assets } = useContentManager();
 
@@ -38,7 +40,7 @@ export function ShowHttpTriggers({
       environmentId: "",
     };
 
-    setHttpTriggers([...(httpTriggers ?? []), newTrigger]);
+    setHttpTriggers([...httpTriggers, newTrigger]);
     markDirty();
   };
 
@@ -46,10 +48,6 @@ export function ShowHttpTriggers({
     index: number,
     updatedTrigger: Partial<HttpTrigger>,
   ) => {
-    if (!httpTriggers) {
-      return;
-    }
-
     const updatedTriggers = httpTriggers.map((trigger, i) =>
       i === index ? { ...trigger, ...updatedTrigger } : trigger,
     );
@@ -78,13 +76,13 @@ export function ShowHttpTriggers({
         </IconButton>
       </div>
 
-      {httpTriggers && httpTriggers.length === 0 && (
+      {httpTriggers.length === 0 && (
         <div className="my-1 text-center">
           <span className="text-muted small">No configured routes.</span>
         </div>
       )}
 
-      {httpTriggers && httpTriggers.length > 0 && (
+      {httpTriggers.length > 0 && (
         <Table size="sm" responsive borderless className="align-middle my-1">
           <thead>
             <tr className="text-muted small uppercase">
@@ -109,7 +107,14 @@ export function ShowHttpTriggers({
 
           <tbody>
             {httpTriggers.map((trigger, index) => (
-              <tr key={index}>
+              <tr
+                key={index}
+                className={
+                  index === highlightIndex
+                    ? "border border-primary rounded"
+                    : ""
+                }
+              >
                 <td className="p-1">
                   <SelectRoutineEnv
                     environmentId={trigger.environmentId}

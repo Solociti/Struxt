@@ -8,6 +8,7 @@ import { ProjectDetails } from "common/models/projects/ProjectDetails";
 import { useMemo, useRef } from "react";
 import { DirectoryNode } from "../list/DirectoryView";
 import { NoneFileTabType } from "./contentManager";
+import { CronTrigger, HttpTrigger } from "common/models/projects/Triggers";
 
 interface CommandResult {
   success: boolean;
@@ -170,6 +171,32 @@ export interface CommandManager {
     cb: (target: HTMLElement, item: DirectoryNode | AssetListItem) => void,
   ): UnregisterCallback;
   on(event: "context-menu:hide", cb: () => void): UnregisterCallback;
+
+  // settings-triggers / entrypoint for routines
+  trigger(
+    command: "settings:triggers:add",
+    data: (Partial<HttpTrigger> | Partial<CronTrigger>) &
+      Pick<HttpTrigger, "assetId">,
+  ): void;
+  trigger(
+    command: "settings:triggers:add:internal",
+    data: (Partial<HttpTrigger> | Partial<CronTrigger>) &
+      Pick<HttpTrigger, "assetId">,
+  ): void;
+  on(
+    event: "settings:triggers:add",
+    cb: (
+      data: (Partial<HttpTrigger> | Partial<CronTrigger>) &
+        Pick<HttpTrigger, "assetId">,
+    ) => void,
+  ): UnregisterCallback;
+  on(
+    event: "settings:triggers:add:internal",
+    cb: (
+      data: (Partial<HttpTrigger> | Partial<CronTrigger>) &
+        Pick<HttpTrigger, "assetId">,
+    ) => void,
+  ): UnregisterCallback;
 }
 
 /**

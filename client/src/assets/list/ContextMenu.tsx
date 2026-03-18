@@ -9,6 +9,7 @@ import { restoreAsset } from "../assetApis";
 import { useContentManager } from "../cm/contentManager";
 import { getRecursiveDirItems } from "./AssetList";
 import { DirectoryNode } from "./DirectoryView";
+import { basename, dirname, extname, join } from "common/path/path";
 
 interface ContextMenuProps {
   show: boolean;
@@ -313,6 +314,50 @@ export function ItemContextMenu() {
       text: "Upload",
       onClick: () => {
         commands.trigger("upload:show", item.path);
+        commands.trigger("context-menu:hide");
+      },
+    },
+    {
+      hide: isInTrash || item.isExternalSrc || isDir,
+      section: "triggers",
+      icon: "alt_route",
+      text: "Create Route",
+      onClick: () => {
+        if (!("uuid" in item)) {
+          return;
+        }
+
+        const ext = extname(item.path);
+        const baseName = basename(item.path, ext);
+        const dir = dirname(item.path);
+
+        const pathWithoutExt = join(dir, baseName);
+
+        commands.trigger("settings:triggers:add", {
+          assetId: item.uuid,
+          endpoint: pathWithoutExt,
+        });
+        commands.trigger("context-menu:hide");
+      },
+    },
+    {
+      hide: isInTrash || item.isExternalSrc || isDir,
+      section: "triggers",
+      icon: "timer",
+      text: "Create Schedule",
+      onClick: () => {
+        if (!("uuid" in item)) {
+          return;
+        }
+
+        const minute = Math.floor(Math.random() * 60);
+        const hour = Math.floor(Math.random() * 24);
+        const cronExpression = `${minute} ${hour} * * *`;
+
+        commands.trigger("settings:triggers:add", {
+          assetId: item.uuid,
+          cronExpression,
+        });
         commands.trigger("context-menu:hide");
       },
     },
