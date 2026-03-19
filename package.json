@@ -7,9 +7,11 @@
     "test": "vitest",
     "posttest": "npm run check-node-version",
     "test:server-build": "docker build -f ./build.Dockerfile --progress=plain .",
-    "predev": "npm run check-node-version",
+    "predev": "npm run check-node-version && npm run build:tree-sitter",
     "dev": "cd client && vite",
+    "prebuild": "npm run build:tree-sitter",
     "build": "tsc && cd client && vite build",
+    "build:tree-sitter": "node scripts/build-tree-sitter.js",
     "preview": "cd client && vite preview",
     "docker": "./docker.sh up",
     "migrate": "docker exec -it struxt-editor-api-1 node server/migrationEntry.js",
@@ -60,9 +62,11 @@
     "sass": "^1.84.0",
     "sass-embedded": "^1.86.3",
     "simple-git": "^3.30.0",
+    "tree-sitter-javascript": "^0.25.0",
     "typescript": "^5.9.3",
     "vite": "^6.3.5",
     "vite-plugin-pwa": "^1.2.0",
+    "vite-plugin-static-copy": "^3.3.0",
     "vite-svg-loader": "^5.1.0",
     "vitest": "^3.2.4"
   },
@@ -114,6 +118,7 @@
     "socket.io": "^4.8.1",
     "socket.io-client": "^4.8.1",
     "ua-parser-js": "^2.0.9",
+    "web-tree-sitter": "^0.26.7",
     "zod": "^4.1.13"
   },
   "overrides": {

@@ -84,10 +84,19 @@ export function isFileTab(tab: Tab | FileTab): tab is FileTab {
  * @returns
  */
 function createNewTab(type: NoneFileTabType): Tab {
+  const name = (() => {
+    switch (type) {
+      case "settings:triggers":
+        return "Entrypoints";
+      default:
+        return type;
+    }
+  })();
+
   return {
     tabId: type,
     type,
-    name: type === "settings:triggers" ? "Entrypoints" : type,
+    name,
     isActive: false,
     isDirty: false,
   };

@@ -12,6 +12,7 @@ dist
 dist-ssr
 dist-server
 uploads
+wasm-bins
 *.local
 docker-package.json
 puppeteer-package.json
