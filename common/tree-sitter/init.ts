@@ -1,49 +1,55 @@
-import { Language, Parser } from "web-tree-sitter";
+import { Language, Parser, Query } from "web-tree-sitter";
 
-export interface TreeSitterWasmPaths {
-  runtime: string;
-  javascript: string;
+const runtimePath = "/dashboard/parsers/web-tree-sitter.wasm";
+const javascriptPath = "/dashboard/parsers/tree-sitter-javascript.wasm";
+
+export interface TreeSitterManager {
+  Query: typeof Query;
+
+  parser: Parser;
+  setJsLang: () => Promise<Language>;
+}
+
+export interface InitTreeSitterOptions {
+  locateFile?: (scriptName: string) => string;
 }
 
 /**
- * Builds the default wasm paths served by Vite static copy.
+ * Init web-tree-sitter and return a management object for the parser instance.
  *
- * @param basePath
  */
-export function getDefaultTreeSitterWasmPaths(
-  basePath = "/parsers",
-): TreeSitterWasmPaths {
-  const normalizedBasePath = basePath.endsWith("/")
-    ? basePath.slice(0, basePath.length - 1)
-    : basePath;
-
-  return {
-    runtime: `${normalizedBasePath}/tree-sitter.wasm`,
-    javascript: `${normalizedBasePath}/tree-sitter-javascript.wasm`,
-  };
-}
-
-/**
- * Initializes web-tree-sitter and returns a JavaScript parser instance.
- *
- * @param wasmPaths
- */
-export async function initJavaScriptTreeSitterParser(
-  wasmPaths: TreeSitterWasmPaths = getDefaultTreeSitterWasmPaths(),
-): Promise<Parser> {
-  await Parser.init({
-    locateFile(scriptName: string) {
-      if (scriptName === "tree-sitter.wasm") {
-        return wasmPaths.runtime;
+export default async function initTreeSitter({
+  locateFile: locateFileConf,
+}: InitTreeSitterOptions = {}): Promise<TreeSitterManager> {
+  const locateFile =
+    locateFileConf ||
+    ((scriptName: string) => {
+      switch (scriptName) {
+        case "web-tree-sitter.wasm":
+          return runtimePath;
+        case "tree-sitter-javascript.wasm":
+          return javascriptPath;
+        default:
+          return scriptName;
       }
+    });
 
-      return scriptName;
-    },
+  await Parser.init({
+    locateFile,
   });
 
   const parser = new Parser();
-  const language = await Language.load(wasmPaths.javascript);
-  parser.setLanguage(language);
 
-  return parser;
+  return {
+    Query,
+    parser,
+    async setJsLang() {
+      const JavaScript = await Language.load(
+        locateFile("tree-sitter-javascript.wasm"),
+      );
+      parser.setLanguage(JavaScript);
+
+      return JavaScript;
+    },
+  };
 }

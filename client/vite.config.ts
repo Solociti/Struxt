@@ -1,22 +1,15 @@
 import react from "@vitejs/plugin-react";
 import { resolve } from "path";
 import { defineConfig } from "vite";
-import { viteStaticCopy } from "vite-plugin-static-copy";
 import { VitePWA } from "vite-plugin-pwa";
+import wasm from "vite-plugin-wasm";
 import svgLoader from "vite-svg-loader";
 
 export default defineConfig({
   plugins: [
+    wasm(),
     react(),
     svgLoader(),
-    viteStaticCopy({
-      targets: [
-        {
-          src: resolve(process.cwd(), "../wasm-bins/*.wasm"),
-          dest: "parsers",
-        },
-      ],
-    }),
     VitePWA({
       strategies: "injectManifest",
       srcDir: "src",

@@ -26,8 +26,8 @@ import {
   moveAssets,
   saveAssetContent,
 } from "../assetApis";
-import { CommandManager, useCommandManager } from "./CommandManager";
 import { TriggerSettingsTabState } from "../triggers/TriggerSettings";
+import { CommandManager, useCommandManager } from "./CommandManager";
 
 export type NoneFileTabType = "settings:triggers";
 

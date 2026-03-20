@@ -5,7 +5,7 @@ import { fileURLToPath } from "url";
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 const projectRoot = resolve(__dirname, "..");
-const outputDir = join(projectRoot, "wasm-bins");
+const outputDir = join(projectRoot, "client/public/dashboard/parsers");
 
 const treeSitterBuildTargets = [
   {
@@ -17,7 +17,7 @@ const staticWasmCopyTargets = [
   {
     packageName: "web-tree-sitter",
     sourceFileName: "web-tree-sitter.wasm",
-    outputFileName: "tree-sitter.wasm",
+    outputFileName: "web-tree-sitter.wasm",
   },
 ];
 

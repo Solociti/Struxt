@@ -6,6 +6,7 @@ import Table from "react-bootstrap/Table";
 import { useContentManager } from "../cm/contentManager";
 import { ChooseAsset } from "./inputs/ChooseAsset";
 import { SelectRoutineEnv } from "./inputs/SelectRoutineEnv";
+import { SelectFunction } from "./inputs/SelectFunction";
 
 /**
  * Show and manage the HTTP triggers
@@ -23,7 +24,7 @@ export function ShowHttpTriggers({
   environments: RoutineEnvModel[];
   highlightIndex: number | null;
 }) {
-  const { tabs, assets } = useContentManager();
+  const { tabs, assets, project } = useContentManager();
 
   const markDirty = () => {
     if (tabs.activeTab?.tabId) {
@@ -106,97 +107,101 @@ export function ShowHttpTriggers({
           </thead>
 
           <tbody>
-            {httpTriggers.map((trigger, index) => (
-              <tr
-                key={index}
-                className={
-                  index === highlightIndex
-                    ? "border border-primary rounded"
-                    : ""
-                }
-              >
-                <td className="p-1">
-                  <SelectRoutineEnv
-                    environmentId={trigger.environmentId}
-                    onChange={(envId) =>
-                      updateHttpTrigger(index, { environmentId: envId })
-                    }
-                    environments={environments}
-                  />
-                </td>
+            {httpTriggers.map((trigger, index) => {
+              const asset = assets.list.find((a) => a.uuid === trigger.assetId);
 
-                <td className="p-1">
-                  <select
-                    className="form-select form-select-sm border-0 bg-light-subtle"
-                    value={trigger.method}
-                    onChange={(e) => {
-                      if (!e.target.value) {
-                        return;
+              return (
+                <tr
+                  key={index}
+                  className={
+                    index === highlightIndex
+                      ? "border border-primary rounded"
+                      : ""
+                  }
+                >
+                  <td className="p-1">
+                    <SelectRoutineEnv
+                      environmentId={trigger.environmentId}
+                      onChange={(envId) =>
+                        updateHttpTrigger(index, { environmentId: envId })
                       }
+                      environments={environments}
+                    />
+                  </td>
 
-                      updateHttpTrigger(index, {
-                        method: e.target.value as HttpTrigger["method"],
-                      });
-                    }}
-                  >
-                    <option>GET</option>
-                    <option>POST</option>
-                    <option>PUT</option>
-                    <option>PATCH</option>
-                    <option>DELETE</option>
-                  </select>
-                </td>
+                  <td className="p-1">
+                    <select
+                      className="form-select form-select-sm border-0 bg-light-subtle"
+                      value={trigger.method}
+                      onChange={(e) => {
+                        if (!e.target.value) {
+                          return;
+                        }
 
-                <td className="p-1">
-                  <FormInput
-                    className="form-control form-control-sm border-0 bg-light-subtle"
-                    placeholder="/routines/example-1"
-                    value={trigger.endpoint}
-                    onRealChange={(value) => {
-                      updateHttpTrigger(index, { endpoint: value });
-                    }}
-                    type="text"
-                  />
-                </td>
+                        updateHttpTrigger(index, {
+                          method: e.target.value as HttpTrigger["method"],
+                        });
+                      }}
+                    >
+                      <option>GET</option>
+                      <option>POST</option>
+                      <option>PUT</option>
+                      <option>PATCH</option>
+                      <option>DELETE</option>
+                    </select>
+                  </td>
 
-                <td className="p-1">
-                  <ChooseAsset
-                    assetId={trigger.assetId}
-                    list={assets.list}
-                    onChange={(id) => {
-                      updateHttpTrigger(index, { assetId: id });
-                    }}
-                  />
-                </td>
+                  <td className="p-1">
+                    <FormInput
+                      className="form-control form-control-sm border-0 bg-light-subtle"
+                      placeholder="/routines/example-1"
+                      value={trigger.endpoint}
+                      onRealChange={(value) => {
+                        updateHttpTrigger(index, { endpoint: value });
+                      }}
+                      type="text"
+                    />
+                  </td>
 
-                <td className="p-1">
-                  <FormInput
-                    className="form-control form-control-sm border-0 bg-light-subtle"
-                    value={trigger.handler}
-                    onRealChange={(value) => {
-                      updateHttpTrigger(index, { handler: value });
-                    }}
-                    type="text"
-                  />
-                </td>
+                  <td className="p-1">
+                    <ChooseAsset
+                      assetId={trigger.assetId}
+                      list={assets.list}
+                      onChange={(id) => {
+                        updateHttpTrigger(index, { assetId: id });
+                      }}
+                    />
+                  </td>
 
-                <td className="p-1">
-                  <IconButton
-                    icon="close_small"
-                    size="sm"
-                    variant="outline-warning"
-                    onClick={() => {
-                      const updatedTriggers = httpTriggers.filter(
-                        (_, i) => i !== index,
-                      );
+                  <td className="p-1">
+                    <SelectFunction
+                      value={trigger.handler}
+                      onChange={(value) => {
+                        updateHttpTrigger(index, { handler: value });
+                      }}
+                      projectId={project.projectId}
+                      asset={asset || null}
+                    />
+                  </td>
 
-                      setHttpTriggers(updatedTriggers);
-                      markDirty();
-                    }}
-                  />
-                </td>
-              </tr>
-            ))}
+                  <td className="p-1">
+                    <IconButton
+                      icon="close_small"
+                      size="sm"
+                      variant="outline-warning"
+                      onClick={() => {
+                        const updatedTriggers = httpTriggers.filter(
+                          (_, i) => i !== index,
+                        );
+
+                        setHttpTriggers(updatedTriggers);
+                        markDirty();
+                      }}
+                    />
+                  </td>
+                </tr>
+              );
+            })}
           </tbody>
         </Table>
       )}

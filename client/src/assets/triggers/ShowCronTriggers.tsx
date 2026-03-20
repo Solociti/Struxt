@@ -6,6 +6,7 @@ import Table from "react-bootstrap/Table";
 import { useContentManager } from "../cm/contentManager";
 import { ChooseAsset } from "./inputs/ChooseAsset";
 import { SelectRoutineEnv } from "./inputs/SelectRoutineEnv";
+import { SelectFunction } from "./inputs/SelectFunction";
 
 /**
  * Renders and manages cron trigger rows.
@@ -23,7 +24,7 @@ export function ShowCronTriggers({
   environments: RoutineEnvModel[];
   highlightIndex: number | null;
 }) {
-  const { tabs, assets } = useContentManager();
+  const { tabs, assets, project } = useContentManager();
 
   const markDirty = () => {
     if (tabs.activeTab?.tabId) {
@@ -103,73 +104,77 @@ export function ShowCronTriggers({
           </thead>
 
           <tbody>
-            {cronTriggers.map((trigger, index) => (
-              <tr
-                key={index}
-                className={
-                  index === highlightIndex ? "border border-primary" : ""
-                }
-              >
-                <td className="p-1">
-                  <SelectRoutineEnv
-                    environmentId={trigger.environmentId}
-                    onChange={(envId) =>
-                      updateCronTrigger(index, { environmentId: envId })
-                    }
-                    environments={environments}
-                  />
-                </td>
+            {cronTriggers.map((trigger, index) => {
+              const asset = assets.list.find((a) => a.uuid === trigger.assetId);
 
-                <td className="p-1">
-                  <FormInput
-                    className="form-control form-control-sm border-0 bg-light-subtle"
-                    placeholder="0 * * * *"
-                    value={trigger.cronExpression}
-                    onRealChange={(value) => {
-                      updateCronTrigger(index, { cronExpression: value });
-                    }}
-                    type="text"
-                  />
-                </td>
+              return (
+                <tr
+                  key={index}
+                  className={
+                    index === highlightIndex ? "border border-primary" : ""
+                  }
+                >
+                  <td className="p-1">
+                    <SelectRoutineEnv
+                      environmentId={trigger.environmentId}
+                      onChange={(envId) =>
+                        updateCronTrigger(index, { environmentId: envId })
+                      }
+                      environments={environments}
+                    />
+                  </td>
 
-                <td className="p-1">
-                  <ChooseAsset
-                    assetId={trigger.assetId}
-                    list={assets.list}
-                    onChange={(id) => {
-                      updateCronTrigger(index, { assetId: id });
-                    }}
-                  />
-                </td>
+                  <td className="p-1">
+                    <FormInput
+                      className="form-control form-control-sm border-0 bg-light-subtle"
+                      placeholder="0 * * * *"
+                      value={trigger.cronExpression}
+                      onRealChange={(value) => {
+                        updateCronTrigger(index, { cronExpression: value });
+                      }}
+                      type="text"
+                    />
+                  </td>
 
-                <td className="p-1">
-                  <FormInput
-                    className="form-control form-control-sm border-0 bg-light-subtle"
-                    value={trigger.handler}
-                    onRealChange={(value) => {
-                      updateCronTrigger(index, { handler: value });
-                    }}
-                    type="text"
-                  />
-                </td>
+                  <td className="p-1">
+                    <ChooseAsset
+                      assetId={trigger.assetId}
+                      list={assets.list}
+                      onChange={(id) => {
+                        updateCronTrigger(index, { assetId: id });
+                      }}
+                    />
+                  </td>
 
-                <td className="p-1">
-                  <IconButton
-                    icon="close_small"
-                    size="sm"
-                    variant="outline-warning"
-                    onClick={() => {
-                      const updatedTriggers = cronTriggers.filter(
-                        (_, i) => i !== index,
-                      );
+                  <td className="p-1">
+                    <SelectFunction
+                      value={trigger.handler}
+                      onChange={(value) => {
+                        updateCronTrigger(index, { handler: value });
+                      }}
+                      projectId={project.projectId}
+                      asset={asset || null}
+                    />
+                  </td>
 
-                      setCronTriggers(updatedTriggers);
-                      markDirty();
-                    }}
-                  />
-                </td>
-              </tr>
-            ))}
+                  <td className="p-1">
+                    <IconButton
+                      icon="close_small"
+                      size="sm"
+                      variant="outline-warning"
+                      onClick={() => {
+                        const updatedTriggers = cronTriggers.filter(
+                          (_, i) => i !== index,
+                        );
+
+                        setCronTriggers(updatedTriggers);
+                        markDirty();
+                      }}
+                    />
+                  </td>
+                </tr>
+              );
+            })}
           </tbody>
         </Table>
       )}
