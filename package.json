@@ -76,7 +76,7 @@
     "@langchain/mongodb": "^0.1.1",
     "@langchain/openai": "^0.6.17",
     "@popperjs/core": "^2.11.8",
-    "axios": "^1.13.4",
+    "axios": "^1.13.6",
     "bullmq": "^5.71.0",
     "cheerio": "^1.2.0",
     "connect-mongodb-session": "^5.0.0",
