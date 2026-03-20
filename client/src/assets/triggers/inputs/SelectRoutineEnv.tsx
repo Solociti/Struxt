@@ -1,4 +1,5 @@
 import { RoutineEnvModel } from "common/models/routines/RoutineEnv";
+import Form from "react-bootstrap/Form";
 
 interface SelectRoutineEnvProps {
   environmentId: string | null;
@@ -8,6 +9,8 @@ interface SelectRoutineEnvProps {
    * The list of environments to choose from.
    */
   environments: RoutineEnvModel[];
+
+  isInvalid?: boolean;
 }
 
 /**
@@ -20,10 +23,13 @@ export function SelectRoutineEnv({
   environmentId,
   onChange,
   environments,
+  isInvalid,
 }: SelectRoutineEnvProps) {
   return (
-    <select
-      className="form-select form-select-sm border-0 bg-light-subtle"
+    <Form.Select
+      className="border-0 bg-light-subtle"
+      size="sm"
+      isInvalid={isInvalid}
       value={environmentId || ""}
       onChange={(e) => onChange(e.target.value)}
     >
@@ -36,6 +42,6 @@ export function SelectRoutineEnv({
           {env.displayName}
         </option>
       ))}
-    </select>
+    </Form.Select>
   );
 }

@@ -1,5 +1,6 @@
 import { FileIcon } from "client/assets/list/FileIcon";
 import IconButton from "client/components/IconButton";
+import MaterialIcon from "client/components/MaterialIcon";
 import { centerTruncateText } from "common/format/text";
 import { AssetListItem } from "common/models/assets/AssetModel";
 import { dirname, extname } from "common/path/path";
@@ -10,6 +11,8 @@ import Form from "react-bootstrap/Form";
 interface ChooseAssetProps {
   assetId: string | null;
   onChange: (assetId: string) => void;
+
+  isInvalid?: boolean;
 
   /**
    * The list of assets to choose from.
@@ -22,13 +25,19 @@ interface ChooseAssetProps {
  *
  * @param param0
  */
-export function ChooseAsset({ assetId, onChange, list }: ChooseAssetProps) {
+export function ChooseAsset({
+  assetId,
+  onChange,
+  list,
+  isInvalid,
+}: ChooseAssetProps) {
   if (assetId) {
     return (
       <ShowCurrentAsset
         assetId={assetId}
         list={list}
         clearAsset={() => onChange("")}
+        isInvalid={isInvalid}
       />
     );
   }
@@ -39,6 +48,7 @@ export function ChooseAsset({ assetId, onChange, list }: ChooseAssetProps) {
       onSelect={(id) => {
         onChange(id);
       }}
+      isInvalid={isInvalid}
     />
   );
 }
@@ -52,9 +62,11 @@ export function ChooseAsset({ assetId, onChange, list }: ChooseAssetProps) {
 function ShowSelectionDropdown({
   list,
   onSelect,
+  isInvalid,
 }: {
   list: AssetListItem[];
   onSelect: (assetId: string) => void;
+  isInvalid?: boolean;
 }) {
   const [search, setSearch] = useState("");
 
@@ -84,8 +96,15 @@ function ShowSelectionDropdown({
 
   return (
     <Dropdown>
-      <Dropdown.Toggle variant="outline-secondary" size="sm" className="w-100">
-        Select Asset
+      <Dropdown.Toggle
+        variant="outline-secondary"
+        size="sm"
+        className="w-100 d-flex align-items-center"
+      >
+        <div className="text-center flex-grow-1">Select Asset</div>
+        {isInvalid && (
+          <MaterialIcon className="text-danger fs-3">error</MaterialIcon>
+        )}
       </Dropdown.Toggle>
 
       <Dropdown.Menu
@@ -93,7 +112,7 @@ function ShowSelectionDropdown({
         popperConfig={{
           strategy: "fixed",
         }}
-        style={{ maxHeight: "min(40rem, 75vh)", overflowY: "auto" }}
+        style={{ maxHeight: "min(25rem, 60vh)", overflowY: "auto" }}
         className="pt-0"
       >
         <div
@@ -141,10 +160,12 @@ function ShowCurrentAsset({
   assetId,
   list,
   clearAsset,
+  isInvalid,
 }: {
   assetId: string;
   list: AssetListItem[];
   clearAsset: () => void;
+  isInvalid?: boolean;
 }) {
   const asset = list.find((a) => a.uuid === assetId);
 
@@ -167,6 +188,10 @@ function ShowCurrentAsset({
           <div>Asset not found</div>
         )}
       </div>
+
+      {isInvalid && (
+        <MaterialIcon className="text-danger fs-3">error</MaterialIcon>
+      )}
 
       <IconButton
         icon="close"

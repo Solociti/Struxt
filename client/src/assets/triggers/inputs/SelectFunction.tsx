@@ -12,6 +12,8 @@ interface SelectFunctionProps {
   value: string;
   onChange: (value: string) => void;
 
+  isInvalid?: boolean;
+
   projectId: string;
   asset: AssetModel | AssetListItem | null;
 }
@@ -24,6 +26,7 @@ export function SelectFunction({
   onChange,
   projectId,
   asset,
+  isInvalid,
 }: SelectFunctionProps) {
   const [load, setLoad] = useState(false);
   const { response: exportList, isLoading } = useLoadAsync(async () => {
@@ -44,6 +47,7 @@ export function SelectFunction({
       list={exportList || []}
       isLoading={isLoading}
       onOpen={() => setLoad(true)}
+      isInvalid={isInvalid}
     />
   );
 }
@@ -51,6 +55,8 @@ export function SelectFunction({
 interface DropdownMenuProps {
   list: string[];
   value: string;
+
+  isInvalid?: boolean;
 
   isLoading: boolean;
 
@@ -64,6 +70,7 @@ function DropdownMenu({
   list,
   isLoading,
   onOpen,
+  isInvalid,
 }: DropdownMenuProps) {
   const [value, setValue] = useState(incomingValue);
   const [show, setShow] = useState(false);
@@ -145,6 +152,7 @@ function DropdownMenu({
         onChange={(e) => {
           setValue(e.target.value);
         }}
+        isInvalid={isInvalid}
         onFocus={() => {
           setShow(true);
         }}

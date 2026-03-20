@@ -42,6 +42,32 @@ export function createHttpTrigger(
   return mergeDeep<HttpTrigger>(defaultTrigger, overrides ?? {});
 }
 
+/**
+ * Validates that a HttpTrigger has all required properties filled out.
+ *
+ * @param trigger
+ */
+export function getHttpTriggerInvalid(trigger: HttpTrigger): string[] {
+  const invalidProps = [];
+
+  if (!trigger.environmentId) {
+    invalidProps.push("environmentId");
+  }
+
+  if (!trigger.endpoint) {
+    invalidProps.push("endpoint");
+  }
+  if (!["GET", "POST", "PUT", "PATCH", "DELETE"].includes(trigger.method)) {
+    invalidProps.push("method");
+  }
+
+  if (!trigger.assetId) {
+    invalidProps.push("assetId");
+  }
+
+  return invalidProps;
+}
+
 export interface CronTrigger {
   /**
    * The cron expression for the trigger.
@@ -80,4 +106,27 @@ export function createCronTrigger(
   };
 
   return mergeDeep<CronTrigger>(defaultTrigger, overrides ?? {});
+}
+
+/**
+ * Validates that a CronTrigger has all required properties filled out.
+ *
+ * @param trigger
+ */
+export function getCronTriggerInvalid(trigger: CronTrigger): string[] {
+  const invalidProps = [];
+
+  if (!trigger.environmentId) {
+    invalidProps.push("environmentId");
+  }
+
+  if (!trigger.cronExpression) {
+    invalidProps.push("cronExpression");
+  }
+
+  if (!trigger.assetId) {
+    invalidProps.push("assetId");
+  }
+
+  return invalidProps;
 }

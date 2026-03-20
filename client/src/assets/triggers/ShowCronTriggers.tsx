@@ -1,12 +1,15 @@
 import { FormInput } from "client/components/FormInput";
 import IconButton from "client/components/IconButton";
-import { CronTrigger } from "common/models/projects/Triggers";
+import {
+  CronTrigger,
+  getCronTriggerInvalid,
+} from "common/models/projects/Triggers";
 import { RoutineEnvModel } from "common/models/routines/RoutineEnv";
 import Table from "react-bootstrap/Table";
 import { useContentManager } from "../cm/contentManager";
 import { ChooseAsset } from "./inputs/ChooseAsset";
-import { SelectRoutineEnv } from "./inputs/SelectRoutineEnv";
 import { SelectFunction } from "./inputs/SelectFunction";
+import { SelectRoutineEnv } from "./inputs/SelectRoutineEnv";
 
 /**
  * Renders and manages cron trigger rows.
@@ -18,11 +21,13 @@ export function ShowCronTriggers({
   setCronTriggers,
   environments,
   highlightIndex,
+  showInvalid,
 }: {
   cronTriggers: CronTrigger[];
   setCronTriggers: (triggers: CronTrigger[]) => void;
   environments: RoutineEnvModel[];
   highlightIndex: number | null;
+  showInvalid: boolean;
 }) {
   const { tabs, assets, project } = useContentManager();
 
@@ -106,6 +111,7 @@ export function ShowCronTriggers({
           <tbody>
             {cronTriggers.map((trigger, index) => {
               const asset = assets.list.find((a) => a.uuid === trigger.assetId);
+              const invalid = showInvalid ? getCronTriggerInvalid(trigger) : [];
 
               return (
                 <tr
@@ -121,6 +127,7 @@ export function ShowCronTriggers({
                         updateCronTrigger(index, { environmentId: envId })
                       }
                       environments={environments}
+                      isInvalid={invalid.includes("environmentId")}
                     />
                   </td>
 
@@ -133,6 +140,7 @@ export function ShowCronTriggers({
                         updateCronTrigger(index, { cronExpression: value });
                       }}
                       type="text"
+                      isInvalid={invalid.includes("cronExpression")}
                     />
                   </td>
 
@@ -143,6 +151,7 @@ export function ShowCronTriggers({
                       onChange={(id) => {
                         updateCronTrigger(index, { assetId: id });
                       }}
+                      isInvalid={invalid.includes("assetId")}
                     />
                   </td>
 
@@ -154,6 +163,7 @@ export function ShowCronTriggers({
                       }}
                       projectId={project.projectId}
                       asset={asset || null}
+                      isInvalid={invalid.includes("handler")}
                     />
                   </td>
 

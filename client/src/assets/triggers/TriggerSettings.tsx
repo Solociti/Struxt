@@ -3,10 +3,13 @@ import IconButton from "client/components/IconButton";
 import { ShowError } from "client/components/ShowError";
 import { useAsyncCallback } from "client/components/useAsyncCallback";
 import { getRoutineEnvList } from "client/dashboard/admin/routines/routineEnvApi";
+import { formatTime } from "common/format/date";
 import {
   createCronTrigger,
   createHttpTrigger,
   CronTrigger,
+  getCronTriggerInvalid,
+  getHttpTriggerInvalid,
   HttpTrigger,
 } from "common/models/projects/Triggers";
 import { useCallback, useEffect, useRef, useState } from "react";
@@ -16,13 +19,6 @@ import { ShowCronTriggers } from "./ShowCronTriggers";
 import { ShowHttpTriggers } from "./ShowHttpTriggers";
 import { saveTriggers } from "./saveTriggers";
 
-// List of requirements
-// - UI sections for HTTP and Cron triggers
-// - Add a shortcut in the file dropdowns to add a new trigger
-// - parse files with tree-sitter to get the exported functions for the handler inputs
-// - Use input / dropdown hybrids for function selection
-// - Add a File Selection component to pick the asset we are targeting
-
 interface Triggers {
   httpTriggers: HttpTrigger[];
   cronTriggers: CronTrigger[];
@@ -30,6 +26,8 @@ interface Triggers {
 
 export interface TriggerSettingsTabState extends Partial<Triggers> {
   ready: boolean;
+
+  showErrors?: boolean;
 }
 
 /**
@@ -55,6 +53,16 @@ export default function TriggerSettings() {
     { ready: false },
   );
 
+  const showErrors = Boolean(triggers?.showErrors);
+  const setShowErrors = (show: boolean) => {
+    setTriggers((prev) => {
+      return {
+        ...prev,
+        showErrors: show,
+      };
+    });
+  };
+
   useEffect(() => {
     if (!isLoading) {
       setTriggers((prev) => {
@@ -73,13 +81,39 @@ export default function TriggerSettings() {
   const _renderedTriggers = useRef(renderedTriggers);
   _renderedTriggers.current = renderedTriggers;
 
-  const saveCb = useAsyncCallback(async (triggers) => {
-    const result = await saveTriggers(project.projectId, triggers);
+  const saveCb = useAsyncCallback(
+    async (triggers: Partial<Triggers>, throwOnError = false) => {
+      // check for invalid triggers before saving
+      const invalidHttp = triggers.httpTriggers?.some(
+        (t) => getHttpTriggerInvalid(t).length > 0,
+      );
+      const invalidCron = triggers.cronTriggers?.some(
+        (t) => getCronTriggerInvalid(t).length > 0,
+      );
 
-    commands.trigger("update:project-details", result.details);
-    tabs.markClean(tabs.activeTab?.tabId ?? "");
-    setTriggers({ ready: true });
-  }, {});
+      if (invalidHttp || invalidCron) {
+        setShowErrors(true);
+        if (throwOnError) {
+          const err = new Error(
+            "Please fix any missing or invalid fields and try again.",
+          );
+          err.name = "Save Error";
+          throw err;
+        }
+        return;
+      }
+
+      const result = await saveTriggers(project.projectId, triggers);
+
+      commands.trigger("update:project-details", result.details);
+      tabs.markClean(tabs.activeTab?.tabId ?? "");
+      setTriggers({ ready: true });
+      setShowErrors(false);
+
+      const date = new Date();
+      return date;
+    },
+  );
 
   const [highlightHttpIndex, setHighlightHttpIndex] = useState<number | null>(
     null,
@@ -114,7 +148,6 @@ export default function TriggerSettings() {
       const updatedTriggers = prev
         ? { ...prev, ...change }
         : { ...change, ready: true };
-      // TODO: Ensure that the triggers are valid before saving, and show errors if not
 
       if (saveTimeout.current) {
         clearTimeout(saveTimeout.current);
@@ -185,8 +218,24 @@ export default function TriggerSettings() {
         <div>
           {isLoading && <Spinner animation="border" size="sm" />}
           <span className="small text-muted">
-            {isLoading && "Loading..."}
-            {!isLoading && !saveCb.isLoading && hasChanges && "Unsaved changes"}
+            {(() => {
+              if (isLoading) {
+                return "Loading...";
+              }
+              if (saveCb.isLoading) {
+                return "";
+              }
+
+              if (hasChanges) {
+                return "Unsaved changes";
+              }
+
+              if (saveCb.result) {
+                return `Last Saved: ${formatTime(saveCb.result)}`;
+              }
+
+              return "";
+            })()}
           </span>
 
           <IconButton
@@ -196,7 +245,7 @@ export default function TriggerSettings() {
             className="ms-2"
             disabled={saveCb.isLoading || !hasChanges}
             spinner={saveCb.isLoading}
-            onClick={() => saveCb.callback(renderedTriggers)}
+            onClick={() => saveCb.callback(renderedTriggers, true)}
           >
             Save
           </IconButton>
@@ -216,6 +265,7 @@ export default function TriggerSettings() {
           }}
           environments={allEnvs || []}
           highlightIndex={highlightHttpIndex}
+          showInvalid={showErrors}
         />
       </section>
 
@@ -229,6 +279,7 @@ export default function TriggerSettings() {
           }}
           environments={allEnvs || []}
           highlightIndex={highlightCronIndex}
+          showInvalid={showErrors}
         />
       </section>
     </div>

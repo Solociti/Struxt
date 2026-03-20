@@ -30,7 +30,7 @@ registerApi<ProjectTriggersApi>("/api/projects/:projectId/triggers").post(
             method: z.enum(["GET", "POST", "PUT", "DELETE", "PATCH"]),
             assetId: z.string().min(5),
             handler: z.string(),
-            environmentId: z.string(),
+            environmentId: z.string().min(1),
           }),
         ),
         cronTriggers: z.array(
@@ -38,7 +38,7 @@ registerApi<ProjectTriggersApi>("/api/projects/:projectId/triggers").post(
             cronExpression: z.string().min(1),
             assetId: z.string().min(5),
             handler: z.string(),
-            environmentId: z.string(),
+            environmentId: z.string().min(1),
           }),
         ),
       })

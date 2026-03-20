@@ -1,12 +1,16 @@
 import { FormInput } from "client/components/FormInput";
 import IconButton from "client/components/IconButton";
-import { HttpTrigger } from "common/models/projects/Triggers";
+import {
+  getHttpTriggerInvalid,
+  HttpTrigger,
+} from "common/models/projects/Triggers";
 import { RoutineEnvModel } from "common/models/routines/RoutineEnv";
+import Form from "react-bootstrap/Form";
 import Table from "react-bootstrap/Table";
 import { useContentManager } from "../cm/contentManager";
 import { ChooseAsset } from "./inputs/ChooseAsset";
-import { SelectRoutineEnv } from "./inputs/SelectRoutineEnv";
 import { SelectFunction } from "./inputs/SelectFunction";
+import { SelectRoutineEnv } from "./inputs/SelectRoutineEnv";
 
 /**
  * Show and manage the HTTP triggers
@@ -18,11 +22,13 @@ export function ShowHttpTriggers({
   setHttpTriggers,
   environments,
   highlightIndex,
+  showInvalid,
 }: {
   httpTriggers: HttpTrigger[];
   setHttpTriggers: (triggers: HttpTrigger[]) => void;
   environments: RoutineEnvModel[];
   highlightIndex: number | null;
+  showInvalid: boolean;
 }) {
   const { tabs, assets, project } = useContentManager();
 
@@ -109,6 +115,7 @@ export function ShowHttpTriggers({
           <tbody>
             {httpTriggers.map((trigger, index) => {
               const asset = assets.list.find((a) => a.uuid === trigger.assetId);
+              const invalid = showInvalid ? getHttpTriggerInvalid(trigger) : [];
 
               return (
                 <tr
@@ -126,11 +133,12 @@ export function ShowHttpTriggers({
                         updateHttpTrigger(index, { environmentId: envId })
                       }
                       environments={environments}
+                      isInvalid={invalid.includes("environmentId")}
                     />
                   </td>
 
                   <td className="p-1">
-                    <select
+                    <Form.Select
                       className="form-select form-select-sm border-0 bg-light-subtle"
                       value={trigger.method}
                       onChange={(e) => {
@@ -142,13 +150,14 @@ export function ShowHttpTriggers({
                           method: e.target.value as HttpTrigger["method"],
                         });
                       }}
+                      isInvalid={invalid.includes("method")}
                     >
                       <option>GET</option>
                       <option>POST</option>
                       <option>PUT</option>
                       <option>PATCH</option>
                       <option>DELETE</option>
-                    </select>
+                    </Form.Select>
                   </td>
 
                   <td className="p-1">
@@ -160,6 +169,7 @@ export function ShowHttpTriggers({
                         updateHttpTrigger(index, { endpoint: value });
                       }}
                       type="text"
+                      isInvalid={invalid.includes("endpoint")}
                     />
                   </td>
 
@@ -170,6 +180,7 @@ export function ShowHttpTriggers({
                       onChange={(id) => {
                         updateHttpTrigger(index, { assetId: id });
                       }}
+                      isInvalid={invalid.includes("assetId")}
                     />
                   </td>
 
@@ -181,6 +192,7 @@ export function ShowHttpTriggers({
                       }}
                       projectId={project.projectId}
                       asset={asset || null}
+                      isInvalid={invalid.includes("handler")}
                     />
                   </td>
 
