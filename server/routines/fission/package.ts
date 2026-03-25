@@ -1,6 +1,5 @@
 import {
   fissionGroup,
-  fissionNamespace,
   FissionPackage,
   FissionPackageBuildStatus,
   FissionPackageSpec,
@@ -25,23 +24,51 @@ function getArchiveUrl(sourceArchiveId: string): string {
 
 export interface CreatePackageOptions {
   /**
-   * Unique name for the package CRD resource.
+   * Package name.
    */
   name: string;
   /**
-   *  Name of the Fission environment to build with (e.g. "node").
+   * Environment name.
    */
   environmentName: string;
   /**
    * Archive ID from uploadArchive.
    */
-  sourceArchiveId: string;
+  sourceArchiveId?: string;
   /**
-   * Build command to run (default: "build").
+   * URL for single-file source code or source archive.
+   */
+  sourceUrl?: string;
+  /**
+   * SHA256 checksum of source archive when providing URL.
+   */
+  sourceChecksum?: string;
+  /**
+   * URL for deployment archive.
+   */
+  deploymentUrl?: string;
+  /**
+   * SHA256 checksum of deploy archive when providing URL.
+   */
+  deploymentChecksum?: string;
+  /**
+   * Skip adding checksum metadata for URL archives.
+   */
+  insecure?: boolean;
+  /**
+   * Build command to run.
+   *
+   * ! NOTE: This field was removed because it kept causing build failures. Revisit if we want to support custom build commands in the future.
+   *
+   * @deprecated
    */
   buildCommand?: string;
   /**
-   * Namespace to create the package in (defaults to `fissionResourceNamespace`).
+   * Labels applied to package metadata.
+   */
+  labels?: Record<string, string>;
+  /**
+   * Namespace scope for this request.
    */
   namespace?: string;
 }
@@ -57,20 +84,53 @@ export async function createPackage(
   const { custom } = await getK8sApi();
   const namespace = opts.namespace ?? fissionResourceNamespace;
 
+  const sourceUrl =
+    opts.sourceArchiveId !== undefined
+      ? getArchiveUrl(opts.sourceArchiveId)
+      : opts.sourceUrl;
+
+  const source =
+    sourceUrl !== undefined
+      ? {
+          type: "url" as const,
+          url: sourceUrl,
+          checksum: opts.insecure
+            ? undefined
+            : opts.sourceChecksum
+              ? {
+                  type: "sha256",
+                  sum: opts.sourceChecksum,
+                }
+              : {},
+        }
+      : undefined;
+
+  const deployment: FissionPackageSpec["deployment"] =
+    opts.deploymentUrl !== undefined
+      ? {
+          type: "url" as const,
+          url: opts.deploymentUrl,
+          checksum: opts.insecure
+            ? undefined
+            : opts.deploymentChecksum
+              ? {
+                  type: "sha256",
+                  sum: opts.deploymentChecksum,
+                }
+              : {},
+        }
+      : undefined;
+
   const spec: FissionPackageSpec = {
-    environment: { name: opts.environmentName, namespace: fissionNamespace },
-    source: {
-      type: "url",
-      url: getArchiveUrl(opts.sourceArchiveId),
-      checksum: {},
-    },
-    buildcmd: opts.buildCommand ?? "build",
+    environment: { name: opts.environmentName, namespace },
+    source,
+    ...deployment,
   };
 
   const body: FissionPackage = {
     apiVersion: "fission.io/v1",
     kind: "Package",
-    metadata: { name: opts.name, namespace },
+    metadata: { name: opts.name, namespace, labels: opts.labels },
     spec,
   };
 

@@ -3,92 +3,53 @@ import {
   ProjectFeatureFlags,
   ProjectModel,
 } from "common/models/projects/ProjectModel";
-import { glob } from "node:fs/promises";
-import { isAbsolute, join } from "node:path";
-import { getAssetByPath } from "server/api/assets/getAssets";
+import { createWriteStream, existsSync } from "node:fs";
+import { dirname, join } from "node:path";
+import { pipeline } from "node:stream/promises";
 import { createZipStream } from "server/hfs/zipStream";
+import { mkDirRecursive } from "server/utils/mkDir";
 import { getProjectFilesDir } from "server/utils/uploadDir";
+import { getRoutineEnvFiles } from "./getRoutineEnvFiles";
 
 /**
  * Creates a zip file stream of the routines for the given project and fission env
  *
  * @param projectId
  * @param fissionEnv
+ * @param tempFilePath
  */
 export async function createRoutineZip(
   project: ProjectModel,
   fissionEnv: ProjectFeatureFlags["routines"]["environments"][number],
+  tempFilePath: string,
 ) {
   const dir = getProjectFilesDir(project.projectId);
 
-  // TODO: collect the asset metadata while creating the list
-  const assets: AssetModel[] = [];
-  const files = await collectFiles(dir, fissionEnv.files, fissionEnv.ignore);
+  const assets: AssetModel[] = await getRoutineEnvFiles(project, fissionEnv);
+  const files: { asset: AssetModel; file: string }[] = [];
 
-  // ! temporary hack to get the asset metadata. This must be removed and a proper way built instead of globing the file system
-  for (const file of files) {
-    const asset = await getAssetByPath(project.projectId, file);
-    if (asset) {
-      assets.push(asset);
+  for (const asset of assets) {
+    const file = join(dir, asset.path);
+
+    if (existsSync(file)) {
+      files.push({ asset, file });
     }
   }
 
-  const res = await createZipStream(files, {
-    restrictedTo: dir,
-    relativeTo: dir,
-  });
+  await mkDirRecursive(dirname(tempFilePath));
+
+  const res = await createZipStream(
+    files.map((f) => f.file),
+    {
+      restrictedTo: dir,
+      relativeTo: dir,
+    },
+  );
+
+  await pipeline(res.stream, createWriteStream(tempFilePath));
 
   return {
-    ...res,
-    assets,
+    assets: files.map((f) => f.asset),
+    tempFilePath,
   };
-}
-
-/**
- * Recursively collects files from the given root directory that match the specified patterns
- * and do not match the ignore patterns.
- *
- * @param rootDir
- * @param match
- * @param ignore
- */
-export async function collectFiles(
-  rootDir: string,
-  match: string[],
-  ignore: string[],
-): Promise<string[]> {
-  const files = new Set<string>();
-
-  // TODO: use the mongodb collection of assets to create the list of files instead of globbing the file system
-  // Potentially use glob-to-regexp to convert the glob patterns to regex.
-
-  const matchList = match
-    .map((pattern) => {
-      if (isAbsolute(pattern)) {
-        return pattern.replace(/^\/+/, "");
-      }
-      return pattern;
-    })
-    .filter(Boolean);
-  const ignoreList = ignore
-    .map((pattern) => {
-      if (isAbsolute(pattern)) {
-        return pattern.replace(/^\/+/, "");
-      }
-      return pattern;
-    })
-    .filter(Boolean);
-
-  for await (const file of glob(matchList, {
-    cwd: rootDir,
-    exclude: ignoreList,
-  })) {
-    if (isAbsolute(file)) {
-      files.add(file);
-    } else {
-      files.add(join(rootDir, file));
-    }
-  }
-
-  return Array.from(files);
 }

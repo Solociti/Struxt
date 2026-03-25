@@ -1,24 +1,119 @@
 import { customError } from "common/custom-error/custom-error";
+import { AssetModel } from "common/models/assets/AssetModel";
 import { ProjectModel } from "common/models/projects/ProjectModel";
 import {
   PublishModel,
   PublishRoutineItem,
 } from "common/models/projects/PublishModel";
-import { createReadStream, createWriteStream } from "node:fs";
+import { createReadStream } from "node:fs";
 import { rm, stat } from "node:fs/promises";
-import { pipeline } from "node:stream/promises";
+import { basename, dirname, extname, join, normalize } from "node:path";
 import { getTempDir } from "server/utils/uploadDir";
 import { getRoutineEnv } from "../env/getRoutineEnv";
 import { uploadArchive } from "../fission/archive";
+import { createFunction } from "../fission/function";
+import { createHttpTrigger } from "../fission/httptrigger";
 import { createPackage } from "../fission/package";
+import { createTimeTrigger } from "../fission/timetrigger";
 import { createRoutineZip } from "./createRoutineZip";
+
+/**
+ * Creates a key used to deduplicate function resources per asset handler.
+ *
+ * @param assetId
+ * @param handler
+ */
+function getFunctionKey(assetId: string, handler: string): string {
+  return `${assetId}:${handler}`;
+}
+
+/**
+ * Resolves the package handler value for a trigger.
+ *
+ * @param asset
+ * @param handler
+ */
+function resolvePackageHandler(asset: AssetModel, handler: string): string {
+  const extension = extname(asset.path);
+  const moduleName = basename(asset.path, extension);
+  const dir = dirname(asset.path);
+
+  if (!moduleName) {
+    throw customError(
+      400,
+      `Invalid asset path '${asset.path}' for routine trigger handler resolution.`,
+    );
+  }
+
+  // NOTE: dir must be included — Fission resolves entrypoints relative to the
+  // archive root, so the full subpath (e.g. "routines/hello-world") is required.
+  if (!handler || handler === "default") {
+    return join(dir, moduleName);
+  }
+
+  return `${join(dir, moduleName)}.${handler}`;
+}
+
+/**
+ * Resolves or creates a Fission Function resource and returns its resource name.
+ *
+ * @param assetId
+ * @param handler
+ * @param assetsById
+ * @param existingFunctions
+ * @param publishValue
+ * @param routineEnvName
+ */
+async function resolveFunctionResourceName(
+  assetId: string,
+  handler: string,
+  assetsById: Map<string, AssetModel>,
+  existingFunctions: Map<string, string>,
+  publishValue: PublishRoutineItem,
+  routineEnvName: string,
+): Promise<string> {
+  const key = getFunctionKey(assetId, handler);
+  const existingName = existingFunctions.get(key);
+  if (existingName) {
+    return existingName;
+  }
+
+  const asset = assetsById.get(assetId);
+  if (!asset) {
+    throw customError(
+      400,
+      `Unable to resolve routine trigger asset '${assetId}' in publish archive.`,
+    );
+  }
+
+  const functionResourceName = `${publishValue.uuid}-fn-${existingFunctions.size}`;
+  const functionName = resolvePackageHandler(asset, handler);
+
+  try {
+    await createFunction({
+      name: functionResourceName,
+      environmentName: routineEnvName,
+      packageName: publishValue.uuid,
+      functionName,
+      labels: { deploy: publishValue.uuid },
+    });
+  } catch (err) {
+    console.error(`Failed to Create Function: ${functionResourceName}`, err);
+    throw customError(
+      500,
+      "Failed to create a routine function while publishing. Please retry or contact support if the issue persists.",
+    );
+  }
+
+  existingFunctions.set(key, functionResourceName);
+  return functionResourceName;
+}
 
 /**
  * Publish the routines for the given project and environment.
  *
  * @param project
  * @param publish
- * @param projectEnv
  */
 export async function publishRoutines(
   project: ProjectModel,
@@ -54,22 +149,29 @@ export async function publishRoutines(
       uuid: `${routineEnv.runtime}-${publish.createNextRoutineId()}`,
       routineUuid: env.uuid,
       assetIds: [],
+      httpTriggers: [],
+      cronTriggers: [],
     };
     publish.routines.push(publishValue);
 
     process.push(async () => {
-      // Create a zip stream to upload to the fission archive
-      const { stream: zipStream, assets } = await createRoutineZip(
-        project,
-        env,
-      );
-      publishValue.assetIds = assets.map((a) => a.uuid);
-
       const tempFile = getTempDir(
         project.projectId,
         `${publishValue.uuid}.zip`,
       );
-      await pipeline(zipStream, createWriteStream(tempFile));
+
+      // Create a zip stream to upload to the fission archive
+      const { assets } = await createRoutineZip(project, env, tempFile);
+      if (assets.length === 0) {
+        throw customError(
+          400,
+          `No assets found for environment '${routineEnv.displayName}'. Cannot publish.`,
+        );
+      }
+      publishValue.assetIds.push(...assets.map((a) => a.uuid));
+      const assetsById = new Map<string, AssetModel>(
+        assets.map((asset) => [asset.uuid, asset]),
+      );
 
       const st = await stat(tempFile);
       if (st.size === 0) {
@@ -86,14 +188,102 @@ export async function publishRoutines(
       // remove the temp file after upload
       await rm(tempFile);
 
-      await createPackage({
-        environmentName: routineEnv.name,
-        sourceArchiveId: archiveId,
-        name: publishValue.uuid,
-      });
+      try {
+        await createPackage({
+          environmentName: routineEnv.name,
+          sourceArchiveId: archiveId,
+          name: publishValue.uuid,
+          labels: { deploy: publishValue.uuid },
+        });
+      } catch (err) {
+        console.error(`Failed to Create Package: ${publishValue.uuid}`, err);
+        throw customError(
+          500,
+          "Failed to create the routine package while publishing. Please retry or contact support if the issue persists.",
+        );
+      }
 
-      // TODO: setup all endpoints/entrypoints for the routines in fission
-      // TODO: use this information from assets
+      const functionResources = new Map<string, string>();
+
+      let count = 0;
+
+      for (const httpTrigger of project.featureFlags.routines.httpTriggers) {
+        if (httpTrigger.environmentId !== env.uuid) {
+          continue;
+        }
+
+        // validate that the endpoint doesn't contain path traversal characters
+        const endpoint = normalize(httpTrigger.endpoint);
+        if (endpoint.startsWith("..")) {
+          throw customError(
+            400,
+            `Invalid HTTP trigger endpoint '${httpTrigger.endpoint}' for routine '${routineEnv.displayName}'. Endpoint cannot contain path traversal characters.`,
+          );
+        }
+
+        const name = `${publishValue.uuid}-http-${count++}`;
+        publishValue.httpTriggers.push(name);
+
+        const handler = httpTrigger.handler.trim() || "default";
+        const functionResourceName = await resolveFunctionResourceName(
+          httpTrigger.assetId,
+          handler,
+          assetsById,
+          functionResources,
+          publishValue,
+          routineEnv.name,
+        );
+
+        try {
+          await createHttpTrigger({
+            name,
+            relativeUrl: join("/", publish.uuid, httpTrigger.endpoint),
+            methods: [httpTrigger.method],
+            functionName: functionResourceName,
+            labels: { deploy: publishValue.uuid },
+          });
+        } catch (err) {
+          console.error(`Failed to Create HTTP Trigger: ${name}`, err);
+          throw customError(
+            500,
+            "Failed to create an HTTP trigger while publishing. Please retry or contact support if the issue persists.",
+          );
+        }
+      }
+
+      for (const cronTrigger of project.featureFlags.routines.cronTriggers) {
+        if (cronTrigger.environmentId !== env.uuid) {
+          continue;
+        }
+
+        const name = `${publishValue.uuid}-cron-${count++}`;
+        publishValue.cronTriggers.push(name);
+
+        const handler = cronTrigger.handler.trim() || "default";
+        const functionResourceName = await resolveFunctionResourceName(
+          cronTrigger.assetId,
+          handler,
+          assetsById,
+          functionResources,
+          publishValue,
+          routineEnv.name,
+        );
+
+        try {
+          await createTimeTrigger({
+            name,
+            cron: cronTrigger.cronExpression,
+            functionName: functionResourceName,
+            labels: { deploy: publishValue.uuid },
+          });
+        } catch (err) {
+          console.error(`Failed to Create Cron Trigger: ${name}`, err);
+          throw customError(
+            500,
+            "Failed to create a Cron trigger while publishing. Please retry or contact support if the issue persists.",
+          );
+        }
+      }
     });
   }
 

@@ -1,6 +1,5 @@
 import { ZipWriterStream } from "@zip.js/zip.js";
-import { createReadStream } from "node:fs";
-import { stat } from "node:fs/promises";
+import { open, stat } from "node:fs/promises";
 import { relative } from "node:path";
 import { Readable } from "node:stream";
 import { ReadableStream as ReadableWebStream } from "node:stream/web";
@@ -39,9 +38,14 @@ export async function createZipStream(
         fileName = relative(relativeTo, file);
       }
 
-      const fileStream = await createReadStream(file);
+      const fh = await open(file, "r");
+      const fileWebStream = fh.readableWebStream();
 
-      await Readable.toWeb(fileStream).pipeTo(zipper.writable(fileName));
+      try {
+        await fileWebStream.pipeTo(zipper.writable(fileName));
+      } finally {
+        await fh.close();
+      }
     }
 
     await zipper.close();

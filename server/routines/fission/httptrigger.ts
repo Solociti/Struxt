@@ -10,15 +10,53 @@ import { getK8sApi } from "server/routines/kubeSetup";
 const plural = "httptriggers";
 
 export interface CreateHttpTriggerOptions {
-  /** Unique name for the trigger CRD resource. */
+  /**
+   * HTTP trigger name.
+   */
   name: string;
-  /** Relative URL path the trigger responds to (e.g. `/api/my-route`). */
+  /**
+   * URL pattern exposed by the trigger.
+   */
   relativeUrl: string;
-  /** HTTP methods to match (e.g. `["GET", "POST"]`). */
-  methods: string[];
-  /** Name of the Fission Function to invoke. */
-  functionName: string;
-  /** Namespace to create the trigger in (defaults to FISSION_RESOURCE_NAMESPACE). */
+  /**
+   * HTTP methods for the trigger.
+   */
+  methods?: string[];
+  /**
+   * Name of the function for direct routing.
+   */
+  functionName?: string;
+  /**
+   * Function name to weight map for canary routing.
+   */
+  functionWeights?: Record<string, number>;
+  /**
+   * Create an ingress alongside the trigger.
+   */
+  createIngress?: boolean;
+  /**
+   * Deprecated host field in HTTPTrigger spec.
+   */
+  host?: string;
+  /**
+   * Ingress host/path/tls and annotations.
+   */
+  ingressConfig?: FissionHttpTriggerSpec["ingressconfig"];
+  /**
+   * Prefix with which functions are exposed.
+   */
+  prefix?: string;
+  /**
+   * Keep prefix while forwarding request to function.
+   */
+  keepPrefix?: boolean;
+  /**
+   * Labels applied to HTTP trigger metadata.
+   */
+  labels?: Record<string, string>;
+  /**
+   * Namespace scope for this request.
+   */
   namespace?: string;
 }
 
@@ -33,22 +71,33 @@ export async function createHttpTrigger(
   const { custom } = await getK8sApi();
   const namespace = opts.namespace ?? fissionResourceNamespace;
 
+  const hasWeights = opts.functionWeights !== undefined;
+  const functionref = hasWeights
+    ? {
+        type: "function-weights" as const,
+        functionweights: opts.functionWeights ?? null,
+      }
+    : {
+        type: "name" as const,
+        name: opts.functionName,
+        functionweights: null,
+      };
+
   const spec: FissionHttpTriggerSpec = {
     relativeurl: opts.relativeUrl,
-    methods: opts.methods,
-    functionref: {
-      type: "name",
-      name: opts.functionName,
-      functionweights: null,
-    },
-    createingress: false,
-    ingressconfig: {},
+    methods: opts.methods ?? ["GET"],
+    functionref,
+    createingress: opts.createIngress ?? false,
+    host: opts.host,
+    ingressconfig: opts.ingressConfig,
+    prefix: opts.prefix,
+    keepPrefix: opts.keepPrefix,
   };
 
   const body: FissionHttpTrigger = {
     apiVersion: "fission.io/v1",
     kind: "HTTPTrigger",
-    metadata: { name: opts.name, namespace },
+    metadata: { name: opts.name, namespace, labels: opts.labels },
     spec,
   };
 

@@ -19,6 +19,16 @@ export interface PublishRoutineItem {
    * The list of asset uuids that were included in the zip file.
    */
   assetIds: string[];
+
+  /**
+   * List of http trigger names created for this routine.
+   */
+  httpTriggers: string[];
+
+  /**
+   * List of cron trigger names created for this routine.
+   */
+  cronTriggers: string[];
 }
 
 export class PublishModel extends Model {
@@ -79,6 +89,8 @@ export class PublishModel extends Model {
           uuid: "",
           routineUuid: "",
           assetIds: [],
+          httpTriggers: [],
+          cronTriggers: [],
         };
 
         return mergeDeep(defaultRoutine, routine!);

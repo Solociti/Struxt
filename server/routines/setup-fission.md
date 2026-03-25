@@ -116,7 +116,10 @@ sudo kubectl create namespace $FISSION_NAMESPACE
 sudo kubectl create -k "github.com/fission/fission/crds/v1?ref=v1.22.0"
 helm repo add fission-charts https://fission.github.io/fission-charts/
 helm repo update
-helm install --version 1.22.0 --namespace $FISSION_NAMESPACE fission fission-charts/fission-all
+
+helm install --version 1.22.0 \
+  --namespace $FISSION_NAMESPACE \
+  fission fission-charts/fission-all
 ```
 
 ---
@@ -144,7 +147,15 @@ sudo mv fission /etc/bash_completion.d/fission
 Create a reusable Node.js environment for Fission with CPU and memory limits.
 
 ```bash
-fission env create --name node --image ghcr.io/fission/node-env --mincpu 40 --maxcpu 80 --minmemory 64 --maxmemory 128 --poolsize 4 --spec
+fission env create \
+  --name node \
+  --image ghcr.io/fission/node-env \
+  --builder ghcr.io/fission/node-builder \
+  --mincpu 40 \
+  --maxcpu 80 \
+  --minmemory 64 \
+  --maxmemory 128 \
+  --poolsize 4
 ```
 
 Quick examples:
@@ -213,9 +224,9 @@ kubectl -n fission create serviceaccount struxt-fission-client-dev
 kubectl -n fission create serviceaccount struxt-fission-client-staging
 kubectl -n fission create serviceaccount struxt-fission-client-prod
 
-kubectl apply -f fission/config/struxt-fission-role.yaml
-kubectl apply -f fission/config/struxt-fission-binding.yaml
-kubectl apply -f fission/config/struxt-fission-token.yaml
+kubectl apply -f config/fission/struxt-fission-role.yaml
+kubectl apply -f config/fission/struxt-fission-binding.yaml
+kubectl apply -f config/fission/struxt-fission-token.yaml
 
 # Get Dev Token
 kubectl -n fission get secret struxt-fission-client-dev-token -o jsonpath='{.data.token}' | base64 --decode

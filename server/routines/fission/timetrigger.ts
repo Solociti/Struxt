@@ -10,19 +10,43 @@ import { getK8sApi } from "server/routines/kubeSetup";
 const plural = "timetriggers";
 
 /**
- * Options for creating a Fission TimeTrigger
+ * Options for creating a Fission TimeTrigger.
  */
 export interface CreateTimeTriggerOptions {
+  /**
+   * Time trigger name.
+   */
   name: string;
+  /**
+   * Cron schedule expression.
+   */
   cron: string;
+  /**
+   * Function name.
+   */
   functionName: string;
+  /**
+   * HTTP method used to invoke the function.
+   */
+  method?: string;
+  /**
+   * Subpath used to invoke a specific function route.
+   */
+  subpath?: string;
+  /**
+   * Labels applied to time trigger metadata.
+   */
+  labels?: Record<string, string>;
+  /**
+   * Namespace scope for this request.
+   */
   namespace?: string;
 }
 
 /**
- * Create a Fission TimeTrigger for a cron schedule
+ * Create a Fission TimeTrigger for a cron schedule.
  *
- * @param opts options for trigger creation
+ * @param opts
  */
 export async function createTimeTrigger(
   opts: CreateTimeTriggerOptions,
@@ -37,12 +61,14 @@ export async function createTimeTrigger(
       name: opts.functionName,
       functionweights: null,
     },
+    method: opts.method,
+    subpath: opts.subpath,
   };
 
   const body: FissionTimeTrigger = {
     apiVersion: "fission.io/v1",
     kind: "TimeTrigger",
-    metadata: { name: opts.name, namespace },
+    metadata: { name: opts.name, namespace, labels: opts.labels },
     spec,
   };
 

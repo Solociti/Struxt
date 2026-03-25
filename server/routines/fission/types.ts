@@ -62,16 +62,29 @@ export interface FissionEnvironmentSpec {
   version: number;
   runtime: {
     image: string;
+    container?: {
+      env?: Array<{
+        name: string;
+        value: string;
+      }>;
+    };
   };
   builder?: {
     image?: string;
     command?: string;
+    container?: {
+      env?: Array<{
+        name: string;
+        value: string;
+      }>;
+    };
   };
   resources?: {
     requests?: { cpu?: string; memory?: string };
     limits?: { cpu?: string; memory?: string };
   };
   poolsize?: number;
+  terminationGracePeriod?: number;
   allowedFunctionsPerContainer?: "single" | "multiple" | "infinite";
   allowAccessToExternalNetwork?: boolean;
   keeparchive?: boolean;
@@ -163,6 +176,8 @@ export interface FissionFunctionSpec {
   idletimeout?: number;
   concurrency?: number;
   requestsPerPod?: number;
+  onceOnly?: boolean;
+  retainPods?: number;
 }
 
 export type FissionFunction = FissionCrdObject<FissionFunctionSpec> & {
@@ -185,8 +200,15 @@ export interface FissionHttpTriggerSpec {
   };
   host?: string;
   createingress?: boolean;
-  /** JSON tag: ingressconfig (all lowercase — matches Go source). */
-  ingressconfig?: object;
+  /**
+   * JSON tag: ingressconfig (all lowercase - matches Go source).
+   */
+  ingressconfig?: {
+    annotations?: Record<string, string>;
+    path?: string;
+    host?: string;
+    tls?: string;
+  };
   prefix?: string | null;
   keepPrefix?: boolean;
 }
