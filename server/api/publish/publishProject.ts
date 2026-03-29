@@ -16,6 +16,7 @@ import {
   defaultFormSettings,
   saveFormSettings,
 } from "server/forms/settings/saveFormSettings";
+import { publishRoutines } from "server/routines/publish/publishRoutine";
 import { copyDir } from "server/utils/copyDir";
 import { createSimpleId } from "server/utils/createId";
 import { mkDirRecursive } from "server/utils/mkDir";
@@ -27,7 +28,6 @@ import { createEditorSnapshot } from "../projects/snapshots/saveEditorSnapshot";
 import { scheduleCleanPublish } from "./queue";
 import { savePublish, setActivePublish } from "./savePublish";
 import { updateProjectProxy } from "./updateProxy";
-import { publishRoutines } from "server/routines/publish/publishRoutine";
 
 /**
  * Publish the given project to the given environment.

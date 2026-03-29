@@ -194,14 +194,14 @@ To simplify development, Struxt provides a pre-bundled "Standard Library" in the
 - [x] **Step 3**: Build the **Environment Registry** — MongoDB collection, admin CRUD API, and isDefault enforcement.
   - _Detail_: Seed with initial `node-22` entry matching the environments the admin has created in Fission.
   - _Note_: DELETE endpoint intentionally omitted to prevent breaking active deployments.
-- [ ] **Step 4**: Build the **`routines/zip`** utility with glob-based file selection resolved from the environment registry + project overrides.
+- [x] **Step 4**: Build the **`routines/zip`** utility with glob-based file selection resolved from the environment registry + project overrides.
 - [~] **Step 5**: Implement the **Secret Manager** — per-project X25519 keypair generation, hybrid encryption on the client, server-side key storage in `project_keys`, and K8s Secret provisioning at deploy time. See §3.4 for the full scheme.
   - _Status_: Encryption/decryption infrastructure complete. K8s Secret provisioning and RBAC updates will be completed during Step 7 (deploy integration).
 - [ ] **Step 6**: Programmatic MongoDB database/user provisioning.
 
 ### Phase 3: Deployment & Lifecycle
 
-- [ ] **Step 7**: Implement Fission Function/Package/Trigger management.
+- [~] **Step 7**: Implement Fission Function/Package/Trigger management.
   - _Detail_: Implement logic within `editor-api` to create/update Fission packages and functions using the K8s client, passing `--env <name>` from the project's environment list.
   - _Detail_: When a project targets multiple environments, deploy a separate Fission package+function per environment.
 - [ ] **Step 8**: Update Nginx proxy logic to route `/routines/` traffic with timeout/payload limits.
