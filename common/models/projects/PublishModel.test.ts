@@ -42,6 +42,8 @@ describe("PublishModel", () => {
           uuid: "routine-1",
           routineUuid: "",
           assetIds: [],
+          cronTriggers: [],
+          httpTriggers: [],
         },
       ],
       isActive: false,
