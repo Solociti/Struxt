@@ -17,6 +17,8 @@ import { createPackage } from "../fission/package";
 import { createTimeTrigger } from "../fission/timetrigger";
 import { createRoutineZip } from "./createRoutineZip";
 
+export const fissionPrefix = process.env.FISSION_NAME_PREFIX || "struxt";
+
 /**
  * Creates a key used to deduplicate function resources per asset handler.
  *
@@ -121,7 +123,7 @@ export async function publishRoutines(
 ) {
   const { environments } = project.featureFlags.routines;
 
-  const process: (() => Promise<void>)[] = [];
+  const processEnvs: (() => Promise<void>)[] = [];
 
   for (const env of environments) {
     const routineEnv = await getRoutineEnv(env.uuid);
@@ -146,7 +148,7 @@ export async function publishRoutines(
     }
 
     const publishValue: PublishRoutineItem = {
-      uuid: `${routineEnv.runtime}-${publish.createNextRoutineId()}`,
+      uuid: `${fissionPrefix}-${routineEnv.runtime}-${publish.createNextRoutineId()}`,
       routineUuid: env.uuid,
       assetIds: [],
       httpTriggers: [],
@@ -154,7 +156,7 @@ export async function publishRoutines(
     };
     publish.routines.push(publishValue);
 
-    process.push(async () => {
+    processEnvs.push(async () => {
       const tempFile = getTempDir(
         project.projectId,
         `${publishValue.uuid}.zip`,
@@ -237,7 +239,10 @@ export async function publishRoutines(
         try {
           await createHttpTrigger({
             name,
-            relativeUrl: join("/", publish.uuid, httpTrigger.endpoint),
+            relativeUrl: publish.createHttpEndpointTrigger(
+              httpTrigger.endpoint,
+              fissionPrefix,
+            ),
             methods: [httpTrigger.method],
             functionName: functionResourceName,
             labels: { deploy: publishValue.uuid },
@@ -289,5 +294,5 @@ export async function publishRoutines(
 
   // TODO: setup cleanup scripts if something goes wrong during the publish process
 
-  return await Promise.all(process.map((fn) => fn()));
+  return await Promise.all(processEnvs.map((fn) => fn()));
 }

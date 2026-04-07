@@ -7,6 +7,7 @@ import {
 } from "common/models/projects/Environment";
 import { FormSettingsField } from "common/models/projects/forms/FormSettingsModel";
 import { PublishModel } from "common/models/projects/PublishModel";
+import { HttpTrigger } from "common/models/projects/Triggers";
 import { existsSync } from "node:fs";
 import { rm, writeFile } from "node:fs/promises";
 import { dirname, join } from "node:path";
@@ -16,7 +17,10 @@ import {
   defaultFormSettings,
   saveFormSettings,
 } from "server/forms/settings/saveFormSettings";
-import { publishRoutines } from "server/routines/publish/publishRoutine";
+import {
+  publishRoutines,
+  fissionPrefix,
+} from "server/routines/publish/publishRoutine";
 import { copyDir } from "server/utils/copyDir";
 import { createSimpleId } from "server/utils/createId";
 import { mkDirRecursive } from "server/utils/mkDir";
@@ -144,10 +148,25 @@ export async function publishProject(
     await saveFormSettings(formSettings);
   }
 
+  let httpTriggers: HttpTrigger[] = [];
   if (project.featureFlags.routines.enabled) {
     // publish the routines and schedule removal of old publishes
     await publishRoutines(project, publishModel);
+    httpTriggers = project.featureFlags.routines.httpTriggers;
   }
+
+  // create the project static config and save it to the publish directory
+  const projectConfig = publishModel.createProjectStaticConfig(
+    httpTriggers,
+    fissionPrefix,
+  );
+  await writeFile(
+    join(siteDir, ".config.json"),
+    JSON.stringify(projectConfig, null, 2),
+    {
+      encoding: "utf-8",
+    },
+  );
 
   // save the publish details to database
   await savePublish(publishModel);

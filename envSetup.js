@@ -316,6 +316,16 @@ async function main() {
     ].join("\n");
   }
 
+  if (!contents.includes("FISSION_SERVER_URL")) {
+    contents += [
+      "",
+      "# The domain or IP address of the fission router. This is where the routine requests are sent.",
+      "FISSION_SERVER_URL=http://localhost",
+      "# Prefix to use for fission names and urls when creating resources. This is used to avoid conflicts with other resources in the cluster.",
+      `FISSION_NAME_PREFIX=${typeof parsed.NODE_ENV === "string" ? parsed.NODE_ENV.slice(0, 3) : "dev"}`,
+    ].join("\n");
+  }
+
   if (!contents.includes("PROJECT_SECRETS_MASTER_KEY")) {
     contents += [
       "",

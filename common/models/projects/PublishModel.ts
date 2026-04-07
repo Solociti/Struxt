@@ -1,6 +1,12 @@
 import { Model, ModelAction, UserModelAction } from "common/models/Model";
 import { DeepPartial, mergeDeep } from "common/models/utils";
+import { join } from "common/path/path";
 import { EnvironmentTypes } from "./Environment";
+import {
+  PublishedProjectStaticConfig,
+  setupPublishedProjectStaticConfig,
+} from "./PublishedProjectStaticConfig";
+import { HttpTrigger } from "./Triggers";
 
 export interface PublishRoutineItem {
   /**
@@ -108,5 +114,41 @@ export class PublishModel extends Model {
   createNextRoutineId() {
     const index = this.routines.length;
     return `${this.uuid}-${index}`;
+  }
+
+  /**
+   * Create the static config that gets published with the project.
+   *
+   * This config is used at runtime to determine settings for the project.
+   *
+   * @param triggers
+   * @param serverName the name of the server creating the config, used for namespacing http endpoints
+   */
+  createProjectStaticConfig(
+    triggers: HttpTrigger[],
+    serverName: string,
+  ): PublishedProjectStaticConfig {
+    return setupPublishedProjectStaticConfig({
+      publishUuid: this.uuid,
+      endpoints: triggers.map((trigger) => ({
+        routineUuid: trigger.environmentId,
+        method: trigger.method,
+        httpTrigger: trigger.endpoint,
+        fissionEndpoint: this.createHttpEndpointTrigger(
+          trigger.endpoint,
+          serverName,
+        ),
+      })),
+    });
+  }
+
+  /**
+   * Create the http endpoint trigger path for the given http trigger name.
+   *
+   * @param httpTrigger
+   * @param serverName the name of the server creating the endpoint
+   */
+  createHttpEndpointTrigger(httpTrigger: string, serverName: string) {
+    return join("/", serverName, this.uuid, httpTrigger);
   }
 }
