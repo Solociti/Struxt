@@ -5,7 +5,7 @@ import {
 import { setupPublishedProjectStaticConfig } from "common/models/projects/PublishedProjectStaticConfig";
 import { zSimpleIdValidation } from "common/models/zValidation";
 import { Router } from "express";
-import httpProxy from "http-proxy";
+import httpProxy from "http-proxy-node16";
 import { join } from "node:path";
 import { match } from "path-to-regexp";
 import { hfsReadFile } from "server/hfs/readFile";
@@ -91,7 +91,7 @@ sitesRouter.use(
         const matched = matcher(subPath);
 
         if (matched && endpoint.fissionEndpoint) {
-          const originalUrl = new URL(req.originalUrl);
+          const originalUrl = new URL(req.originalUrl, "http://localhost");
           const endpointUrl = new URL(endpoint.fissionEndpoint, fissionBaseUrl);
 
           endpointUrl.search = originalUrl.search;
