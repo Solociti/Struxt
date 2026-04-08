@@ -8,6 +8,10 @@ import {
 import { createReadStream } from "node:fs";
 import { rm, stat } from "node:fs/promises";
 import { basename, dirname, extname, join, normalize } from "node:path";
+import {
+  decryptProjectSecretValue,
+  getProjectEnvSecretByUuid,
+} from "server/api/projects/envVariables/getSecret";
 import { getTempDir } from "server/utils/uploadDir";
 import { getRoutineEnv } from "../env/getRoutineEnv";
 import { uploadArchive } from "../fission/archive";
@@ -15,6 +19,8 @@ import { createFunction } from "../fission/function";
 import { createHttpTrigger } from "../fission/httptrigger";
 import { createPackage } from "../fission/package";
 import { createTimeTrigger } from "../fission/timetrigger";
+import { upsertConfigMap } from "../k8s/configMap";
+import { upsertSecret } from "../k8s/secret";
 import { createRoutineZip } from "./createRoutineZip";
 
 export const fissionPrefix = process.env.FISSION_NAME_PREFIX || "struxt";
@@ -65,6 +71,8 @@ function resolvePackageHandler(asset: AssetModel, handler: string): string {
  * @param existingFunctions
  * @param publishValue
  * @param routineEnvName
+ * @param secretConfName
+ * @param configMapConfName
  */
 async function resolveFunctionResourceName(
   assetId: string,
@@ -73,6 +81,8 @@ async function resolveFunctionResourceName(
   existingFunctions: Map<string, string>,
   publishValue: PublishRoutineItem,
   routineEnvName: string,
+  secretConfName: string,
+  configMapConfName: string,
 ): Promise<string> {
   const key = getFunctionKey(assetId, handler);
   const existingName = existingFunctions.get(key);
@@ -98,6 +108,8 @@ async function resolveFunctionResourceName(
       packageName: publishValue.uuid,
       functionName,
       labels: { deploy: publishValue.uuid },
+      configMaps: [configMapConfName].filter(Boolean),
+      secrets: [secretConfName].filter(Boolean),
     });
   } catch (err) {
     console.error(`Failed to Create Function: ${functionResourceName}`, err);
@@ -122,6 +134,48 @@ export async function publishRoutines(
   publish: PublishModel,
 ) {
   const { environments } = project.featureFlags.routines;
+
+  // get the list of env variables and secrets to add to the package and create them in Fission as well
+  const envVars: Record<string, string> = {
+    NODE_ENV: publish.siteEnv,
+  };
+  const envSecrets: Record<string, string> = {};
+
+  for (const item of project[publish.siteEnv].variables) {
+    if (item.isSecret) {
+      const secret = await getProjectEnvSecretByUuid(
+        project.projectId,
+        publish.siteEnv,
+        item.uuid,
+      );
+
+      if (secret) {
+        const decryptedValue = await decryptProjectSecretValue(secret);
+        envSecrets[item.name] = decryptedValue;
+      }
+      continue;
+    }
+
+    envVars[item.name] = item.value;
+  }
+
+  // save the secrets and variables to kubernetes
+  let secretConfName = "";
+  if (Object.keys(envSecrets).length > 0) {
+    secretConfName = `${fissionPrefix}-${project.projectId}-${publish.siteEnv}-secrets`;
+    await upsertSecret({
+      name: secretConfName,
+      stringData: envSecrets,
+      labels: { project: project.projectId, env: publish.siteEnv },
+    });
+  }
+
+  const configMapConfName = `${fissionPrefix}-${project.projectId}-${publish.siteEnv}-vars`;
+  await upsertConfigMap({
+    name: configMapConfName,
+    data: envVars,
+    labels: { project: project.projectId, env: publish.siteEnv },
+  });
 
   const processEnvs: (() => Promise<void>)[] = [];
 
@@ -234,6 +288,8 @@ export async function publishRoutines(
           functionResources,
           publishValue,
           routineEnv.name,
+          secretConfName,
+          configMapConfName,
         );
 
         try {
@@ -272,6 +328,8 @@ export async function publishRoutines(
           functionResources,
           publishValue,
           routineEnv.name,
+          secretConfName,
+          configMapConfName,
         );
 
         try {

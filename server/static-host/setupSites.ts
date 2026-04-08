@@ -1,3 +1,4 @@
+import { customError } from "common/custom-error/custom-error";
 import {
   EnvironmentTypes,
   validEnvironments,
@@ -17,6 +18,7 @@ export const sitesRouter = Router();
 
 const proxy = httpProxy.createProxyServer({
   ignorePath: true,
+  proxyTimeout: 10000,
 });
 
 const fissionBaseUrl = (() => {
@@ -96,14 +98,25 @@ sitesRouter.use(
 
           endpointUrl.search = originalUrl.search;
 
-          proxy.web(req, res, { target: endpointUrl.toString() }, (err) => {
-            console.error(
-              "Error proxying request to fission endpoint:",
-              { routineUuid: endpoint.routineUuid },
-              err,
-            );
-            res.status(502).send("Bad Gateway");
-          });
+          proxy.web(
+            req,
+            res,
+            { target: endpointUrl.toString() },
+            (err: Error & { code?: string }) => {
+              console.error(
+                "Error proxying request to fission endpoint:",
+                { routineUuid: endpoint.routineUuid },
+                err,
+              );
+
+              if (err.code === "ECONNRESET") {
+                next(customError(504, "Connection reset."));
+                return;
+              }
+
+              next(customError(502, "Bad gateway."));
+            },
+          );
 
           return;
         }

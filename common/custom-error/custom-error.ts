@@ -1,8 +1,10 @@
 export const ErrorNames = {
   AuthFailed: "Authentication Failed",
+  BadGateway: "Bad Gateway",
   BadRequest: "Bad Request",
   Error: "Error",
   Forbidden: "Access Denied",
+  GatewayTimeout: "Gateway Timeout",
   InternalServerError: "Internal Server Error",
   NotFound: "Not Found",
   ObserverError: "Observer Error",
@@ -13,7 +15,7 @@ export const ErrorNames = {
   RateLimitError: "Rate Limit Exceeded",
 };
 
-export type HTTPStatus = 400 | 401 | 402 | 403 | 404 | 429 | 500;
+export type HTTPStatus = 400 | 401 | 402 | 403 | 404 | 429 | 500 | 502 | 504;
 type ErrorNames = keyof typeof ErrorNames;
 
 declare global {
@@ -51,29 +53,7 @@ export function customError(
   if (name) {
     err.name = name;
   } else {
-    switch (status) {
-      case 400:
-        err.name = ErrorNames.BadRequest;
-        break;
-      case 401:
-        err.name = ErrorNames.Unauthorized;
-        break;
-      case 402:
-        err.name = ErrorNames.PaymentRequired;
-        break;
-      case 403:
-        err.name = ErrorNames.Forbidden;
-        break;
-      case 404:
-        err.name = ErrorNames.NotFound;
-        break;
-      case 429:
-        err.name = ErrorNames.RateLimitError;
-        break;
-      case 500:
-        err.name = ErrorNames.InternalServerError;
-        break;
-    }
+    err.name = errorNameFromStatus(status, err.name);
   }
 
   if (err.name in ErrorNames) {
@@ -81,6 +61,42 @@ export function customError(
   }
 
   return err;
+}
+
+/**
+ * Get a standardized error name based on the HTTP status code.
+ *
+ * @param status
+ * @param defaultName
+ */
+export function errorNameFromStatus(
+  status: HTTPStatus,
+  defaultName: string,
+): string {
+  switch (status) {
+    case 400:
+      return ErrorNames.BadRequest;
+    case 401:
+      return ErrorNames.Unauthorized;
+    case 402:
+      return ErrorNames.PaymentRequired;
+    case 403:
+      return ErrorNames.Forbidden;
+    case 404:
+      return ErrorNames.NotFound;
+    case 429:
+      return ErrorNames.RateLimitError;
+
+    case 500:
+      return ErrorNames.InternalServerError;
+    case 502:
+      return ErrorNames.BadGateway;
+    case 504:
+      return ErrorNames.GatewayTimeout;
+
+    default:
+      return defaultName;
+  }
 }
 
 export interface StructuredError {
