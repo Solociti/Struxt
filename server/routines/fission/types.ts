@@ -4,12 +4,13 @@ export const fissionVersion = "v1";
 /**
  * Namespace where Fission system resources live (storagesvc, etc.).
  */
-export const fissionNamespace = "fission";
+export const fissionNamespace = process.env.FISSION_NAMESPACE || "fission";
 
 /**
  * Namespace where user-facing resources (packages, functions, triggers, environments) are created.
  */
-export const fissionResourceNamespace = "default";
+export const fissionResourceNamespace =
+  process.env.FISSION_RESOURCE_NAMESPACE || "default";
 
 /**
  * Internal K8s service URL for the Fission storage service.

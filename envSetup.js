@@ -317,12 +317,18 @@ async function main() {
   }
 
   if (!contents.includes("FISSION_SERVER_URL")) {
+    const defaultPrefix =
+      typeof parsed.NODE_ENV === "string" ? parsed.NODE_ENV.slice(0, 3) : "dev";
     contents += [
       "",
       "# The domain or IP address of the fission router. This is where the routine requests are sent.",
       "FISSION_SERVER_URL=http://localhost",
       "# Prefix to use for fission names and urls when creating resources. This is used to avoid conflicts with other resources in the cluster.",
-      `FISSION_NAME_PREFIX=${typeof parsed.NODE_ENV === "string" ? parsed.NODE_ENV.slice(0, 3) : "dev"}`,
+      `FISSION_NAME_PREFIX=${defaultPrefix}`,
+      "# The kubernetes namespace where fission resources are created. This should match the namespace in the kubeconfig.",
+      `FISSION_RESOURCE_NAMESPACE=${defaultPrefix}-functions`,
+      "# The namespace where fission itself is installed. This should match the namespace in the kubeconfig.",
+      "FISSION_NAMESPACE=fission",
     ].join("\n");
   }
 

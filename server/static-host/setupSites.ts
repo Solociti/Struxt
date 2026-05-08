@@ -18,7 +18,7 @@ export const sitesRouter = Router();
 
 const proxy = httpProxy.createProxyServer({
   ignorePath: true,
-  proxyTimeout: 10000,
+  proxyTimeout: 1000 * 30,
 });
 
 const fissionBaseUrl = (() => {
