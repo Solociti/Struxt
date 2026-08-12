@@ -19,11 +19,11 @@
     "postinstall": "npm run check-node-version"
   },
   "devDependencies": {
-    "@babel/cli": "^7.28.6",
-    "@babel/core": "^7.29.0",
-    "@babel/plugin-transform-typescript": "^7.28.6",
-    "@babel/preset-env": "^7.29.0",
-    "@babel/preset-typescript": "^7.28.5",
+    "@babel/cli": "^7.29.7",
+    "@babel/core": "^7.29.7",
+    "@babel/plugin-transform-typescript": "^7.29.7",
+    "@babel/preset-env": "^7.29.7",
+    "@babel/preset-typescript": "^7.29.7",
     "@grapesjs/studio-sdk": "^1.0.57",
     "@grapesjs/studio-sdk-plugins": "^1.0.32",
     "@types/connect-mongodb-session": "^2.4.8",
