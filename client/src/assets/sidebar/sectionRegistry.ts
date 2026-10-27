@@ -1,5 +1,6 @@
 import { ComponentType } from "react";
 import { AssetFileSection } from "./AssetFileSection";
+import { EnvironmentSection } from "./EnvironmentSection";
 
 export interface SidebarSectionDef {
   id: string;
@@ -24,6 +25,15 @@ export const sidebarSections: SidebarSectionDef[] = [
     isFlex: true,
     canCollapse: false,
     contentComponent: AssetFileSection,
+  },
+  {
+    id: "env",
+    title: "Environments",
+    isFlex: false,
+    canCollapse: true,
+    defaultHeight: 150,
+    defaultCollapsed: false,
+    contentComponent: EnvironmentSection,
   },
 ];
 

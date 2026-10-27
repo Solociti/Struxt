@@ -60,8 +60,10 @@ export type CollectionNames =
   | "form_submissions"
   | "id_counters"
   | "migrations"
+  | "project_keys"
   | "project_members_invites"
   | "project_members"
+  | "project_secrets"
   | "projects_published"
   | "projects"
   | "users";
