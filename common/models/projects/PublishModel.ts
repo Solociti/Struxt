@@ -1,6 +1,41 @@
 import { Model, ModelAction, UserModelAction } from "common/models/Model";
 import { DeepPartial, mergeDeep } from "common/models/utils";
+import { join } from "common/path/path";
 import { EnvironmentTypes } from "./Environment";
+import {
+  PublishedProjectStaticConfig,
+  setupPublishedProjectStaticConfig,
+} from "./PublishedProjectStaticConfig";
+import { HttpTrigger } from "./Triggers";
+
+export interface PublishRoutineItem {
+  /**
+   * A unique identifier for this routine item.
+   *
+   * Concat the publish uuid with a integer index to create it.
+   */
+  uuid: string;
+
+  /**
+   * The uuid of the routine environment this routine belongs to.
+   */
+  routineUuid: string;
+
+  /**
+   * The list of asset uuids that were included in the zip file.
+   */
+  assetIds: string[];
+
+  /**
+   * List of http trigger names created for this routine.
+   */
+  httpTriggers: string[];
+
+  /**
+   * List of cron trigger names created for this routine.
+   */
+  cronTriggers: string[];
+}
 
 export class PublishModel extends Model {
   /**
@@ -17,6 +52,8 @@ export class PublishModel extends Model {
    * The environment this publish is for
    */
   public siteEnv: EnvironmentTypes = "staging";
+
+  public routines: PublishRoutineItem[] = [];
 
   /**
    * Tells if this is the active publish for this project + env combination
@@ -52,11 +89,66 @@ export class PublishModel extends Model {
   }
 
   update(data: DeepPartial<PublishModel>) {
-    mergeDeep(this, data);
+    if (data.routines) {
+      this.routines = data.routines.map((routine) => {
+        const defaultRoutine: PublishRoutineItem = {
+          uuid: "",
+          routineUuid: "",
+          assetIds: [],
+          httpTriggers: [],
+          cronTriggers: [],
+        };
+
+        return mergeDeep(defaultRoutine, routine!);
+      });
+    }
+
+    mergeDeep(this, data, ["routines"]);
   }
 
   clone(): PublishModel {
     const data = JSON.parse(JSON.stringify(this));
     return new PublishModel(data);
+  }
+
+  createNextRoutineId() {
+    const index = this.routines.length;
+    return `${this.uuid}-${index}`;
+  }
+
+  /**
+   * Create the static config that gets published with the project.
+   *
+   * This config is used at runtime to determine settings for the project.
+   *
+   * @param triggers
+   * @param serverName the name of the server creating the config, used for namespacing http endpoints
+   */
+  createProjectStaticConfig(
+    triggers: HttpTrigger[],
+    serverName: string,
+  ): PublishedProjectStaticConfig {
+    return setupPublishedProjectStaticConfig({
+      publishUuid: this.uuid,
+      endpoints: triggers.map((trigger) => ({
+        routineUuid: trigger.environmentId,
+        method: trigger.method,
+        httpTrigger: trigger.endpoint,
+        fissionEndpoint: this.createHttpEndpointTrigger(
+          trigger.endpoint,
+          serverName,
+        ),
+      })),
+    });
+  }
+
+  /**
+   * Create the http endpoint trigger path for the given http trigger name.
+   *
+   * @param httpTrigger
+   * @param serverName the name of the server creating the endpoint
+   */
+  createHttpEndpointTrigger(httpTrigger: string, serverName: string) {
+    return join("/", serverName, this.uuid, httpTrigger);
   }
 }

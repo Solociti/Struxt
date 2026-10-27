@@ -10,6 +10,7 @@ export type IdCounterName =
   | "publish"
   | "invite"
   | "file"
+  | "routine"
   | "env_variable";
 
 async function counter(name: IdCounterName) {

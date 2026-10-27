@@ -10,12 +10,15 @@ import {
   ProjectRolesApi,
   ProjectRolesInviteApi,
 } from "common/api/projects/projectRoles";
+import { ProjectRoutinesEnvApi } from "common/api/projects/projectRoutines";
 import { customError } from "common/custom-error/custom-error";
 import { EditorData } from "common/models/projects/editorDataTypes";
 import { validEnvironments } from "common/models/projects/Environment";
 import { roles } from "common/models/user/Roles";
+import { DEFAULT_MAX_FILENAME_LENGTH } from "common/path/sanitizeFilename";
 import "server/api/domains/register";
 import "server/api/projects/snapshots/register";
+import "server/api/projects/triggers/register";
 import { registerApi } from "server/api/registerApi";
 import { validateUserId } from "server/auth/user/getUser";
 import { validateEmailAddress } from "server/utils/validateEmailAddress";
@@ -35,6 +38,8 @@ import {
   removeProjectUser,
   updateProjectRoles,
 } from "./roles/projectRoles";
+import { deleteProjectRoutinesEnv } from "./routines/deleteEnv";
+import { updateProjectRoutinesEnv } from "./routines/updateEnv";
 import { saveProjectEditorData } from "./saveProject";
 import { createEditorSnapshot } from "./snapshots/saveEditorSnapshot";
 import { updateProjectDetails } from "./updateProjectDetails";
@@ -175,6 +180,7 @@ registerApi<ProjectDetailsApi>("/api/projects/:projectId/details")
           "description",
           "featureFlags.aiPilot.enabled",
           "featureFlags.aiPilot.settings.monthlyAllowance",
+          "featureFlags.routines.enabled",
         ]),
         value: z.union([z.string(), z.number(), z.boolean(), z.null()]),
       })
@@ -276,7 +282,7 @@ registerApi<ProjectEnvVariableKeysApi>(
   const env = z.enum(validEnvironments).parse(query.env);
   const publicKeyHex = await getProjectEnvPublicKey(projectId, env);
   return { publicKeyHex };
-  });
+});
 
 registerApi<ProjectRolesApi>("/api/projects/:projectId/roles")
   .get([], async ({ user, params }) => {
@@ -451,4 +457,58 @@ registerApi<ProjectRolesInviteApi>("/api/projects/:projectId/roles/invite")
     return {
       success,
     };
+  });
+
+registerApi<ProjectRoutinesEnvApi>("/api/projects/:projectId/routines/env")
+  .post([], async ({ user, params, body }) => {
+    const projectId = params.projectId;
+
+    if (
+      !user.hasPermission(roles.struxt.admin) &&
+      !user.hasProjectPermission(projectId, [roles.projects.edit])
+    ) {
+      throw customError(
+        403,
+        "You do not have permission to modify this project.",
+        "Forbidden",
+      );
+    }
+
+    const parsed = z
+      .object({
+        item: z.object({
+          uuid: z.string().min(1),
+          files: z.array(z.string().min(1).max(DEFAULT_MAX_FILENAME_LENGTH)),
+          ignore: z.array(z.string().min(1).max(DEFAULT_MAX_FILENAME_LENGTH)),
+        }),
+      })
+      .parse(body);
+
+    // update the project routine environments
+    const details = await updateProjectRoutinesEnv(projectId, parsed.item);
+    return { details };
+  })
+  .delete([], async ({ user, params, query }) => {
+    const projectId = params.projectId;
+
+    if (
+      !user.hasPermission(roles.struxt.admin) &&
+      !user.hasProjectPermission(projectId, [roles.projects.edit])
+    ) {
+      throw customError(
+        403,
+        "You do not have permission to modify this project.",
+        "Forbidden",
+      );
+    }
+
+    const { uuid } = z
+      .object({
+        uuid: z.string().min(1),
+      })
+      .parse(query);
+
+    // delete the routine environment
+    const details = await deleteProjectRoutinesEnv(projectId, uuid);
+    return { details };
   });

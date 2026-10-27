@@ -2,6 +2,7 @@
 .git
 .gitignore
 .vscode
+.fission-config.yml
 dist
 node_modules
 uploads

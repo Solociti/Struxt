@@ -1,6 +1,8 @@
 import { ComponentType } from "react";
 import { AssetFileSection } from "./AssetFileSection";
 import { EnvironmentSection } from "./EnvironmentSection";
+import { RoutineEnvSection } from "./RoutineEnvSection";
+import { ExtraSettingsSection } from "./ExtraSettingsSection";
 
 export interface SidebarSectionDef {
   id: string;
@@ -27,6 +29,15 @@ export const sidebarSections: SidebarSectionDef[] = [
     contentComponent: AssetFileSection,
   },
   {
+    id: "routine-env",
+    title: "Routine Environments",
+    isFlex: false,
+    canCollapse: true,
+    defaultHeight: 150,
+    defaultCollapsed: true,
+    contentComponent: RoutineEnvSection,
+  },
+  {
     id: "env",
     title: "Environments",
     isFlex: false,
@@ -34,6 +45,15 @@ export const sidebarSections: SidebarSectionDef[] = [
     defaultHeight: 150,
     defaultCollapsed: false,
     contentComponent: EnvironmentSection,
+  },
+  {
+    id: "settings",
+    title: "Settings",
+    isFlex: false,
+    canCollapse: true,
+    defaultHeight: 100,
+    defaultCollapsed: true,
+    contentComponent: ExtraSettingsSection,
   },
 ];
 

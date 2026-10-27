@@ -31,6 +31,7 @@ describe("ProjectModel", () => {
           hostId: 0,
           redirectId: 0,
         },
+        variables: [],
       },
       production: {
         forceSsl: true,
@@ -41,6 +42,7 @@ describe("ProjectModel", () => {
           hostId: 0,
           redirectId: 0,
         },
+        variables: [],
       },
       featureFlags: {
         aiPilot: {
@@ -48,6 +50,12 @@ describe("ProjectModel", () => {
           settings: {
             monthlyAllowance: 0,
           },
+        },
+        routines: {
+          enabled: false,
+          environments: [],
+          httpTriggers: [],
+          cronTriggers: [],
         },
       },
       created: { date: 0, userId: "", displayName: "" },
@@ -69,6 +77,13 @@ describe("ProjectModel", () => {
             },
           },
         ],
+        variables: [
+          {
+            uuid: "var-1",
+            name: "API_KEY",
+            value: "abc123",
+          },
+        ],
       },
       production: {
         domains: [
@@ -83,6 +98,27 @@ describe("ProjectModel", () => {
       // editor data should not get transformed
       editorData: {
         assets: [{}],
+      },
+      featureFlags: {
+        routines: {
+          enabled: true,
+          environments: [
+            {
+              uuid: "env1",
+              files: ["**/*.js"],
+              ignore: ["**/**.test.js"],
+            },
+            {
+              uuid: "env2",
+            },
+          ],
+          httpTriggers: [
+            {
+              endpoint: "/example",
+              assetId: "asset1",
+            },
+          ],
+        },
       },
     });
 
@@ -111,6 +147,15 @@ describe("ProjectModel", () => {
           hostId: 0,
           redirectId: 0,
         },
+        variables: [
+          {
+            uuid: "var-1",
+            name: "API_KEY",
+            value: "abc123",
+            secretLength: 0,
+            isSecret: false,
+          },
+        ],
       },
       production: {
         forceSsl: true,
@@ -130,6 +175,7 @@ describe("ProjectModel", () => {
           hostId: 0,
           redirectId: 0,
         },
+        variables: [],
       },
       featureFlags: {
         aiPilot: {
@@ -137,6 +183,31 @@ describe("ProjectModel", () => {
           settings: {
             monthlyAllowance: 0,
           },
+        },
+        routines: {
+          enabled: true,
+          environments: [
+            {
+              uuid: "env1",
+              files: ["**/*.js"],
+              ignore: ["**/**.test.js"],
+            },
+            {
+              uuid: "env2",
+              files: [],
+              ignore: [],
+            },
+          ],
+          httpTriggers: [
+            {
+              assetId: "asset1",
+              endpoint: "/example",
+              method: "GET",
+              handler: "",
+              environmentId: "",
+            },
+          ],
+          cronTriggers: [],
         },
       },
       created: { date: 1234, userId: "", displayName: "" },

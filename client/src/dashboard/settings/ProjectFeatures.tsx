@@ -91,6 +91,40 @@ export function ProjectFeatures({
           </Group>
         </Card.Body>
       </Card>
+
+      <Card className="my-4">
+        <Card.Header
+          as="div"
+          className="d-flex justify-content-between align-items-center gap-2"
+        >
+          <h5 className="mb-0">Routines</h5>
+          <IconButton
+            size="sm"
+            variant={routines.enabled ? "outline-success" : "outline-secondary"}
+            icon={routines.enabled ? "check_box" : "check_box_outline_blank"}
+            spinner={updateValue.isLoading && updateProp === "routines"}
+            disabled={!isAdmin || updateValue.isLoading}
+            onClick={() => {
+              updateValue.callback(
+                "featureFlags.routines.enabled",
+                !routines.enabled,
+              );
+              setUpdateProp("routines");
+            }}
+          >
+            {routines.enabled ? "Enabled" : "Disabled"}
+          </IconButton>
+        </Card.Header>
+        <Card.Body>
+          <p className="text-muted small mb-0">
+            {routines.environments.length === 0
+              ? "No environments configured."
+              : `${routines.environments.length} environment${
+                  routines.environments.length === 1 ? "" : "s"
+                } configured.`}
+          </p>
+        </Card.Body>
+      </Card>
     </div>
   );
 }

@@ -1,0 +1,222 @@
+import { FormInput } from "client/components/FormInput";
+import IconButton from "client/components/IconButton";
+import {
+  getHttpTriggerInvalid,
+  HttpTrigger,
+} from "common/models/projects/Triggers";
+import { RoutineEnvModel } from "common/models/routines/RoutineEnv";
+import Form from "react-bootstrap/Form";
+import Table from "react-bootstrap/Table";
+import { useContentManager } from "../cm/contentManager";
+import { ChooseAsset } from "./inputs/ChooseAsset";
+import { SelectFunction } from "./inputs/SelectFunction";
+import { SelectRoutineEnv } from "./inputs/SelectRoutineEnv";
+
+/**
+ * Show and manage the HTTP triggers
+ *
+ * @param param0
+ */
+export function ShowHttpTriggers({
+  httpTriggers,
+  setHttpTriggers,
+  environments,
+  highlightIndex,
+  showInvalid,
+}: {
+  httpTriggers: HttpTrigger[];
+  setHttpTriggers: (triggers: HttpTrigger[]) => void;
+  environments: RoutineEnvModel[];
+  highlightIndex: number | null;
+  showInvalid: boolean;
+}) {
+  const { tabs, assets, project } = useContentManager();
+
+  const markDirty = () => {
+    if (tabs.activeTab?.tabId) {
+      tabs.markDirty(tabs.activeTab.tabId);
+    }
+  };
+
+  const addHttpTrigger = () => {
+    const newTrigger: HttpTrigger = {
+      endpoint: "",
+      method: "GET",
+      assetId: "",
+      handler: "",
+      environmentId: "",
+    };
+
+    setHttpTriggers([...httpTriggers, newTrigger]);
+    markDirty();
+  };
+
+  const updateHttpTrigger = (
+    index: number,
+    updatedTrigger: Partial<HttpTrigger>,
+  ) => {
+    const updatedTriggers = httpTriggers.map((trigger, i) =>
+      i === index ? { ...trigger, ...updatedTrigger } : trigger,
+    );
+
+    setHttpTriggers(updatedTriggers);
+    markDirty();
+  };
+
+  return (
+    <>
+      <div className="d-flex align-items-center justify-content-between mb-3">
+        <div>
+          <h4 className="mb-1">Routes</h4>
+          <p className="small text-muted mb-0">
+            Incoming web requests mapped to an asset file and exported function.
+          </p>
+        </div>
+
+        <IconButton
+          icon="add"
+          size="sm"
+          variant="outline-primary"
+          onClick={addHttpTrigger}
+        >
+          Route
+        </IconButton>
+      </div>
+
+      {httpTriggers.length === 0 && (
+        <div className="my-1 text-center">
+          <span className="text-muted small">No configured routes.</span>
+        </div>
+      )}
+
+      {httpTriggers.length > 0 && (
+        <Table size="sm" responsive borderless className="align-middle my-1">
+          <thead>
+            <tr className="text-muted small uppercase">
+              <th className="px-0" style={{ minWidth: "7.5rem", width: "5%" }}>
+                Env
+              </th>
+              <th className="px-0" style={{ minWidth: "6rem", width: "5%" }}>
+                Method
+              </th>
+              <th className="px-0" style={{ minWidth: "15rem", width: "35%" }}>
+                Endpoint
+              </th>
+              <th className="px-0" style={{ minWidth: "12rem", width: "35%" }}>
+                Asset File
+              </th>
+              <th className="px-0" style={{ minWidth: "10rem", width: "20%" }}>
+                Exported Function
+              </th>
+              <th style={{ minWidth: "2rem" }}></th>
+            </tr>
+          </thead>
+
+          <tbody>
+            {httpTriggers.map((trigger, index) => {
+              const asset = assets.list.find((a) => a.uuid === trigger.assetId);
+              const invalid = showInvalid ? getHttpTriggerInvalid(trigger) : [];
+
+              return (
+                <tr
+                  key={index}
+                  className={
+                    index === highlightIndex
+                      ? "border border-primary rounded"
+                      : ""
+                  }
+                >
+                  <td className="p-1">
+                    <SelectRoutineEnv
+                      environmentId={trigger.environmentId}
+                      onChange={(envId) =>
+                        updateHttpTrigger(index, { environmentId: envId })
+                      }
+                      environments={environments}
+                      isInvalid={invalid.includes("environmentId")}
+                    />
+                  </td>
+
+                  <td className="p-1">
+                    <Form.Select
+                      className="form-select form-select-sm border-0 bg-light-subtle"
+                      value={trigger.method}
+                      onChange={(e) => {
+                        if (!e.target.value) {
+                          return;
+                        }
+
+                        updateHttpTrigger(index, {
+                          method: e.target.value as HttpTrigger["method"],
+                        });
+                      }}
+                      isInvalid={invalid.includes("method")}
+                    >
+                      <option>GET</option>
+                      <option>POST</option>
+                      <option>PUT</option>
+                      <option>PATCH</option>
+                      <option>DELETE</option>
+                    </Form.Select>
+                  </td>
+
+                  <td className="p-1">
+                    <FormInput
+                      className="form-control form-control-sm border-0 bg-light-subtle"
+                      placeholder="/routines/example-1"
+                      value={trigger.endpoint}
+                      onRealChange={(value) => {
+                        updateHttpTrigger(index, { endpoint: value });
+                      }}
+                      type="text"
+                      isInvalid={invalid.includes("endpoint")}
+                    />
+                  </td>
+
+                  <td className="p-1">
+                    <ChooseAsset
+                      assetId={trigger.assetId}
+                      list={assets.list}
+                      onChange={(id) => {
+                        updateHttpTrigger(index, { assetId: id });
+                      }}
+                      isInvalid={invalid.includes("assetId")}
+                    />
+                  </td>
+
+                  <td className="p-1">
+                    <SelectFunction
+                      value={trigger.handler}
+                      onChange={(value) => {
+                        updateHttpTrigger(index, { handler: value });
+                      }}
+                      projectId={project.projectId}
+                      asset={asset || null}
+                      isInvalid={invalid.includes("handler")}
+                    />
+                  </td>
+
+                  <td className="p-1">
+                    <IconButton
+                      icon="close_small"
+                      size="sm"
+                      variant="outline-warning"
+                      onClick={() => {
+                        const updatedTriggers = httpTriggers.filter(
+                          (_, i) => i !== index,
+                        );
+
+                        setHttpTriggers(updatedTriggers);
+                        markDirty();
+                      }}
+                    />
+                  </td>
+                </tr>
+              );
+            })}
+          </tbody>
+        </Table>
+      )}
+    </>
+  );
+}

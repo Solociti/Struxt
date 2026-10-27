@@ -30,6 +30,19 @@ export async function up() {
     );
   }
 
+  // setup the default node-js fission environments
+
+  await createIndex(
+    "fission_environments",
+    { uuid: 1 },
+    { unique: true, name: "uuid_unique_index" },
+  );
+  await createIndex(
+    "fission_environments",
+    { name: 1 },
+    { unique: true, name: "name_unique_index" },
+  );
+
   await createIndex(
     "project_secrets",
     { varUuid: 1 },
@@ -53,6 +66,39 @@ export async function up() {
     },
     { unique: true, name: "project_env_unique_index" },
   );
+
+  await setupRoutineEnvs();
 }
 
 export async function down() {}
+
+async function setupRoutineEnvs() {
+  const routineEnvs = await listFissionEnvironments();
+  const currentRoutineEnvs = await getRoutineEnvList();
+
+  for (const env of routineEnvs) {
+    // check if there are any existing routines with same name
+    if (currentRoutineEnvs.find((e) => e.name === env.metadata.name)) {
+      continue;
+    }
+
+    // check if there is an existing routine with the same runtime
+    const runtime = getRuntimeFromEnv(env);
+    const runtimeExists = currentRoutineEnvs.find((e) => e.runtime === runtime);
+
+    const uuid = await createSimpleId("routine");
+
+    const routineEnv = new RoutineEnvModel({
+      uuid,
+      name: env.metadata.name,
+      displayName: env.metadata.name,
+      runtime: runtime || "nodejs",
+      isDefault: !runtimeExists,
+      files: defaultFilesForRuntime(runtime || "nodejs"),
+    });
+
+    currentRoutineEnvs.push(routineEnv);
+
+    await saveRoutineEnv(routineEnv);
+  }
+}
