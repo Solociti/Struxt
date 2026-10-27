@@ -2,10 +2,12 @@ import react from "@vitejs/plugin-react";
 import { resolve } from "path";
 import { defineConfig } from "vite";
 import { VitePWA } from "vite-plugin-pwa";
+import wasm from "vite-plugin-wasm";
 import svgLoader from "vite-svg-loader";
 
 export default defineConfig({
   plugins: [
+    wasm(),
     react(),
     svgLoader(),
     VitePWA({
@@ -53,6 +55,8 @@ export default defineConfig({
           "color-functions",
           "global-builtin",
           "import",
+          // @ts-ignore
+          "if-function",
         ],
       },
     },

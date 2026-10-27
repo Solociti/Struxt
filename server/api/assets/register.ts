@@ -1,45 +1,41 @@
-import {
-  AssetApi,
-  AssetDeleteApi,
-  AssetSaveExternalApi,
-} from "common/api/assets/assets";
-import { customError } from "common/custom-error/custom-error";
+import { AssetUploadApi } from "common/api/assets/assets";
+import { customError, structureError } from "common/custom-error/custom-error";
 import { AssetModel } from "common/models/assets/AssetModel";
 import { EditorAsset } from "common/models/assets/EditorAsset";
 import { roles } from "common/models/user/Roles";
+import { getFileType } from "common/path/FileExtensions";
+import { sanitizeFilename } from "common/path/sanitizeFilename";
 import express from "express";
 import multer from "multer";
-import { existsSync, lstatSync, realpathSync } from "node:fs";
-import { rename, unlink } from "node:fs/promises";
-import { basename, extname, join, normalize, relative, sep } from "node:path";
+import { existsSync, realpathSync } from "node:fs";
+import { lstat, rename, unlink } from "node:fs/promises";
+import { basename, extname, join, normalize } from "node:path";
+import { pipeline } from "node:stream/promises";
+import { userFromReq } from "server/api/auth/userFromReq";
+import { getProjectDiskUsage } from "server/api/projects/projectDiskUsage";
+import { protectEndpoint } from "server/auth/protectEndpoint";
+import { isPathInside } from "server/hfs/path";
+import { hfsWriteFileStream } from "server/hfs/writeFile";
 import { createSimpleId } from "server/utils/createId";
-import z from "zod";
-import { protectEndpoint } from "../../auth/protectEndpoint";
-import { mkDirRecursive } from "../../utils/mkDir";
+import { mkDirRecursive } from "server/utils/mkDir";
 import {
   getAssetDir,
   getProjectFilesDir,
-  getProjectsParentDir,
-  getUploadDir,
-} from "../../utils/uploadDir";
-import { userFromReq } from "../auth/userFromReq";
-import { registerApi } from "../registerApi";
-import { deleteAsset } from "./deleteAsset";
+  getTempDir,
+} from "server/utils/uploadDir";
+import z from "zod";
+import "./apiRegister";
+import { getAsset } from "./getAssets";
 import { saveAsset } from "./saveAsset";
-
-const projectsParentDir = getProjectsParentDir();
-const saveDir = getUploadDir("temp");
-
-const upload = multer({ dest: saveDir });
 
 /**
  * Router for serving project files with permission checks
  */
-export const staticFilesRouter = express.Router();
+export const assetFilesRouter = express.Router();
 
-staticFilesRouter.use(protectEndpoint([roles.struxt.editor]));
+assetFilesRouter.use(protectEndpoint([roles.struxt.editor]));
 
-staticFilesRouter.get("/:projectId/*filePath", async (req, res) => {
+assetFilesRouter.get("/:projectId/*filePath", async (req, res) => {
   const projectId = req.params.projectId;
   const pathParts = (req.params as any).filePath as string[];
 
@@ -57,8 +53,7 @@ staticFilesRouter.get("/:projectId/*filePath", async (req, res) => {
 
   // check for path traversal attacks.
   // Path-to-RegExp in express should already catch this, but just in case.
-  const relativePath = relative(projectFilesDir, requestedFile);
-  if (relativePath.startsWith("..")) {
+  if (!isPathInside(requestedFile, projectFilesDir)) {
     throw customError(400, "Invalid file path.");
   }
 
@@ -70,12 +65,95 @@ staticFilesRouter.get("/:projectId/*filePath", async (req, res) => {
 
   // protect against symlink attacks
   const realRequestedFile = realpathSync(requestedFile);
-  if (!realRequestedFile.startsWith(`${projectFilesDir}${sep}`)) {
+  if (!isPathInside(realRequestedFile, projectFilesDir)) {
     throw customError(400, "Invalid file path.");
   }
 
-  res.setHeader("Cache-Control", "public, max-age=604000");
-  res.sendFile(requestedFile);
+  const ext = extname(requestedFile);
+
+  switch (getFileType(ext)) {
+    case "image":
+    case "video":
+    case "audio":
+    case "document":
+      res.setHeader("Cache-Control", "private, max-age=7200");
+      break;
+
+    case "text":
+    default:
+      res.setHeader("Cache-Control", "private, no-cache");
+      break;
+  }
+
+  res.sendFile(requestedFile, {
+    dotfiles: "allow",
+  });
+});
+
+// update the file contents based on the posted text contents
+assetFilesRouter.put("/:projectId/:uuid", async (req, res) => {
+  const { projectId, uuid } = z
+    .object({ projectId: z.string(), uuid: z.string() })
+    .parse(req.params);
+
+  const user = await userFromReq(req);
+  if (!user.hasProjectPermission(projectId, [roles.projects.edit])) {
+    throw customError(
+      403,
+      "You do not have permission to modify this project.",
+      "Forbidden",
+    );
+  }
+
+  // get the asset
+  const asset = await getAsset(uuid, projectId);
+  if (!asset) {
+    throw customError(404, "Asset not found.");
+  }
+
+  if (asset.isExternalSrc) {
+    throw customError(400, "Cannot update external assets.");
+  }
+
+  // Check if the storage is available using the client advertised upload size
+  const storage = await getProjectDiskUsage(projectId);
+  const fileSize = parseInt(req.get("content-length") || "0");
+  const fileSizeDiff = fileSize - asset.size;
+
+  if (!(await storage.hasSpaceAvailable(fileSizeDiff))) {
+    throw customError(400, "Storage quota exceeded.");
+  }
+
+  const projectFilesDir = getProjectFilesDir(projectId);
+  const filePath = join(projectFilesDir, asset.path);
+
+  await storage.reserveSpace(filePath, asset.size, fileSize);
+
+  try {
+    const writeStream = await hfsWriteFileStream(filePath, {
+      restrictedTo: projectFilesDir,
+      useTempFile: true,
+    });
+
+    await pipeline(req, writeStream);
+  } finally {
+    await storage.clearReservation(filePath);
+  }
+
+  const stats = await lstat(filePath);
+
+  asset.updated = {
+    ...asset.updated,
+    date: Math.floor(Date.now() / 1000),
+    userId: user.id,
+    displayName: user.name,
+  };
+  asset.size = stats.size;
+  const success = await saveAsset(asset);
+
+  res.json({
+    success,
+  });
 });
 
 /**
@@ -90,21 +168,47 @@ router.get("/", async (req, res) => {
   res.json([]);
 });
 
+// setup multer for file uploads using form data
+const upload = multer({
+  dest: getTempDir(),
+  limits: { fileSize: 50 * 1024 * 1024, files: 25 },
+});
+
 router.post(
   "/upload/:projectId",
+  async (req, res, next) => {
+    try {
+      const projectId = req.params.projectId as string;
+
+      // check if the user has permission to edit the project
+      const user = await userFromReq(req);
+      if (!user.hasProjectPermission(projectId, [roles.projects.edit])) {
+        throw customError(
+          403,
+          "You do not have permission to modify this project.",
+          "Forbidden",
+        );
+      }
+
+      // check if the project has enough storage
+      const storage = await getProjectDiskUsage(projectId);
+      if (!(await storage.hasSpaceAvailable(0))) {
+        throw customError(400, "Storage quota exceeded.");
+      }
+
+      next();
+    } catch (err) {
+      next(err);
+    }
+  },
   upload.array("files", 25),
   async (req, res) => {
     const projectId = req.params.projectId as string;
-    const files = Array.isArray((req as any).files) ? (req as any).files : [];
+    const files: Express.Multer.File[] = Array.isArray((req as any).files)
+      ? (req as any).files
+      : [];
 
     const user = await userFromReq(req);
-    if (!user.hasProjectPermission(projectId, [roles.projects.edit])) {
-      throw customError(
-        403,
-        "You do not have permission to modify this project.",
-        "Forbidden",
-      );
-    }
 
     /**
      * The list of uploaded files
@@ -112,7 +216,8 @@ router.post(
     const uploaded: EditorAsset[] = [];
     const errors: Error[] = [];
 
-    await mkDirRecursive(join(projectsParentDir, projectId));
+    await mkDirRecursive(getProjectFilesDir(projectId));
+    const storage = await getProjectDiskUsage(projectId);
 
     for (const file of files) {
       let renamed = false;
@@ -121,7 +226,7 @@ router.post(
 
       try {
         const ext = extname(file.originalname);
-        const originalName = basename(file.originalname, ext);
+        const originalName = sanitizeFilename(basename(file.originalname, ext));
 
         let newFileName = originalName + ext;
         newFilePath = join(getAssetDir(projectId), newFileName);
@@ -135,7 +240,10 @@ router.post(
           newFilePath = join(getAssetDir(projectId), newFileName);
         }
 
-        const stats = await lstatSync(file.path);
+        if (!(await storage.hasSpaceAvailable(file.size))) {
+          throw customError(400, "Storage quota exceeded.");
+        }
+        await storage.reserveSpace(newFilePath, 0, file.size);
 
         await rename(file.path, newFilePath);
         renamed = true;
@@ -144,10 +252,10 @@ router.post(
         const asset = new AssetModel({
           uuid,
           projectId: projectId,
-          path: `/assets/${newFileName}`,
+          path: `/public/assets/${newFileName}`,
           displayName: newFileName,
           isExternalSrc: false,
-          size: stats.size,
+          size: file.size,
           created: {
             date: Math.floor(Date.now() / 1000),
             userId: user.id,
@@ -160,8 +268,7 @@ router.post(
           },
         });
 
-        await saveAsset(asset);
-        saved = true;
+        saved = await saveAsset(asset);
 
         uploaded.push(asset.getEditorAsset());
       } catch (err: Error | unknown) {
@@ -176,114 +283,31 @@ router.post(
         }
 
         if (err instanceof Error) {
+          err.message = `(File: ${file.originalname}) ${err.message}`;
           errors.push(err);
+        }
+      }
+
+      if (newFilePath) {
+        try {
+          // clear the file storage reservation
+          await storage.clearReservation(newFilePath);
+        } catch {
+          // ignore error. It'll clear on the ttl
         }
       }
     }
 
+    // throw if all files failed
     if (errors.length > 0 && errors.length === files.length) {
       throw errors[0];
     }
 
-    const response: AssetApi["PostResponse"] = {
+    const response: AssetUploadApi["PostResponse"] = {
       assets: uploaded,
+      errors: errors.map(structureError),
     };
 
     res.json(response);
-  },
-);
-
-registerApi<AssetSaveExternalApi>(
-  "/api/assets/save-external-asset/:projectId",
-).post([roles.struxt.editor], async ({ body, user, params }) => {
-  const { projectId } = z
-    .object({
-      projectId: z.string(),
-    })
-    .parse(params);
-
-  const { assetSrc } = z
-    .object({
-      assetSrc: z.string().startsWith("https://"),
-    })
-    .parse(body);
-
-  // check if the user has permission to edit the project
-  if (!user.hasProjectPermission(projectId, [roles.projects.edit])) {
-    throw customError(
-      403,
-      "You do not have permission to modify this project.",
-    );
-  }
-
-  const uuid = await createSimpleId("asset");
-  const asset = new AssetModel({
-    uuid,
-    projectId,
-    path: assetSrc,
-    displayName: AssetModel.getFileName(assetSrc),
-    isExternalSrc: true,
-    size: 0,
-    created: {
-      date: Math.floor(Date.now() / 1000),
-      userId: user.id,
-      displayName: user.name,
-    },
-    updated: {
-      date: Math.floor(Date.now() / 1000),
-      userId: user.id,
-      displayName: user.name,
-    },
-  });
-  const success = await saveAsset(asset);
-
-  if (!success) {
-    throw customError(500, "Failed to save asset.");
-  }
-
-  return {
-    success,
-    asset: asset.getEditorAsset(),
-  };
-});
-
-registerApi<AssetDeleteApi>("/api/assets/delete/:projectId").post(
-  [roles.struxt.editor],
-  async ({ params, user, body }) => {
-    const { projectId } = z
-      .object({
-        projectId: z.string(),
-      })
-      .parse(params);
-
-    // check if the user has permission to edit the project
-    if (!user.hasProjectPermission(projectId, [roles.projects.edit])) {
-      throw customError(
-        403,
-        "You do not have permission to modify this project.",
-      );
-    }
-
-    // parse the body
-    const { assets } = z
-      .object({
-        assets: z.array(
-          z.object({
-            uuid: z.string(),
-          }),
-        ),
-      })
-      .parse(body);
-
-    for (const asset of assets) {
-      await deleteAsset(asset.uuid, projectId, {
-        userId: user.id,
-        displayName: user.name,
-      });
-    }
-
-    return {
-      success: true,
-    };
   },
 );

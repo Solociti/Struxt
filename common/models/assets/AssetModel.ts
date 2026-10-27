@@ -1,7 +1,19 @@
+import { basename, dirname, extname, join } from "common/path/path";
+import { getFileType, isTextFile } from "../../path/FileExtensions";
 import { Model, UserModelAction } from "../Model";
 import { DeepPartial, mergeDeep } from "../utils";
 import { EditorAsset } from "./EditorAsset";
-import { getFileType, isTextFile } from "./FileExtensions";
+
+export interface AssetListItem {
+  uuid: string;
+
+  displayName: string;
+  path: string;
+
+  isExternalSrc: boolean;
+
+  updated: AssetModel["updated"];
+}
 
 /**
  * Keeps track of assets and their metadata.
@@ -22,7 +34,7 @@ export class AssetModel extends Model {
   /**
    * The full path including the filename, or the full external URL.
    *
-   * For local assets: /assets/logo.png
+   * For local assets: /public/assets/logo.png
    * For external assets: https://example.com/image.png
    *
    * Must be unique per project.
@@ -88,7 +100,7 @@ export class AssetModel extends Model {
     const item: EditorAsset = {
       uuid: this.uuid,
       type: getFileType(this.getFileExtension()),
-      src: this.path,
+      src: this.getPublicUrl() ?? "",
       name: this.displayName,
     };
 
@@ -117,11 +129,38 @@ export class AssetModel extends Model {
     if (path.startsWith("http://") || path.startsWith("https://")) {
       const url = new URL(path);
       return decodeURIComponent(
-        url.pathname.split("/").filter(Boolean).pop() || ""
+        url.pathname.split("/").filter(Boolean).pop() || "",
       );
     }
 
-    return path.split("/").filter(Boolean).pop() || "";
+    return basename(path);
+  }
+
+  /**
+   * Get the base path from the path
+   *
+   * @param path
+   * @returns
+   */
+  static getBasePath(path: string): string {
+    if (!path) {
+      return "";
+    }
+
+    if (
+      path.startsWith("http://") ||
+      path.startsWith("https://") ||
+      path.endsWith("/")
+    ) {
+      return path;
+    }
+
+    const newPath = dirname(path);
+
+    if (newPath.endsWith("/")) {
+      return newPath;
+    }
+    return `${newPath}/`;
   }
 
   /**
@@ -147,11 +186,57 @@ export class AssetModel extends Model {
   }
 
   /**
-   * Get the URL for the asset
+   * Get the public URL path for an asset.
+   * Returns the public path (e.g., `/assets/logo.png`) for assets in `/public/`,
+   * the full URL for external assets, or `null` if the asset is not publicly accessible.
+   *
+   * @param asset
+   * @returns
+   */
+  static getPublicUrl(asset: AssetListItem | AssetModel): string | null {
+    if (asset.isExternalSrc) {
+      return asset.path;
+    }
+
+    if (asset.path.startsWith("/public")) {
+      return asset.path.replace("/public", "");
+    }
+
+    const ext = extname(asset.path).toLowerCase();
+    if (asset.path.startsWith("/routines") && ext === ".js") {
+      // remove the extension for the public URL for routines
+      const name = basename(asset.path, ext);
+      const dir = dirname(asset.path);
+
+      return join(dir, name);
+    }
+
+    return null;
+  }
+
+  /**
+   * Get the public URL path for this asset.
+   * Returns the public path (e.g., `/assets/logo.png`) for assets in `/public/`,
+   * the full URL for external assets, or `null` if the asset is not publicly accessible.
+   *
+   * @returns The public URL path, full external URL, or null if not public
+   */
+  getPublicUrl(): string | null {
+    return AssetModel.getPublicUrl(this);
+  }
+
+  /**
+   * Create a list item for the routine.
    *
    * @returns
    */
-  getUrl(): string {
-    return this.path;
+  getListItem(): AssetListItem {
+    return {
+      uuid: this.uuid,
+      displayName: this.displayName,
+      path: this.path,
+      isExternalSrc: this.isExternalSrc,
+      updated: this.updated,
+    };
   }
 }

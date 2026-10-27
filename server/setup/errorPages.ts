@@ -1,3 +1,7 @@
+import {
+  errorNameFromStatus,
+  HTTPStatus,
+} from "common/custom-error/custom-error";
 import { Express, Request, Response, NextFunction } from "express";
 
 /**
@@ -29,7 +33,7 @@ export function registerErrorPage(app: Express) {
 
     res.status(statusCode).render("error", {
       statusCode: statusCode,
-      title: statusCode === 500 ? "Server Error" : "Request Error",
+      title: errorNameFromStatus(statusCode as HTTPStatus, "Request Error"),
       message: err.message || "Something went wrong. Please try again later.",
     });
   });

@@ -1,0 +1,358 @@
+import { BlobReader, BlobWriter, ZipReader } from "@zip.js/zip.js";
+import { createNewAsset, saveAssetContent } from "client/assets/assetApis";
+import { AssetListItem, AssetModel } from "common/models/assets/AssetModel";
+import { join, normalize } from "common/path/path";
+import { sanitizePath } from "common/path/sanitizeFilename";
+import { FileToUpload } from "../modals/UploadAssetsModal";
+
+export interface ZipFileEntry {
+  /**
+   * The path of the file inside the zip archive (e.g., "folder/file.txt")
+   */
+  filename: string;
+
+  /**
+   * The project path where this entry will be stored (e.g., /uploads/folder/file.txt)
+   */
+  path: string;
+}
+
+export async function getZipFileEntries(
+  file: File,
+  baseDir: string,
+): Promise<ZipFileEntry[]> {
+  const zipReader = new ZipReader(new BlobReader(file));
+  const entries = await zipReader.getEntries();
+
+  const fileEntries: ZipFileEntry[] = [];
+
+  for (const entry of entries) {
+    if (entry.directory) {
+      continue;
+    }
+
+    // Sanitize path to prevent malicious zip entries (skip invalid components like "..")
+    let sanitizedFilename: string;
+    try {
+      sanitizedFilename = sanitizePath(entry.filename, { skipInvalid: true });
+    } catch {
+      // Skip this entry if sanitization results in empty path
+      continue;
+    }
+
+    const path = normalize(join(baseDir, sanitizedFilename));
+
+    fileEntries.push({
+      filename: entry.filename,
+      path,
+    });
+  }
+
+  await zipReader.close();
+  return fileEntries;
+}
+
+export async function processZipFiles(
+  zipFile: File,
+  entryFilenames: string[],
+  callback: (filename: string, blob: Blob) => Promise<void>,
+  options: {
+    abort?: AbortSignal;
+  },
+): Promise<void> {
+  const zipReader = new ZipReader(new BlobReader(zipFile));
+  const entries = await zipReader.getEntries();
+  let stopUpload = false;
+
+  const abortHandler = () => {
+    stopUpload = true;
+  };
+  if (options.abort) {
+    options.abort.addEventListener("abort", abortHandler);
+  }
+
+  try {
+    for (const filename of entryFilenames) {
+      if (stopUpload) {
+        break;
+      }
+
+      const entry = entries.find((e) => e.filename === filename);
+
+      if (!entry || entry.directory || !entry.getData) {
+        throw new Error(`File not found in zip: ${filename}`);
+      }
+
+      const blob = await entry.getData(new BlobWriter());
+      await callback(filename, blob);
+    }
+  } finally {
+    await zipReader.close();
+  }
+  if (options.abort) {
+    options.abort.removeEventListener("abort", abortHandler);
+  }
+}
+
+export async function uploadFile(
+  projectId: string,
+  file: File | Blob,
+  path: string,
+  signal?: AbortSignal,
+) {
+  let asset: AssetModel | null = null;
+  let tryCount = 0;
+
+  let stopUpload = false;
+
+  const abortHandler = () => {
+    stopUpload = true;
+  };
+  if (signal) {
+    signal.addEventListener("abort", abortHandler);
+  }
+
+  while (tryCount < 3) {
+    if (stopUpload) {
+      throw new Error("Upload aborted!");
+    }
+
+    try {
+      if (!asset) {
+        const response = await createNewAsset(projectId, {
+          path: path,
+          returnOnCollision: true,
+        });
+        asset = response.asset;
+      }
+
+      await saveAssetContent(projectId, asset.uuid, file, {
+        filename: path,
+        signal,
+      });
+
+      if (signal) {
+        signal.removeEventListener("abort", abortHandler);
+      }
+
+      return asset;
+    } catch (error) {
+      tryCount++;
+      if (tryCount >= 3) {
+        if (signal) {
+          signal.removeEventListener("abort", abortHandler);
+        }
+
+        throw error;
+      }
+
+      let wait = 100 * Math.pow(tryCount, 2);
+
+      // handle rate limit errors
+      if (error instanceof Error && error.status === 429) {
+        wait = 1000 * Math.pow(tryCount, 2);
+      }
+      await new Promise((resolve) => setTimeout(resolve, wait));
+    }
+  }
+
+  throw new Error("Upload failed after 3 attempts");
+}
+
+/**
+ * Filter files to only those that should be uploaded based on extraction settings
+ *
+ * @param files
+ * @returns Filtered array containing only files that should be uploaded
+ */
+export function getFilesToUpload<
+  T extends {
+    localId: number;
+    shouldExtract?: boolean;
+    hasCollision?: boolean;
+    overwrite?: boolean;
+    sourceZipId?: number;
+  },
+>(files: T[]): T[] {
+  return files.filter((f) => {
+    if (f.hasCollision && !f.overwrite) {
+      return false;
+    }
+    if (f.shouldExtract) {
+      return false;
+    }
+    if (typeof f.sourceZipId === "number") {
+      const sourceZip = files.find((file) => file.localId === f.sourceZipId);
+      if (!sourceZip?.shouldExtract) {
+        return false;
+      }
+    }
+    return true;
+  });
+}
+
+/**
+ * Upload multiple files, handling zip extraction if needed
+ *
+ * @param projectId
+ * @param basePath
+ * @param files
+ * @param onProgress
+ */
+export async function batchUploadFiles(
+  projectId: string,
+  basePath: string,
+  files: FileToUpload[],
+  onProgress: (
+    index: number,
+    status: "uploading" | "complete" | "error",
+    error?: string,
+  ) => void,
+  options: {
+    abort?: AbortSignal;
+  },
+): Promise<AssetListItem[]> {
+  const uploadedAssets: AssetListItem[] = [];
+
+  let i = 0;
+  let stopUpload = false;
+
+  const abortHandler = () => {
+    stopUpload = true;
+  };
+  if (options.abort) {
+    options.abort.addEventListener("abort", abortHandler);
+  }
+
+  while (i < files.length) {
+    if (stopUpload) {
+      break;
+    }
+
+    const fileItem = files[i];
+
+    if (fileItem.shouldExtract) {
+      const zipFilesToUpload = files.filter(
+        (f) => f.sourceZipId === fileItem.localId,
+      );
+
+      if (zipFilesToUpload.length > 0) {
+        try {
+          const entryFilenames = zipFilesToUpload.map((f) => f.originalName);
+
+          await processZipFiles(
+            fileItem.file as File,
+            entryFilenames,
+            async (filename, blob) => {
+              const fileToUpload = zipFilesToUpload.find(
+                (f) => f.originalName === filename,
+              );
+
+              if (!fileToUpload) {
+                return;
+              }
+
+              const fileIndex = files.indexOf(fileToUpload);
+              onProgress(fileIndex, "uploading");
+
+              try {
+                const fullPath = join(basePath, fileToUpload.path);
+                const asset = await uploadFile(
+                  projectId,
+                  blob,
+                  fullPath,
+                  options.abort,
+                );
+                onProgress(fileIndex, "complete");
+                uploadedAssets.push(asset.getListItem());
+              } catch (error) {
+                const errorMsg =
+                  error instanceof Error ? error.message : "Upload failed";
+                onProgress(fileIndex, "error", errorMsg);
+              }
+            },
+            options,
+          );
+        } catch (error) {
+          const errorMsg =
+            error instanceof Error ? error.message : "Failed to process zip";
+          for (const zipFile of zipFilesToUpload) {
+            const fileIndex = files.indexOf(zipFile);
+            onProgress(fileIndex, "error", errorMsg);
+          }
+        }
+      }
+
+      i++;
+      continue;
+    }
+
+    if (typeof fileItem.sourceZipId === "number") {
+      i++;
+      continue;
+    }
+
+    onProgress(i, "uploading");
+
+    try {
+      const fullPath = join(basePath, fileItem.path);
+      const asset = await uploadFile(
+        projectId,
+        fileItem.file,
+        fullPath,
+        options.abort,
+      );
+      onProgress(i, "complete");
+      uploadedAssets.push(asset.getListItem());
+    } catch (error) {
+      const errorMsg = error instanceof Error ? error.message : "Upload failed";
+      onProgress(i, "error", errorMsg);
+    }
+
+    i++;
+  }
+
+  if (options.abort) {
+    options.abort.removeEventListener("abort", abortHandler);
+  }
+
+  return uploadedAssets;
+}
+
+/**
+ * Calculate upload status summary
+ *
+ * @param files
+ * @param isUploading
+ * @returns Status message string
+ */
+export function getUploadStatusMessage(
+  files: Array<{
+    status: "pending" | "uploading" | "complete" | "error";
+    hasCollision?: boolean;
+    overwrite?: boolean;
+  }>,
+  isUploading: boolean,
+): string {
+  const activeFiles = files.filter((f) => !(f.hasCollision && !f.overwrite));
+  const skippedCount = files.length - activeFiles.length;
+
+  if (activeFiles.length === 0) {
+    return skippedCount > 0
+      ? `${skippedCount} file${skippedCount !== 1 ? "s" : ""} skipped (collision${skippedCount !== 1 ? "s" : ""})`
+      : "No files to upload";
+  }
+
+  const completedCount = files.filter((f) => f.status === "complete").length;
+  const errorCount = files.filter((f) => f.status === "error").length;
+
+  if (isUploading) {
+    return `Uploading ${completedCount} of ${files.length}`;
+  }
+
+  if (completedCount > 0 || errorCount > 0) {
+    return `Complete: ${completedCount} uploaded${errorCount > 0 ? `, ${errorCount} errors` : ""}`;
+  }
+
+  return `${files.length} file${files.length !== 1 ? "s" : ""} ready`;
+}

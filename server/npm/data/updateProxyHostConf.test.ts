@@ -31,7 +31,7 @@ describe("updateProxyHostConf", () => {
           "# -- End of struxt config --",
           "",
           "# Custom config",
-        ].join("\n")
+        ].join("\n"),
       );
 
       expect(result2).toBe(
@@ -41,7 +41,7 @@ describe("updateProxyHostConf", () => {
           "# -- End of struxt config --",
           "",
           "# Custom config",
-        ].join("\n")
+        ].join("\n"),
       );
     });
   });
@@ -70,6 +70,7 @@ describe("updateProxyHostConf", () => {
         forceSsl: true,
         hsts: true,
         proxy: { certificateId: 2, redirectId: 0, hostId: 0 },
+        variables: [],
       },
       projectEnv: "staging",
       projectId: "project123",
@@ -90,7 +91,7 @@ describe("updateProxyHostConf", () => {
     expect(result.forward_port).toBe(3000);
 
     expect(result.advanced_config).toBe(
-      ["# -- End of struxt config --", "# Custom config"].join("\n")
+      ["# -- End of struxt config --", "# Custom config"].join("\n"),
     );
   });
 
@@ -114,6 +115,7 @@ describe("updateProxyHostConf", () => {
         hsts: false,
         domains: [],
         proxy: { certificateId: 0, redirectId: 0, hostId: 0 },
+        variables: [],
       },
       projectEnv: "production",
       projectId: "project123",
@@ -135,7 +137,7 @@ describe("updateProxyHostConf", () => {
       forward_host: "",
       forward_port: 0,
       advanced_config: ["# Old config", "# -- End of struxt config --"].join(
-        "\n"
+        "\n",
       ),
       certificate_id: 0,
       locations: [
@@ -161,6 +163,7 @@ describe("updateProxyHostConf", () => {
         hsts: false,
         proxy: { certificateId: 0, redirectId: 0, hostId: 0 },
         domains: [],
+        variables: [],
       },
       publishId: "publish123",
       domains: [],
@@ -172,7 +175,7 @@ describe("updateProxyHostConf", () => {
     expect(result.locations[0].path).toBe("/");
     expect(result.locations[0].forward_scheme).toBe("http");
     expect(result.locations[0].forward_host).toBe(
-      "web-host/sites/project123/staging/publish123/"
+      "web-host/sites/project123/staging/publish123/",
     );
     expect(result.locations[0].forward_port).toBe(3000);
     expect(result.locations[0].advanced_config).toBe(
@@ -183,7 +186,7 @@ describe("updateProxyHostConf", () => {
         "}",
         "# -- End of struxt config --",
         "# Custom API config",
-      ].join("\n")
+      ].join("\n"),
     );
   });
 
@@ -216,6 +219,7 @@ describe("updateProxyHostConf", () => {
         hsts: false,
         proxy: { certificateId: 0, redirectId: 0, hostId: 0 },
         domains: [],
+        variables: [],
       },
       publishId: "publish123",
       domains: [],

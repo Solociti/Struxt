@@ -5,3 +5,6 @@
 dist
 node_modules
 uploads
+
+# ignore dev certs
+certs/*.pem

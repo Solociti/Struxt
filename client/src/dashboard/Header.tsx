@@ -1,10 +1,11 @@
 import { useTheme } from "client/bootstrap/Theme";
+import IconButton from "client/components/IconButton";
+import Badge from "react-bootstrap/Badge";
 import Navbar from "react-bootstrap/Navbar";
 import { useCurrentUser } from "../auth/userCurrentUser";
 import { useCurrentProject } from "../projects/ProjectContext";
 import SelectProject from "../projects/SelectProject";
 import NotificationsPopover from "./notifications/NotificationsPopover";
-import IconButton from "client/components/IconButton";
 
 export function DashboardHeader() {
   const { user } = useCurrentUser();
@@ -18,6 +19,10 @@ export function DashboardHeader() {
       </div>
 
       <div className="d-flex align-items-center">
+        <Badge bg="warning" className="me-3 text-dark">
+          Beta
+        </Badge>
+
         <IconButton
           icon="contrast"
           iconProps={{

@@ -6,7 +6,7 @@ import express, { NextFunction, Request, Response } from "express";
 import { createServer } from "node:http";
 import {
   router as assetsRouter,
-  staticFilesRouter as assetStaticFiles,
+  assetFilesRouter,
 } from "server/api/assets/register";
 import { userFromReq } from "server/api/auth/userFromReq";
 import { protectEndpoint } from "server/auth/protectEndpoint";
@@ -27,6 +27,7 @@ import { setupWsServer } from "./ws/setupWs";
 import "server/api/register";
 import "server/core/cronQueue";
 import "server/utils/geoLocation";
+import "server/routines/queue/queue";
 
 // imports for workers
 import "server/api/assets/worker";
@@ -54,7 +55,7 @@ async function main() {
   app.use(
     express.json({
       limit: "5mb",
-    })
+    }),
   );
 
   await setupAuthEndpoints(app, authConfig);
@@ -74,7 +75,7 @@ async function main() {
   app.use(apiRouter);
 
   app.use("/api/assets", assetsRouter);
-  app.use("/assets", assetStaticFiles);
+  app.use("/assets", assetFilesRouter);
 
   app.use("/screenshots", staticScreenshotFiles);
 
@@ -85,7 +86,7 @@ async function main() {
     "/admin",
     protectEndpoint([roles.struxt.admin], {
       onFail: "redirect",
-    })
+    }),
   );
   app.use("/admin/queues", serverAdapter.getRouter());
 
@@ -104,7 +105,24 @@ async function main() {
       res.status(statusCode).json({
         error,
       });
-    }
+    },
+  );
+
+  app.use(
+    "/assets/:projectId",
+    (err: Error, req: Request, res: Response, next: NextFunction) => {
+      const statusCode = err.status || err.statusCode || 500;
+
+      const error: StructuredError = {
+        name: statusCode >= 500 ? "Server Error" : err.name || "Error",
+        status: statusCode as HTTPStatus,
+        message: err.message || "Something went wrong. Please try again later.",
+      };
+
+      res.status(statusCode).json({
+        error,
+      });
+    },
   );
 
   // register the last middleware for the app

@@ -1,0 +1,27 @@
+.dir-hover-guide {
+  background-color: transparent;
+  transition: background-color 0.1s;
+  margin-top: 5px;
+  margin-bottom: 5px;
+  margin-left: -5px;
+}
+.dir-section:hover > .dir-children-container > .dir-hover-guide {
+  background-color: rgba(103, 103, 103, 0.5);
+}
+
+.dir-item > .modify-dir-btns {
+  opacity: 0;
+  transition: opacity 0.1s;
+}
+.dir-item:hover > .modify-dir-btns {
+  opacity: 1;
+}
+.file-item:hover,
+.dir-item:hover {
+  background-color: rgba(103, 103, 103, 0.2);
+}
+
+.selected.dir-item,
+.selected.file-item {
+  background-color: rgba(13, 110, 253, 0.4);
+}

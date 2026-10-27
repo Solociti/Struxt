@@ -17,8 +17,8 @@ import { setupLLM } from "./setupLLM";
  *
  * @param chatId
  * @param projectId
- * @param llmModel - The LLM model to use (e.g., "openai:gpt-4o", "anthropic:claude-3-5-sonnet-20240620")
- * @param temperature - The temperature setting for the LLM (0-1)
+ * @param llmModel The LLM model to use (e.g., "openai:gpt-4o", "anthropic:claude-3-5-sonnet-20240620")
+ * @param temperature The temperature setting for the LLM (0-1)
  * @returns
  */
 export async function setupAiPilot(

@@ -17,7 +17,7 @@ export async function resolveDns(
   }
 
   // Resolve the A records for the given domain
-  const ips = await dns.resolve(domain, "A").catch(() => []);
+  const ips = await resolveARecords(domain);
   const cname = await resolveCname(domain);
 
   return { ips, cname };
@@ -37,4 +37,18 @@ async function resolveCname(domain: string): Promise<string[]> {
   }
 
   return await dns.resolve(domain, "CNAME").catch(() => []);
+}
+
+/**
+ * Resolves the A records for a given domain.
+ *
+ * @param domain
+ * @returns
+ */
+export async function resolveARecords(domain: string) {
+  if (!domain) {
+    return [];
+  }
+
+  return await dns.resolve(domain, "A").catch(() => []);
 }
