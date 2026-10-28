@@ -5,7 +5,6 @@ import { getAssetUrl } from "./assetUtils";
 import { isFileTab, useContentManager } from "./cm/contentManager";
 
 const AssetCodeEditor = lazy(() => import("./editors/AssetCodeEditor"));
-const TriggerSettings = lazy(() => import("./triggers/TriggerSettings"));
 
 /**
  * Render the content for the editor
@@ -19,31 +18,6 @@ export function EditorContent() {
     return null;
   }
   const { activeTab } = tabs;
-
-  if (activeTab.type === "settings:triggers") {
-    return (
-      <Suspense
-        fallback={
-          <div
-            style={{
-              position: "absolute",
-              top: 0,
-              left: 0,
-              right: 0,
-              bottom: 0,
-            }}
-          >
-            <div className="d-flex justify-content-center align-items-center h-100 p-2 gap-2 flex-column">
-              <Spinner animation="border" />
-              <div style={{ fontSize: "0.95rem" }}>Loading</div>
-            </div>
-          </div>
-        }
-      >
-        <TriggerSettings />
-      </Suspense>
-    );
-  }
 
   if (isFileTab(activeTab)) {
     const { item } = activeTab;
