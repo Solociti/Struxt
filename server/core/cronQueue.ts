@@ -102,6 +102,20 @@ export function setupCronJobs() {
     },
   );
 
+  cronQueue.queue.upsertJobScheduler(
+    "cleanup-temp-uploads",
+    {
+      pattern: "15 * * * *",
+    },
+    {
+      data: {},
+      opts: {
+        attempts: 1,
+        priority: 60,
+      },
+    },
+  );
+
   // setup cron jobs
   // Schedule the database backup as per the settings
   const pattern = process.env.BACKUP_CRON || "15 0,12 * * *";
@@ -136,7 +150,4 @@ export function setupCronJobs() {
     cronQueue.queue.removeJobScheduler("sync-sites-s3");
     cronQueue.queue.removeJobScheduler("sync-backups-s3");
   }
-
-  // setup cron job to clear temp upload files
-  registerJob("cleanup-temp-uploads", { priority: 60 }, {}, "15 * * * *");
 }
