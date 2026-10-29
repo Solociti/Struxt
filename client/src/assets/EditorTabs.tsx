@@ -10,6 +10,8 @@ import {
 } from "./cm/contentManager";
 import { FileIcon } from "./list/FileIcon";
 
+import "./editor-tabs.scss";
+
 /**
  * Setup the tabs for the editor
  *
@@ -30,50 +32,6 @@ export function EditorTabs() {
         }
       }}
     >
-      <style>
-        {`
-          .editor-tab-item .editor-tab-status-wrapper {
-            position: relative;
-            width: 1.2rem;
-            height: 1.2rem;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-          }
-          .editor-tab-item .editor-tab-dirty {
-            position: absolute;
-            transition: opacity 0.2s;
-            opacity: 0;
-            width: 0.5em;
-            height: 0.5em;
-            border-radius: 50%;
-            background-color: #b3b3b3;
-            border: 1px solid #949494;
-          }
-          .editor-tab-item .editor-tab-close {
-            position: absolute;
-            font-size: 1.15em;
-            opacity: 0;
-            transition: opacity 0.2s;
-            margin-top: 0.1em;
-          }
-
-          /* Dirty Logic: Show when dirty AND not hovered */
-          .editor-tab-item.dirty:not(:hover) .editor-tab-dirty {
-            opacity: 1;
-          }
-
-          /* Close Logic: Show on hover OR (Active AND Not Dirty) */
-          .editor-tab-item:hover .editor-tab-close,
-          .editor-tab-item.active:not(.dirty) .editor-tab-close {
-            opacity: 0.8;
-          }
-          .editor-tab-item.active:not(.dirty) .editor-tab-close {
-            opacity: 1;
-          }
-        `}
-      </style>
-
       {list.map((tab) => {
         const { isDirty } = tab;
 
