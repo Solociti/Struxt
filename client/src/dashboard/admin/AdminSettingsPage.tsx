@@ -1,7 +1,6 @@
 import Container from "react-bootstrap/Container";
 import { ShowAiPilotModels } from "./aiPilot/ShowAiPilotModels";
 import { ShowAiPilotPrompts } from "./aiPilot/ShowAiPilotPrompts";
-import { RoutineEnv } from "./routines/RoutineEnv";
 
 export default function AdminSettings() {
   return (
@@ -11,8 +10,6 @@ export default function AdminSettings() {
       <ShowAiPilotModels />
 
       <ShowAiPilotPrompts />
-
-      <RoutineEnv />
     </Container>
   );
 }
