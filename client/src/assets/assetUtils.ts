@@ -15,5 +15,7 @@ export function getAssetUrl(
     return asset.path;
   }
 
-  return `/assets/${projectId}${asset.path}`;
+  const parts = asset.path.split("/").map((p) => encodeURIComponent(p));
+
+  return `/assets/${projectId}${parts.join("/")}`;
 }

@@ -199,7 +199,8 @@ export class AssetModel extends Model {
     }
 
     if (asset.path.startsWith("/public")) {
-      return asset.path.replace("/public", "");
+      const parts = asset.path.replace("/public", "").split("/");
+      return parts.map((p) => encodeURIComponent(p)).join("/");
     }
 
     return null;
