@@ -8,6 +8,13 @@ import prompts from "prompts";
 import { readJsonFile } from "./scripts/jsonUtils.mjs";
 import { exec } from "node:child_process";
 
+/**
+ * Get a random number in range (inclusive)
+ *
+ * @param {number} min
+ * @param {number} max
+ * @returns
+ */
 function randomNumber(min, max) {
   return Math.floor(Math.random() * (max - min + 1)) + min;
 }
@@ -42,7 +49,7 @@ async function main() {
       "# Setup the upload directory",
       `UPLOAD_DIR=${path.resolve(path.join(__dirname, "uploads"))}`,
       `SITE_STORAGE_DIR=${path.resolve(
-        path.join(__dirname, "uploads/site_storage")
+        path.join(__dirname, "uploads/site_storage"),
       )}`,
       "",
     ].join("\n");
@@ -127,7 +134,7 @@ async function main() {
 
   if (!contents.includes("MAXMIND_LICENSE_KEY")) {
     contents += ["", "# Maxmind license key", "MAXMIND_LICENSE_KEY="].join(
-      "\n"
+      "\n",
     );
   }
 
@@ -194,6 +201,10 @@ async function main() {
     ].join("\n");
   }
 
+  if (!contents.includes("RESTORE_ENABLED")) {
+    contents += ["", "RESTORE_ENABLED=false"].join("\n");
+  }
+
   const aiKeys = [
     "OPENAI_API_KEY",
     "ANTHROPIC_API_KEY",
@@ -202,7 +213,7 @@ async function main() {
   for (const key of aiKeys) {
     if (!contents.includes(key)) {
       contents += ["", `# ${key} is used for AI services`, `${key}=`].join(
-        "\n"
+        "\n",
       );
     }
   }

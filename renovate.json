@@ -10,7 +10,7 @@
       "groupName": "BullMQ"
     },
     {
-      "matchPackageNames": ["grapesjs", "/grapesjs-*/"],
+      "matchPackageNames": ["grapesjs", "grapesjs-*", "@grapesjs/*"],
       "groupName": "GrapesJS"
     },
     {
@@ -33,6 +33,35 @@
     {
       "matchPackageNames": ["langchain", "@langchain/*"],
       "groupName": "LangChain"
+    },
+    {
+      "matchPackageNames": ["sanitize-html", "@types/sanitize-html"],
+      "groupName": "Sanitize HTML"
+    },
+    {
+      "matchPackageNames": ["nodemailer", "@types/nodemailer"],
+      "groupName": "Nodemailer"
+    },
+    {
+      "matchPackageNames": [
+        "@babel/*",
+        "babel-plugin-module-extension-resolver",
+        "babel-plugin-module-resolver"
+      ],
+      "groupName": "Babel"
+    },
+    {
+      "matchPackageNames": [
+        "vite",
+        "@vitejs/plugin-react",
+        "vite-plugin-pwa",
+        "vite-svg-loader"
+      ],
+      "groupName": "Vite"
+    },
+    {
+      "matchPackageNames": ["socket.io", "socket.io-client"],
+      "groupName": "Socket.IO"
     }
   ]
 }
