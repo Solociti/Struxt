@@ -79,6 +79,7 @@ export default function CodeEditor({
         model: content,
         theme: theme === "dark" ? "vs-dark" : "vs-light",
         readOnly,
+        automaticLayout: true,
       });
     }
 
