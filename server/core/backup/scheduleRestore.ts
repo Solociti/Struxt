@@ -82,11 +82,12 @@ export async function runRestoreKickoff(job: Job<RestoreRequest>) {
     return { dryRun: true };
   }
 
+  await pauseCronQueue(log);
+
   await ensureBackupFilesLocal(point, log, (value, max) => {
     job.updateProgress(Math.round((value / max) * 100));
   });
 
-  await pauseCronQueue(log);
   await stopDockerServices(restoreStoppedServices, log);
 
   const data: RestoreJobData = {
