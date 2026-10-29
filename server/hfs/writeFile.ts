@@ -1,10 +1,10 @@
+import { randomBytes } from "node:crypto";
 import { createWriteStream, existsSync } from "node:fs";
 import { rm, writeFile } from "node:fs/promises";
-import { basename, resolve } from "node:path";
+import { basename } from "node:path";
 import { getTempDir, getUploadDir } from "server/utils/uploadDir";
 import { hfsRenameFile } from "./fileOps";
 import { isPathInside } from "./path";
-import { randomBytes } from "node:crypto";
 
 interface WriteFileOptions {
   /**
