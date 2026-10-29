@@ -112,7 +112,7 @@ router.post(
       // if it does, add a number to the end of the file name
       while (existsSync(join(uploadDir, newFileName))) {
         count++;
-        newFileName = `${originalName}-${count}${ext}`;
+        newFileName = `${originalName}-${count}${sanitizedExt}`;
       }
 
       renameSync(file.path, join(uploadDir, newFileName));
