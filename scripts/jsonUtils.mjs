@@ -5,7 +5,7 @@ import { readFile, writeFile } from "node:fs/promises";
  * Reads a JSON file and returns the contents as an object.
  *
  * @param {string} filePath - The path to the JSON file.
- * @returns {Promise<Object>} - The contents of the JSON file.
+ * @returns {Promise<Record<string, any>>} - The contents of the JSON file.
  */
 export async function readJsonFile(filePath) {
   const contents = await readFile(filePath, "utf-8");

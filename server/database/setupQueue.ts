@@ -36,7 +36,7 @@ export function onQueueUpdate(cb: (list: Queue[]) => void) {
 export function setupQueue(
   prefix: string,
   queueName: string,
-  defaultJobOptions: DefaultJobOptions
+  defaultJobOptions: DefaultJobOptions,
 ) {
   const options: DefaultJobOptions = {
     removeOnComplete: 250,
@@ -94,7 +94,7 @@ export function setupWorker(
   prefix: string,
   queueName: string,
   workerFunction: (job: any) => Promise<any>,
-  workerOptions: Omit<WorkerOptions, "connection" | "prefix">
+  workerOptions: Omit<WorkerOptions, "connection" | "prefix">,
 ) {
   const options: WorkerOptions = {
     connection: {
@@ -117,12 +117,14 @@ export function setupWorker(
 /**
  * Setup a new flow producer
  *
+ * @param prefix the queue prefix used for the jobs in the flow
  * @returns
  */
-export function createFlowProducer() {
+export function createFlowProducer(prefix?: string) {
   return new FlowProducer({
     connection: {
       url: clientUrl,
     },
+    ...(prefix ? { prefix: `{${prefix}}` } : {}),
   });
 }

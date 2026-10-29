@@ -1,7 +1,8 @@
 import { join } from "node:path";
 import { execPromise } from "server/utils/execPromise";
 import { mkDirRecursive } from "server/utils/mkDir";
-import { getCurrentBackupDir } from "server/utils/uploadDir";
+import { shellQuote } from "server/utils/shellQuote";
+import { getBackupDir, getCurrentBackupDir } from "server/utils/uploadDir";
 import { getDockerServices } from "../docker/getService";
 import { dockerInspectService } from "../docker/inspectService";
 import { backupFileResults } from "./fileResults";
@@ -15,12 +16,12 @@ export async function backupVictoriaMetrics(
   options: {
     log?: (message: string) => void;
     onProgress?: (value: number, max: number) => void;
-  } = {}
+  } = {},
 ) {
   const [service] = await getDockerServices("victoriametrics");
   if (!service) {
     throw new Error(
-      "VictoriaMetrics service not found. Please ensure it is running."
+      "VictoriaMetrics service not found. Please ensure it is running.",
     );
   }
   const inspectedService = await dockerInspectService(service.ID);
@@ -28,7 +29,7 @@ export async function backupVictoriaMetrics(
   const hostname = service.Names;
   const network = `--network ${service.Networks}`;
   const volumes = inspectedService.HostConfig.Binds.map(
-    (bind) => `-v ${bind}`
+    (bind) => `-v ${bind}`,
   ).join(" ");
 
   const now = new Date();
@@ -69,4 +70,67 @@ export async function backupVictoriaMetrics(
   // Optionally, you could return the path to the tarball
   const backupFile = join(backupDir, `../${backupFileName}`);
   return await backupFileResults(backupFile);
+}
+
+/**
+ * Restore the VictoriaMetrics data from a backup.
+ *
+ * The service is stopped while `vmrestore` replaces the storage data.
+ *
+ * @param date backup date directory. Example `5-3-2026`
+ * @param hour
+ * @param options
+ */
+export async function restoreVictoriaMetrics(
+  date: string,
+  hour: number,
+  options: {
+    log?: (message: string) => void;
+    onProgress?: (value: number, max: number) => void;
+  } = {},
+) {
+  const [service] = await getDockerServices("victoriametrics");
+  if (!service) {
+    throw new Error(
+      "VictoriaMetrics service not found. Please ensure it is running.",
+    );
+  }
+  const inspectedService = await dockerInspectService(service.ID);
+
+  const network = `--network ${service.Networks}`;
+  const volumes = inspectedService.HostConfig.Binds.map(
+    (bind) => `-v ${shellQuote(bind)}`,
+  ).join(" ");
+
+  const tarFile = join(getBackupDir(date), `${hour}-victoria-metrics.tar.gz`);
+  const extractDir = join(
+    getBackupDir(date),
+    `victoria-metrics-restore-${hour}`,
+  );
+  await mkDirRecursive(extractDir);
+  options.onProgress?.(1, 5);
+
+  await execPromise(
+    `tar -xzf ${shellQuote(tarFile)} -C ${shellQuote(extractDir)}`,
+    { log: options.log },
+  );
+  options.onProgress?.(2, 5);
+
+  options.log?.("Stopping VictoriaMetrics");
+  await execPromise(`/usr/bin/docker stop ${service.ID}`);
+  options.onProgress?.(3, 5);
+
+  const image = "victoriametrics/vmrestore:latest";
+  const vmRestoreCommand = `-src=fs://${extractDir} -storageDataPath=/victoria-metrics-data`;
+  const dockerCommand = `/usr/bin/docker run --rm --user 0:0 ${network} ${volumes} ${image} ${vmRestoreCommand}`;
+  options.log?.(dockerCommand);
+  await execPromise(dockerCommand, { log: options.log });
+  options.onProgress?.(4, 5);
+
+  await execPromise(`rm -rf ${shellQuote(extractDir)}`);
+  options.log?.("Starting VictoriaMetrics");
+  await execPromise(`/usr/bin/docker start ${service.ID}`);
+  options.onProgress?.(5, 5);
+
+  options.log?.("VictoriaMetrics restore completed successfully.");
 }
