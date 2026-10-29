@@ -35,14 +35,20 @@ function AssetsPageContent() {
           <p className="mt-3">Select an asset to start editing</p>
         </div>
       );
-    } else if (tabs.activeTab.assetLoadError) {
+    } else if (
+      "assetLoadError" in tabs.activeTab &&
+      tabs.activeTab.assetLoadError
+    ) {
       // show the error if the asset failed to load
       return (
         <div className="p-5">
           <ShowError error={tabs.activeTab.assetLoadError} />
         </div>
       );
-    } else if (tabs.activeTab.isAssetLoading) {
+    } else if (
+      "isAssetLoading" in tabs.activeTab &&
+      tabs.activeTab.isAssetLoading
+    ) {
       // show a loading indicator if the asset is still loading
       return (
         <div className="d-flex align-items-center justify-content-center flex-grow-1 text-muted">

@@ -28,7 +28,7 @@ export function ProjectFeatures({
   const { hasPermission } = useCurrentUser();
   const isAdmin = hasPermission(roles.struxt.admin);
 
-  const { aiPilot, routines } = projectDetails.featureFlags;
+  const { aiPilot } = projectDetails.featureFlags;
 
   const [updateProp, setUpdateProp] = useState<"" | "aiPilot" | "routines">("");
 

@@ -13,9 +13,9 @@ interface StatusIconProps {
  */
 export default function StatusIcon({ fileItem }: StatusIconProps) {
   if (fileItem.status === "pending") {
-    if (fileItem.shouldSkip) {
-      return <MaterialIcon className="text-muted">block</MaterialIcon>;
-    }
+    // if (fileItem.shouldSkip) {
+    //   return <MaterialIcon className="text-muted">block</MaterialIcon>;
+    // }
 
     return <MaterialIcon>schedule</MaterialIcon>;
   }

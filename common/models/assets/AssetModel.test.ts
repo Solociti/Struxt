@@ -281,14 +281,6 @@ describe("AssetModel.getPublicUrl", () => {
     );
   });
 
-  test("should return path as-is for routines assets", () => {
-    const asset = new AssetModel({
-      path: "/routines/function.js",
-      isExternalSrc: false,
-    });
-    expect(AssetModel.getPublicUrl(asset)).toBe("/routines/function");
-  });
-
   test("should return null for non-public assets", () => {
     const asset = new AssetModel({
       path: "/src/app.tsx",

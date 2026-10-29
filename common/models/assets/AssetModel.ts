@@ -1,4 +1,4 @@
-import { basename, dirname, extname, join } from "common/path/path";
+import { basename, dirname } from "common/path/path";
 import { getFileType, isTextFile } from "../../path/FileExtensions";
 import { Model, UserModelAction } from "../Model";
 import { DeepPartial, mergeDeep } from "../utils";
@@ -200,15 +200,6 @@ export class AssetModel extends Model {
 
     if (asset.path.startsWith("/public")) {
       return asset.path.replace("/public", "");
-    }
-
-    const ext = extname(asset.path).toLowerCase();
-    if (asset.path.startsWith("/routines") && ext === ".js") {
-      // remove the extension for the public URL for routines
-      const name = basename(asset.path, ext);
-      const dir = dirname(asset.path);
-
-      return join(dir, name);
     }
 
     return null;
