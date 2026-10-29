@@ -19,13 +19,6 @@ export function createFileTree(list: AssetListItem[]): DirectoryNode {
         path: "/public/",
         defaultOpen: true,
       },
-      routines: {
-        files: [],
-        subDirectories: {},
-        name: "routines",
-        path: "/routines/",
-        defaultOpen: false,
-      },
     },
     files: [],
   };

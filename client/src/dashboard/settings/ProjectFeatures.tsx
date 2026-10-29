@@ -30,7 +30,7 @@ export function ProjectFeatures({
 
   const { aiPilot } = projectDetails.featureFlags;
 
-  const [updateProp, setUpdateProp] = useState<"" | "aiPilot" | "routines">("");
+  const [updateProp, setUpdateProp] = useState<"" | "aiPilot">("");
 
   const updateValue = useAsyncCallback(
     async (

@@ -18,7 +18,7 @@ Struxt is a full-stack web application with a **React 19/Vite** frontend and **N
 
 - **Runtime**: Node.js, Express.
 - **Database**: MongoDB (with `connect-mongodb-session`).
-- **Queues**: BullMQ for background jobs (`server/routines/queue`).
+- **Queues**: BullMQ for background jobs.
 - **Data**: VictoriaMetrics (time-series), Dragonfly (Process caching/Redis).
 - **AI/LLM**: LangChain (`@langchain/*`), Google GenAI integration.
 - **Auth**: Keycloak (`server/auth/setupKeycloak.ts`).
