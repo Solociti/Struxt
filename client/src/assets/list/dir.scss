@@ -5,20 +5,32 @@
   margin-bottom: 5px;
   margin-left: -5px;
 }
-.dir-section:hover > .dir-children-container > .dir-hover-guide {
+.dir-section:hover > .dir-children-container > .dir-hover-guide,
+.dir-section:focus > .dir-children-container > .dir-hover-guide {
   background-color: rgba(103, 103, 103, 0.5);
+  outline: none;
 }
 
 .dir-item > .modify-dir-btns {
   opacity: 0;
   transition: opacity 0.1s;
 }
-.dir-item:hover > .modify-dir-btns {
+.dir-item:hover > .modify-dir-btns,
+.dir-item:focus-within > .modify-dir-btns {
   opacity: 1;
 }
+
+.dir-item:hover,
+.dir-item:focus,
 .file-item:hover,
-.dir-item:hover {
+.file-item:focus {
   background-color: rgba(103, 103, 103, 0.2);
+  outline: none;
+}
+
+.dir-item > .modify-dir-btns > .btn:focus {
+  background-color: rgba(180, 180, 180, 0.2);
+  border: 1px solid rgba(80, 80, 80, 0.4);
 }
 
 .selected.dir-item,

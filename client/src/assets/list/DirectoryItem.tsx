@@ -39,6 +39,7 @@ export function DirectoryItem({
       <div
         className={`d-flex align-items-center dir-item rounded ${isSelected ? "selected" : ""}`}
         style={{ paddingLeft: level * FILE_OFFSET, cursor: "pointer" }}
+        tabIndex={0}
         onClick={() => {
           setOpen(!open);
           commonProps.onDirClick?.(dir);
@@ -46,6 +47,17 @@ export function DirectoryItem({
         onContextMenu={(event) => {
           event.preventDefault();
           commonProps.onContextMenu(dir, event.currentTarget);
+        }}
+        onKeyDown={(event) => {
+          if (event.key === "Enter") {
+            if (event.shiftKey) {
+              event.preventDefault();
+              commonProps.onContextMenu(dir, event.currentTarget);
+            } else {
+              setOpen(!open);
+              commonProps.onDirClick?.(dir);
+            }
+          }
         }}
       >
         <MaterialIcon className="me-2" filled>

@@ -86,10 +86,21 @@ export function DirectoryView({
             className={`d-flex align-items-center file-item text-truncate rounded ${isSelected ? "selected" : ""}`}
             style={{ paddingLeft: level * FILE_OFFSET, cursor: "pointer" }}
             title={file.displayName}
+            tabIndex={0}
             onClick={() => commonProps.onClick(file)}
             onContextMenu={(event) => {
               event.preventDefault();
               commonProps.onContextMenu(file, event.currentTarget);
+            }}
+            onKeyDown={(event) => {
+              if (event.key === "Enter") {
+                if (event.shiftKey) {
+                  event.preventDefault();
+                  commonProps.onContextMenu(file, event.currentTarget);
+                } else {
+                  commonProps.onClick(file);
+                }
+              }
             }}
           >
             <FileIcon extension={extension} />
