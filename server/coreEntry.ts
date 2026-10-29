@@ -1,8 +1,10 @@
 import "dotenv/config";
 
+import express from "express";
+import { createBackupRestoreTriggerRouter } from "server/core/backup/backupRestoreRoutes";
+import "server/core/backup/restoreWorker";
 import { setupCronJobs } from "server/core/cronQueue";
 import "server/core/cronWorker";
-import express from "express";
 
 // run init scripts and then start the server
 main();
@@ -17,6 +19,8 @@ async function main() {
       status: "ok",
     });
   });
+
+  app.use(createBackupRestoreTriggerRouter());
 
   const server = app.listen(port, () => {
     console.log(`Server listening at http://localhost:${port}`);

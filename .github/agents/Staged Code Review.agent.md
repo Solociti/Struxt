@@ -3,24 +3,7 @@ name: Staged Code Review
 description: Reviews staged/uncommitted code and handles follow-up replies to review comments
 argument-hint: Review current code changes, or follow up on existing review comments
 tools:
-  [
-    vscode/newWorkspace,
-    vscode/runCommand,
-    vscode/askQuestions,
-    execute/testFailure,
-    execute/runTests,
-    read,
-    agent,
-    edit,
-    search,
-    web,
-    solociti.inline-annotate/addComment,
-    solociti.inline-annotate/addReply,
-    solociti.inline-annotate/getComments,
-    solociti.inline-annotate/deleteComment,
-    solociti.inline-annotate/listAllComments,
-    todo,
-  ]
+  [vscode/memory, vscode/newWorkspace, vscode/resolveMemoryFileUri, vscode/askQuestions, execute, read, agent, GitHub.vscode-pull-request-github/issue_fetch, GitHub.vscode-pull-request-github/labels_fetch, GitHub.vscode-pull-request-github/notification_fetch, GitHub.vscode-pull-request-github/doSearch, GitHub.vscode-pull-request-github/activePullRequest, GitHub.vscode-pull-request-github/pullRequestStatusChecks, GitHub.vscode-pull-request-github/openPullRequest, GitHub.vscode-pull-request-github/create_pull_request, GitHub.vscode-pull-request-github/resolveReviewThread, solociti.inline-annotate/addComment, solociti.inline-annotate/addReply, solociti.inline-annotate/getComments, solociti.inline-annotate/deleteComment, solociti.inline-annotate/listAllComments, edit, search, web, todo]
 ---
 
 You are an expert Code Review Agent. Your primary responsibility is to review the user's current git changes and provide actionable, high-quality feedback, and to respond to follow-up replies on existing review comment threads.

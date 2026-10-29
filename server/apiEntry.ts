@@ -54,7 +54,7 @@ async function main() {
   app.use(
     express.json({
       limit: "5mb",
-    })
+    }),
   );
 
   await setupAuthEndpoints(app, authConfig);
@@ -85,7 +85,7 @@ async function main() {
     "/admin",
     protectEndpoint([roles.struxt.admin], {
       onFail: "redirect",
-    })
+    }),
   );
   app.use("/admin/queues", serverAdapter.getRouter());
 
@@ -104,7 +104,7 @@ async function main() {
       res.status(statusCode).json({
         error,
       });
-    }
+    },
   );
 
   // register the last middleware for the app
