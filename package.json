@@ -70,7 +70,7 @@
     "vitest": "^3.2.4"
   },
   "dependencies": {
-    "@bull-board/express": "^6.20.6",
+    "@bull-board/express": "^9.10.5",
     "@google/genai": "^1.46.0",
     "@langchain/anthropic": "^0.3.34",
     "@langchain/core": "^0.3.80",
@@ -83,7 +83,7 @@
     "@monaco-editor/react": "^4.8.0-rc.3",
     "@popperjs/core": "^2.11.8",
     "axios": "^1.13.6",
-    "bullmq": "^5.71.0",
+    "bullmq": "^6.5.2",
     "cheerio": "^1.2.0",
     "connect-mongodb-session": "^5.0.0",
     "dotenv": "^16.6.1",
@@ -114,7 +114,7 @@
     "prompts": "^2.4.2",
     "puppeteer": "^24.34.0",
     "react-bootstrap": "^2.10.10",
-    "redis": "^4.7.1",
+    "redis": "^6.3.1",
     "sanitize-html": "^2.17.2",
     "set-value": "^4.1.0",
     "socket.io": "^4.8.3",
