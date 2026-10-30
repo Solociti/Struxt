@@ -5,6 +5,7 @@ import { basename } from "node:path";
 import { getTempDir, getUploadDir } from "server/utils/uploadDir";
 import { hfsRenameFile } from "./fileOps";
 import { isPathInside } from "./path";
+import CommitOnFinishStream from "server/utils/CommitOnFinishStream";
 
 interface WriteFileOptions {
   /**
@@ -95,21 +96,17 @@ export async function hfsWriteFileStream(
     autoClose: true,
   });
 
-  let completed = false;
-  stream.on("finish", async () => {
-    completed = true;
-    if (useTempFile) {
-      await hfsRenameFile(writePath, path, { restrictedTo: getUploadDir() });
-    }
-  });
-
-  // close event should always be the last event emitted
-  stream.on("close", async () => {
-    if (!completed && useTempFile && existsSync(writePath)) {
-      // if the stream was closed before it finished, delete the temp file
-      await rm(writePath);
-    }
-  });
-
-  return stream;
+  return new CommitOnFinishStream(
+    stream,
+    async () => {
+      if (useTempFile) {
+        await hfsRenameFile(writePath, path, { restrictedTo: getUploadDir() });
+      }
+    },
+    async () => {
+      if (existsSync(writePath)) {
+        await rm(writePath);
+      }
+    },
+  );
 }
