@@ -14,7 +14,7 @@ export interface DirectoryNode {
   isExternalSrc?: boolean;
   preventNewFile?: boolean;
 
-  subDirectories: Record<string, DirectoryNode>;
+  subDirectories: DirectoryNode[];
   files: AssetListItem[];
 }
 

@@ -11,32 +11,35 @@ export function createFileTree(list: AssetListItem[]): DirectoryNode {
   const root: DirectoryNode = {
     name: "root",
     path: "/",
-    subDirectories: {
-      public: {
+    subDirectories: [
+      {
         files: [],
-        subDirectories: {},
+        subDirectories: [],
         name: "public",
         path: "/public/",
         defaultOpen: true,
       },
-    },
+    ],
     files: [],
   };
 
   for (const item of list) {
     if (item.isExternalSrc) {
-      if (!root.subDirectories.external) {
-        root.subDirectories.external = {
-          name: "external",
-          path: "/external/",
-          isExternalSrc: true,
-          preventNewFile: true,
-          subDirectories: {},
-          files: [],
-        };
+      const external = root.subDirectories.find(
+        (d) => d.name === "external",
+      ) || {
+        name: "external",
+        path: "/external/",
+        isExternalSrc: true,
+        preventNewFile: true,
+        subDirectories: [],
+        files: [],
+      };
+      if (!root.subDirectories.includes(external)) {
+        root.subDirectories.push(external);
       }
 
-      root.subDirectories.external.files.push(item);
+      external.files.push(item);
       continue;
     }
 
@@ -47,22 +50,28 @@ export function createFileTree(list: AssetListItem[]): DirectoryNode {
     let current = root;
 
     for (const part of parts) {
-      if (!current.subDirectories[part]) {
-        current.subDirectories[part] = {
-          name: part,
-          path: `${current.path}${part}/`,
-          subDirectories: {},
-          files: [],
-        };
+      const next: DirectoryNode = current.subDirectories.find(
+        (d) => d.name === part,
+      ) || {
+        name: part,
+        path: `${current.path}${part}/`,
+        subDirectories: [],
+        files: [],
+      };
+
+      if (!current.subDirectories.includes(next)) {
+        current.subDirectories.push(next);
       }
-      current = current.subDirectories[part];
+
+      current = next;
     }
 
     current.files.push(item);
   }
 
-  if (root.subDirectories[".trash"]) {
-    root.subDirectories[".trash"].preventNewFile = true;
+  const trashDir = root.subDirectories.find((d) => d.name === ".trash");
+  if (trashDir) {
+    trashDir.preventNewFile = true;
   }
 
   return root;
@@ -77,7 +86,7 @@ export function createFileTree(list: AssetListItem[]): DirectoryNode {
 export function getRecursiveDirItems(dir: DirectoryNode): AssetListItem[] {
   const items: AssetListItem[] = [];
 
-  for (const subDir of Object.values(dir.subDirectories)) {
+  for (const subDir of dir.subDirectories) {
     items.push(...getRecursiveDirItems(subDir));
   }
 

@@ -62,17 +62,16 @@ export function MoveAssetModal() {
         return null;
       }
 
-      const subDirectories: Record<string, DirectoryNode> = {};
+      const subDirectories: DirectoryNode[] = [];
 
-      for (let key in node.subDirectories) {
-        const subDir = node.subDirectories[key];
+      for (const subDir of node.subDirectories) {
         if (subDir.preventNewFile) {
           continue;
         }
 
         const filteredSubDir = filterDirs(subDir);
         if (filteredSubDir) {
-          subDirectories[key] = filteredSubDir;
+          subDirectories.push(filteredSubDir);
 
           // also remove all files
           filteredSubDir.files = [];
