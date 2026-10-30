@@ -16,7 +16,7 @@ import { isPathInside } from "server/hfs/path";
 export async function serveStaticFile(
   siteDir: string,
   requestPath: string,
-  _req: Request,
+  req: Request,
   res: Response,
 ): Promise<boolean> {
   const absolutePath = normalize(join(siteDir, requestPath));
@@ -31,7 +31,19 @@ export async function serveStaticFile(
     return true;
   }
 
-  const resolvedPath = await resolveFilePath(absolutePath);
+  const { path: resolvedPath, isIndex } = await resolveFilePath(absolutePath);
+
+  if (isIndex) {
+    const url = new URL(`http://localhost/${req.originalUrl}`);
+    if (!url.pathname.endsWith("/")) {
+      const pathname = url.pathname.replace(/\/+$/, "");
+
+      // Using 302 redirect so customers site doesn't break if they make changes to file structure
+      // about/index.html could be replaced with about.html. 301 redirect would break it for cached users.
+      res.redirect(302, `${pathname}/${url.search}`);
+      return true;
+    }
+  }
 
   return new Promise((resolvePromise) => {
     res.sendFile(
@@ -66,19 +78,21 @@ function hasDotSegment(requestPath: string): boolean {
  *
  * @param absolutePath Resolved absolute path (normalized)
  */
-async function resolveFilePath(absolutePath: string): Promise<string> {
+async function resolveFilePath(
+  absolutePath: string,
+): Promise<{ path: string; isIndex: boolean }> {
   const directStat = await safeStat(absolutePath);
   if (directStat?.isFile()) {
-    return absolutePath;
+    return { path: absolutePath, isIndex: false };
   }
 
   const indexPath = join(absolutePath, "index.html");
   const indexStat = await safeStat(indexPath);
   if (indexStat?.isFile()) {
-    return indexPath;
+    return { path: indexPath, isIndex: true };
   }
 
-  return absolutePath;
+  return { path: absolutePath, isIndex: false };
 }
 
 /**
