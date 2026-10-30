@@ -4,7 +4,7 @@ import { ShowAiPilotPrompts } from "./aiPilot/ShowAiPilotPrompts";
 
 export default function AdminSettings() {
   return (
-    <Container>
+    <Container className="mt-3">
       <h1 className="text-center">Admin Settings</h1>
 
       <ShowAiPilotModels />

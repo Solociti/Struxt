@@ -7,6 +7,7 @@ import { updateProjectDetails } from "client/projects/projects";
 import { ProjectDetailsApi } from "common/api/projects/project";
 import { ProjectDetails } from "common/models/projects/ProjectDetails";
 import { roles } from "common/models/user/Roles";
+import { useState } from "react";
 import Card from "react-bootstrap/Card";
 
 interface ProjectFeaturesProps {
@@ -29,21 +30,23 @@ export function ProjectFeatures({
 
   const { aiPilot } = projectDetails.featureFlags;
 
+  const [updateProp, setUpdateProp] = useState<"" | "aiPilot">("");
+
   const updateValue = useAsyncCallback(
     async (
       propPath: ProjectDetailsApi["PostBody"]["propPath"],
-      value: ProjectDetailsApi["PostBody"]["value"]
+      value: ProjectDetailsApi["PostBody"]["value"],
     ) => {
       await updateProjectDetails(projectDetails.projectId, propPath, value);
       refresh();
     },
     {
       toastError: true,
-    }
+    },
   );
 
   return (
-    <div className="d-flex flex-wrap">
+    <div className="d-flex flex-wrap gap-2">
       <Card className="my-4">
         <Card.Header
           as="div"
@@ -54,14 +57,15 @@ export function ProjectFeatures({
             size="sm"
             variant={aiPilot.enabled ? "outline-success" : "outline-secondary"}
             icon={aiPilot.enabled ? "check_box" : "check_box_outline_blank"}
-            spinner={updateValue.isLoading}
+            spinner={updateValue.isLoading && updateProp === "aiPilot"}
             disabled={!isAdmin || updateValue.isLoading}
             onClick={async () => {
               // toggle ai pilot enabled
               updateValue.callback(
                 "featureFlags.aiPilot.enabled",
-                !aiPilot.enabled
+                !aiPilot.enabled,
               );
+              setUpdateProp("aiPilot");
             }}
           >
             {aiPilot.enabled ? "Enabled" : "Disabled"}
@@ -79,8 +83,9 @@ export function ProjectFeatures({
 
                 updateValue.callback(
                   "featureFlags.aiPilot.settings.monthlyAllowance",
-                  tokens
+                  tokens,
                 );
+                setUpdateProp("aiPilot");
               }}
             />
           </Group>

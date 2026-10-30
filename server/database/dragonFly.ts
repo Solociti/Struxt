@@ -28,6 +28,17 @@ const keyClient = createClient({
 });
 let connected = false;
 
+export type RedisClientType = typeof keyClient;
+
+export async function getClient() {
+  if (!connected) {
+    await keyClient.connect();
+    connected = true;
+  }
+
+  return keyClient;
+}
+
 /**
  * Get a key value from dragonfly
  *
@@ -77,7 +88,7 @@ export async function setEx(key: string, ttl: number, value: string) {
  */
 export async function publishMessage(
   channel: string,
-  message: string | object
+  message: string | object,
 ) {
   try {
     if (!connected) {
@@ -99,12 +110,12 @@ export async function publishMessage(
 export function subscribeToChannel<T = any>(
   channel: string,
   parse: true,
-  callback: (message: T) => void
+  callback: (message: T) => void,
 ): () => void;
 export function subscribeToChannel(
   channel: string,
   parse: false,
-  callback: (message: string) => void
+  callback: (message: string) => void,
 ): () => void;
 
 /**
@@ -117,7 +128,7 @@ export function subscribeToChannel(
 export function subscribeToChannel(
   channel: string,
   parse: boolean,
-  callback: (message: string) => void
+  callback: (message: string) => void,
 ): () => void {
   let unregistered = false;
   const subscriber = keyClient.duplicate();

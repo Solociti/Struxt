@@ -6,7 +6,7 @@ import express, { NextFunction, Request, Response } from "express";
 import { createServer } from "node:http";
 import {
   router as assetsRouter,
-  staticFilesRouter as assetStaticFiles,
+  assetFilesRouter,
 } from "server/api/assets/register";
 import { userFromReq } from "server/api/auth/userFromReq";
 import { protectEndpoint } from "server/auth/protectEndpoint";
@@ -74,7 +74,7 @@ async function main() {
   app.use(apiRouter);
 
   app.use("/api/assets", assetsRouter);
-  app.use("/assets", assetStaticFiles);
+  app.use("/assets", assetFilesRouter);
 
   app.use("/screenshots", staticScreenshotFiles);
 
@@ -92,6 +92,23 @@ async function main() {
   // Error handling middleware for the api
   app.use(
     "/api",
+    (err: Error, req: Request, res: Response, next: NextFunction) => {
+      const statusCode = err.status || err.statusCode || 500;
+
+      const error: StructuredError = {
+        name: statusCode >= 500 ? "Server Error" : err.name || "Error",
+        status: statusCode as HTTPStatus,
+        message: err.message || "Something went wrong. Please try again later.",
+      };
+
+      res.status(statusCode).json({
+        error,
+      });
+    },
+  );
+
+  app.use(
+    "/assets/:projectId",
     (err: Error, req: Request, res: Response, next: NextFunction) => {
       const statusCode = err.status || err.statusCode || 500;
 

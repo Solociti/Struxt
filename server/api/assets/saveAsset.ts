@@ -21,7 +21,7 @@ export async function saveAsset(asset: AssetModel) {
       },
       {
         upsert: true,
-      }
+      },
     );
 
     return result.modifiedCount > 0 || result.upsertedCount > 0;
@@ -30,7 +30,7 @@ export async function saveAsset(asset: AssetModel) {
       if (err.message.startsWith("E11000 duplicate key error collection")) {
         throw customError(
           400,
-          "Asset already exists. Please try renaming and saving again."
+          "Asset already exists. Please try renaming and saving again.",
         );
       }
     }

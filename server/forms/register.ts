@@ -1,4 +1,5 @@
 import { FormSubmissionModel } from "common/models/projects/forms/FormSubmissionModel";
+import { sanitizeFilename } from "common/path/sanitizeFilename";
 import express from "express";
 import multer from "multer";
 import { existsSync, renameSync } from "node:fs";
@@ -88,16 +89,30 @@ router.post(
 
     for (const file of files) {
       const ext = extname(file.originalname);
-      const originalName = basename(file.originalname, ext);
+      let sanitizedExt: string;
+      try {
+        // Sanitize the extension by removing invalid characters (keep the leading dot)
+        sanitizedExt = ext ? "." + sanitizeFilename(ext.slice(1), "") : "";
+      } catch {
+        sanitizedExt = "";
+      }
 
-      let newFileName = originalName + ext;
+      let originalName: string;
+      try {
+        originalName = sanitizeFilename(basename(file.originalname, ext));
+      } catch {
+        // Fallback to default name if sanitization fails, preserving the sanitized extension
+        originalName = `attachment-${Date.now()}`;
+      }
+
+      let newFileName = originalName + sanitizedExt;
       let count = 0;
 
       // check if the file already exists
       // if it does, add a number to the end of the file name
       while (existsSync(join(uploadDir, newFileName))) {
         count++;
-        newFileName = `${originalName}-${count}${ext}`;
+        newFileName = `${originalName}-${count}${sanitizedExt}`;
       }
 
       renameSync(file.path, join(uploadDir, newFileName));

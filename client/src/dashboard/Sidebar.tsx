@@ -45,6 +45,7 @@ export function DashboardSidebar() {
   const sidebarWidth = isWide ? wideWidth : narrowWidth;
   const sidebarTransition = {
     width: sidebarWidth,
+    minWidth: sidebarWidth,
     transition: "width 0.2s ease",
   };
 
@@ -114,6 +115,18 @@ export function DashboardSidebar() {
           >
             <MaterialIcon>home</MaterialIcon>
             {isWide && "Projects"}
+          </Nav.Link>
+        </Nav.Item>
+
+        <Nav.Item>
+          <Nav.Link
+            className={navLinkClass("/assets")}
+            href="#/assets"
+            active={location.pathname === "/assets"}
+            aria-label="Assets"
+          >
+            <MaterialIcon>snippet_folder</MaterialIcon>
+            {isWide && "Assets"}
           </Nav.Link>
         </Nav.Item>
 

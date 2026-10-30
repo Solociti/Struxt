@@ -16,7 +16,7 @@ interface UseAsyncCallbackOptions {
  */
 export function useAsyncCallback<T extends (...args: any[]) => Promise<any>>(
   callback: T,
-  options?: Partial<UseAsyncCallbackOptions>
+  options?: Partial<UseAsyncCallbackOptions>,
 ): {
   callback: (...args: Parameters<T>) => Promise<ReturnType<T> | undefined>;
   result: Awaited<ReturnType<T>> | null;
@@ -28,31 +28,43 @@ export function useAsyncCallback<T extends (...args: any[]) => Promise<any>>(
   const [error, setError] = useState<Error | null>(null);
   const [result, setResult] = useState<Awaited<ReturnType<T>> | null>(null);
 
-  const asyncCallback = async (...args: Parameters<T>) => {
+  const callbackRef = useRef(callback);
+  callbackRef.current = callback;
+
+  const optionsRef = useRef(options);
+  optionsRef.current = options;
+
+  const asyncCallback = useRef(async (...args: Parameters<T>) => {
     setIsLoading(true);
     setError(null);
     try {
-      const response = await callback(...args);
+      const response = await callbackRef.current(...args);
       setResult(response);
       return response;
     } catch (err) {
       setError(err as Error);
 
-      if (options?.toastError) {
+      if (optionsRef.current?.toastError) {
         addToastError(err as Error);
       }
     } finally {
       setIsLoading(false);
     }
-  };
+  });
 
-  const reset = () => {
+  const reset = useRef(() => {
     setIsLoading(false);
     setError(null);
     setResult(null);
-  };
+  });
 
-  return { callback: asyncCallback, result, isLoading, error, reset };
+  return {
+    callback: asyncCallback.current,
+    result,
+    isLoading,
+    error,
+    reset: reset.current,
+  };
 }
 
 /**
@@ -64,11 +76,11 @@ export function useAsyncCallback<T extends (...args: any[]) => Promise<any>>(
  * @returns
  */
 export function useAsyncDebouncedCallback<
-  T extends (...args: any[]) => Promise<any>
+  T extends (...args: any[]) => Promise<any>,
 >(
   callback: T,
   delayMs: number,
-  options?: Partial<UseAsyncCallbackOptions>
+  options?: Partial<UseAsyncCallbackOptions>,
 ): {
   callback: (...args: Parameters<T>) => void;
   result: Awaited<ReturnType<T>> | null;

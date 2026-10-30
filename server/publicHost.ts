@@ -3,7 +3,7 @@ import "dotenv/config";
 import express from "express";
 import { registerErrorPage } from "./setup/errorPages";
 import { expressSetup, setupSiteLogs } from "./setup/expressSetup";
-import { getBasePublishDir } from "./utils/uploadDir";
+import { sitesRouter } from "./static-host/setupSites";
 
 import "server/utils/geoLocation";
 
@@ -44,8 +44,7 @@ async function main() {
   // enable static files
   app.use("/", express.static("./client/dist"));
 
-  const siteDir = getBasePublishDir();
-  app.use("/sites", express.static(siteDir));
+  app.use(sitesRouter);
 
   // register the error page
   registerErrorPage(app);

@@ -7,13 +7,17 @@ import { roundNumber } from "./number";
  * @returns
  */
 export function formatStorageSize(bytes: number): string {
-  const sizes = ["KB", "MB", "GB", "TB"];
+  const sizes = ["B", "KB", "MB", "GB", "TB"];
   if (bytes === 0) {
-    return "0 KB";
+    return "0 B";
   }
 
-  const kb = bytes / 1024;
+  let i = 0;
+  // Flip to next unit if value is >= 0.5 of that unit (512 of current unit)
+  while (bytes >= 512 && i < sizes.length - 1) {
+    bytes /= 1024;
+    i++;
+  }
 
-  const i = Math.floor(Math.log(kb) / Math.log(1024));
-  return roundNumber(kb / Math.pow(1024, i), 1) + " " + sizes[i];
+  return roundNumber(bytes, 1) + " " + sizes[i];
 }

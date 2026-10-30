@@ -11,11 +11,11 @@ interface FormInputProps extends FormControlProps {
  * FormInput component that handles input changes and provides a controlled input field.
  * Fires onRealChange only when the value actually changes (commit, blur, etc), not on every keystroke.
  *
- * @param onRealChange - Callback function called when the value actually changes
- * @param onChange - Standard React onChange event (optional)
- * @param onBlur - Standard React onBlur event (optional)
+ * @param onRealChange Callback function called when the value actually changes
+ * @param onChange Standard React onChange event (optional)
+ * @param onBlur Standard React onBlur event (optional)
  * 
- * @param value - The controlled value from parent component
+ * @param value The controlled value from parent component
 
 * @returns FormInput component
  */

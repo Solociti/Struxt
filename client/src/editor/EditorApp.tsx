@@ -102,13 +102,13 @@ export function EditorApp() {
 
     navigator.serviceWorker.addEventListener(
       "controllerchange",
-      controllerChangeListener
+      controllerChangeListener,
     );
 
     return () => {
       navigator.serviceWorker.removeEventListener(
         "controllerchange",
-        controllerChangeListener
+        controllerChangeListener,
       );
     };
   }, [projectId, swReady]);
@@ -229,7 +229,7 @@ export function EditorApp() {
 
                     if (projectId) {
                       location.assign(
-                        `${location.pathname}?projectId=${projectId}`
+                        `${location.pathname}?projectId=${projectId}`,
                       );
                     }
                   }
@@ -242,7 +242,7 @@ export function EditorApp() {
 
                   if (projectId) {
                     location.assign(
-                      `${location.pathname}?projectId=${projectId}`
+                      `${location.pathname}?projectId=${projectId}`,
                     );
                   }
                 }}
@@ -336,7 +336,8 @@ function CustomEditor({
                 projectId,
                 assets.map((a) => ({
                   uuid: (a.attributes as EditorAsset).uuid,
-                }))
+                  isPermanent: false,
+                })),
               );
             },
           },

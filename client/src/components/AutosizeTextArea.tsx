@@ -46,7 +46,7 @@ export function AutosizeTextArea({
       const scrollHeight = textareaRef.current.scrollHeight;
       const lineHeight = parseInt(
         window.getComputedStyle(textareaRef.current).lineHeight || "20",
-        10
+        10,
       );
 
       const maxHeight = lineHeight * maxRows;

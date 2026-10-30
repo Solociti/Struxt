@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 
 /**
  * Used to load data asynchronously
@@ -9,7 +9,7 @@ import { useEffect, useState } from "react";
  */
 export function useLoadAsync<Response extends object>(
   callback: () => Promise<Response | null>,
-  deps: any[]
+  deps: any[],
 ): {
   response: Response | null;
   isLoading: boolean;
@@ -22,7 +22,7 @@ export function useLoadAsync<Response extends object>(
   const [error, setError] = useState<Error | null>(null);
 
   // Create an async function to load the document
-  const loadResponse = async () => {
+  const loadResponse = useCallback(async () => {
     // Set the loading state to true
     setIsLoading(true);
 
@@ -40,7 +40,7 @@ export function useLoadAsync<Response extends object>(
       // Set the loading state to false
       setIsLoading(false);
     }
-  };
+  }, deps);
 
   // Load the document when the component mounts
   useEffect(() => {

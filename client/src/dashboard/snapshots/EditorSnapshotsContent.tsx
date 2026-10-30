@@ -91,7 +91,7 @@ export default function SettingsContent() {
 
   if (project.projectId === "*") {
     return (
-      <Container className="py-4">
+      <Container className="p-4">
         <h1 className="fw-bold mb-3">Snapshots</h1>
         <p>Please select a project to continue...</p>
       </Container>
@@ -100,7 +100,7 @@ export default function SettingsContent() {
 
   if (loadingList && !snapshotList) {
     return (
-      <Container className="py-4">
+      <Container className="p-4">
         <h1 className="fw-bold mb-3">Snapshots</h1>
         <p>Loading...</p>
       </Container>
@@ -109,7 +109,7 @@ export default function SettingsContent() {
 
   if (snapshotList) {
     return (
-      <Container>
+      <Container className="p-3">
         <div className="mb-4 d-flex align-items-center justify-content-between">
           <h1 className="fw-bold mb-0">Snapshots</h1>
           <IconButton
