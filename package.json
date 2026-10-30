@@ -24,8 +24,8 @@
     "@babel/plugin-transform-typescript": "^7.28.6",
     "@babel/preset-env": "^7.29.0",
     "@babel/preset-typescript": "^7.28.5",
-    "@grapesjs/studio-sdk": "^1.0.57",
-    "@grapesjs/studio-sdk-plugins": "^1.0.32",
+    "@grapesjs/studio-sdk": "^1.2.1",
+    "@grapesjs/studio-sdk-plugins": "^1.0.39",
     "@types/connect-mongodb-session": "^2.4.8",
     "@types/express": "^5.0.6",
     "@types/express-session": "^1.18.2",
@@ -49,6 +49,7 @@
     "bootstrap": "^5.3.8",
     "chalk": "^5.6.2",
     "chart.js": "^4.5.1",
+    "grapesjs": "0.23.8",
     "grapesjs-custom-code": "^1.0.2",
     "grapesjs-parser-postcss": "^1.0.3",
     "mongodb-memory-server": "^11.3.0",
@@ -120,7 +121,7 @@
     "socket.io": "^4.8.3",
     "socket.io-client": "^4.8.3",
     "ua-parser-js": "^2.0.9",
-    "zod": "^4.1.13"
+    "zod": "^4.6.7"
   },
   "overrides": {
     "@langchain/core": "^0.3.80"

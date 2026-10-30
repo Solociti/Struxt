@@ -299,7 +299,7 @@ function CustomEditor({
             customCodePlugin,
             rteProseMirror?.init({
               toolbar({ items }) {
-                return items.filter((item) => item.id !== "image");
+                return items.filter((item) => (item as any).id !== "image");
               },
             }),
             setupStruxtPlugin,

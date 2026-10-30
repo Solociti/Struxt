@@ -6,7 +6,7 @@ WORKDIR /app
 COPY package.json /app
 COPY scripts /app/scripts
 COPY build.Dockerfile /app
-RUN npm -v && npm install
+RUN node -v && npm -v && npm install
 
 # copy the source code
 COPY . /app/
