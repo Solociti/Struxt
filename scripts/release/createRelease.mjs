@@ -101,9 +101,9 @@ async function main() {
     currentBranch.current
   } ${releaseType === "pre" ? "--prerelease" : ""}`;
 
-  // execSync(releaseCommand, {
-  //   stdio: "inherit",
-  // });
+  execSync(releaseCommand, {
+    stdio: "inherit",
+  });
 
   // watch the status of the build
   const workflowName = await getWorkflowName();
