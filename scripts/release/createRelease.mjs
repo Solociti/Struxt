@@ -132,26 +132,41 @@ async function main() {
     stdio: "inherit",
   });
 
-  await new Promise((r) => setTimeout(r, 1000));
-
   // watch the status of the build
-  const workflowName = await getWorkflowName();
-  const workflowListCommand = `gh run list -w "${workflowName}" --json databaseId,name,status,workflowName`;
-  const workflowResult = execSync(workflowListCommand, { encoding: "utf-8" });
-
   try {
-    /**
-     * @type {{databaseId: number, name: string, status: string, workflowName: string}[]}
-     */
-    const workflowList = JSON.parse(workflowResult);
-    const workflow = workflowList.find((w) => w.status !== "completed");
+    const workflowName = await getWorkflowName();
 
-    if (!workflow) {
-      console.log(chalk.red("Workflow not found"));
-      return;
-    }
+    let workflowDbIdAttempt = 0;
+    const getWorkflowDbId = async () => {
+      workflowDbIdAttempt++;
+      const workflowListCommand = `gh run list -w "${workflowName}" --json databaseId,name,status,workflowName,displayTitle`;
+      const workflowResult = execSync(workflowListCommand, {
+        encoding: "utf-8",
+      });
 
-    const infoCommand = `gh run view ${workflow.databaseId} --json jobs,displayTitle,conclusion,status`;
+      /**
+       * @type {{databaseId: number, name: string, status: string, workflowName: string, displayTitle: string}[]}
+       */
+      const workflowList = JSON.parse(workflowResult);
+      const workflow = workflowList.find((w) => w.displayTitle === title);
+
+      if (!workflow) {
+        if (workflowDbIdAttempt < 10) {
+          await new Promise((r) => setTimeout(r, 1000));
+          return getWorkflowDbId();
+        }
+
+        console.log(chalk.red("Workflow not found"));
+
+        return null;
+      }
+
+      return workflow.databaseId;
+    };
+
+    const workflowDbId = await getWorkflowDbId();
+
+    const infoCommand = `gh run view ${workflowDbId} --json jobs,displayTitle,conclusion,status`;
 
     const exec = () => {
       const infoContent = execSync(infoCommand, { encoding: "utf-8" });
