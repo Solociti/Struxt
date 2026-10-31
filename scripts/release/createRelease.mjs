@@ -132,6 +132,8 @@ async function main() {
     stdio: "inherit",
   });
 
+  await new Promise((r) => setTimeout(r, 1000));
+
   // watch the status of the build
   const workflowName = await getWorkflowName();
   const workflowListCommand = `gh run list -w "${workflowName}" --json databaseId,name,status,workflowName`;
