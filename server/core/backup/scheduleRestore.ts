@@ -1,4 +1,4 @@
-import { FlowChildJob, FlowJob, Job } from "bullmq";
+import { FlowJobNode, FlowJob, Job } from "bullmq";
 import { stopDockerServices } from "server/core/docker/controlService";
 import { createFlowProducer } from "server/database/setupQueue";
 import { RestoreComponent } from "./backupFileNames";
@@ -97,7 +97,7 @@ export async function runRestoreKickoff(job: Job<RestoreRequest>) {
     includeSessions: request.includeSessions,
   };
 
-  const children: FlowChildJob[] = components
+  const children: FlowJobNode[] = components
     .filter(
       (component): component is Exclude<RestoreComponent, "dragonfly"> =>
         component !== "dragonfly",
