@@ -1,4 +1,4 @@
-FROM node:24.11.1 AS build
+FROM node:24.22.2 AS build
 
 WORKDIR /app
 
@@ -6,7 +6,7 @@ WORKDIR /app
 COPY package.json /app
 COPY scripts /app/scripts
 COPY build.Dockerfile /app
-RUN npm install
+RUN node -v && npm -v && npm install
 
 # copy the source code
 COPY . /app/

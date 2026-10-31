@@ -15,7 +15,7 @@ import { getPageContext } from "./context";
  * @returns
  */
 export function setupClientTools(
-  editor: GrapesEditor
+  editor: GrapesEditor,
 ): AiPilotChatEvents["serverRequests"] {
   return {
     "list-pages": async () => {
@@ -36,7 +36,7 @@ export function setupClientTools(
     "list-styles-selectors": async () => {
       // get all selectors in the editor
       const selectors = editor.Css.getRules().map((cls) =>
-        cls.selectorsToString()
+        cls.selectorsToString(),
       );
 
       return {
@@ -143,7 +143,7 @@ export function setupClientTools(
       const blocks = editor.Blocks.getAll();
 
       const convert = (
-        comp: ContentType | (() => ContentType)
+        comp: ContentType | (() => ContentType),
       ): BasicComponentTree => {
         if (typeof comp === "function") {
           comp = comp();

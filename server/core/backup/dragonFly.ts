@@ -24,7 +24,7 @@ export async function backupDragonFly(
 
   // flush all changes to disk
   const client = await setupNewClient();
-  await client.save();
+  await client.sendCommand(["SAVE"]);
 
   options.onProgress?.(25, 100);
 
