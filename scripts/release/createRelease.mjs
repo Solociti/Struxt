@@ -124,7 +124,7 @@ async function main() {
 
   const title = `${titleResult.title} | ${date} | ${newVersion}`;
 
-  const releaseCommand = `gh release create ${tagName} --title "${title}" --generate-notes --draft --target ${
+  const releaseCommand = `gh release create ${tagName} --title "${title}" --generate-notes --target ${
     currentBranch.current
   } ${releaseType === "pre" ? "--prerelease" : ""}`;
 
