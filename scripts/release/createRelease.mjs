@@ -9,6 +9,33 @@ import { readFile } from "node:fs/promises";
 import { load as loadYaml } from "js-yaml";
 
 /**
+ * @typedef GhInfo
+ * @property {string} status
+ * @property {string} conclusion
+ * @property {string} displayTitle
+ * @property {GhJob[]} jobs
+ */
+
+/**
+ * @typedef GhJob
+ * @property {string} completedAt
+ * @property {string} conclusion
+ * @property {number} databaseId
+ * @property {string} name
+ * @property {string} startedAt
+ * @property {string} status
+ * @property {GhStep[]} steps
+ */
+
+/**
+ * @typedef GhStep
+ * @property {string} conclusion
+ * @property {string} name
+ * @property {number} number
+ * @property {string} status
+ */
+
+/**
  * Creates a new release for the project.
  */
 async function main() {
@@ -115,7 +142,7 @@ async function main() {
      * @type {{databaseId: number, name: string, status: string, workflowName: string}[]}
      */
     const workflowList = JSON.parse(workflowResult);
-    const workflow = workflowList.find((w) => w.status !== "completed" || true);
+    const workflow = workflowList.find((w) => w.status !== "completed");
 
     if (!workflow) {
       console.log(chalk.red("Workflow not found"));
@@ -124,83 +151,14 @@ async function main() {
 
     const infoCommand = `gh run view ${workflow.databaseId} --json jobs,displayTitle,conclusion,status`;
 
-    const check = chalk.green("✔");
-    const fail = chalk.red("✖");
-    const waiting = chalk.gray("…");
-    const inProgress = chalk.cyan("…");
-
-    /**
-     *
-     * @param {string} status
-     * @returns
-     */
-    const showStatus = (status) => {
-      if (status === "completed") {
-        return check;
-      }
-      if (status === "failure") {
-        return fail;
-      }
-      if (status === "in_progress") {
-        return inProgress;
-      }
-      return waiting;
-    };
-
     const exec = () => {
       const infoContent = execSync(infoCommand, { encoding: "utf-8" });
-
-      /**
-       * @typedef GhInfo
-       * @property {string} status
-       * @property {string} conclusion
-       * @property {string} displayTitle
-       * @property {GhJob[]} jobs
-       */
-
-      /**
-       * @typedef GhJob
-       * @property {string} completedAt
-       * @property {string} conclusion
-       * @property {number} databaseId
-       * @property {string} name
-       * @property {string} startedAt
-       * @property {string} status
-       * @property {GhStep[]} steps
-       */
-
-      /**
-       * @typedef GhStep
-       * @property {string} conclusion
-       * @property {string} name
-       * @property {number} number
-       * @property {string} status
-       */
 
       /**
        * @type {GhInfo}
        */
       const info = JSON.parse(infoContent);
-
-      console.log(showStatus(info.status), chalk.gray(info.displayTitle));
-
-      for (const job of info.jobs) {
-        console.log(
-          "  ",
-          showStatus(job.status),
-          chalk.gray(job.name),
-          chalk.blue(job.status),
-        );
-
-        for (const step of job.steps) {
-          console.log(
-            "    ",
-            showStatus(step.status),
-            chalk.gray(step.name),
-            chalk.blue(step.status),
-          );
-        }
-      }
+      renderStatus(info);
 
       return info.status === "completed" || info.status === "failure";
     };
@@ -234,4 +192,63 @@ async function getWorkflowConfig() {
 async function getWorkflowName() {
   const config = await getWorkflowConfig();
   return config.name;
+}
+
+let previousLines = 0;
+
+/**
+ * Render workflow status in console
+ *
+ * @param {GhInfo} info
+ */
+function renderStatus(info) {
+  const check = chalk.green("✔");
+  const fail = chalk.red("✖");
+  const waiting = chalk.gray("…");
+  const inProgress = chalk.cyan("…");
+
+  /**
+   *
+   * @param {string} status
+   * @returns
+   */
+  const showStatus = (status) => {
+    if (status === "completed") {
+      return check;
+    }
+    if (status === "failure") {
+      return fail;
+    }
+    if (status === "in_progress") {
+      return inProgress;
+    }
+    return waiting;
+  };
+
+  const lines = [];
+  lines.push("");
+  lines.push(`${showStatus(info.status)} ${chalk.gray(info.displayTitle)}`);
+
+  for (const job of info.jobs) {
+    lines.push(
+      `    ${showStatus(job.status)} ${chalk.gray(job.name)} ${chalk.blue(job.status)}`,
+    );
+    for (const step of job.steps) {
+      lines.push(
+        `        ${showStatus(step.status)} ${chalk.gray(step.name)} ${chalk.blue(step.status)}`,
+      );
+    }
+  }
+
+  const output = lines.join("\n");
+
+  // Clear the previous output block if it exists
+  if (previousLines > 0) {
+    process.stdout.write(`\x1b[${previousLines}A\x1b[J`);
+  }
+
+  console.log(output);
+
+  // Save line count for the next clear cycle
+  previousLines = lines.length;
 }
