@@ -222,7 +222,7 @@ function renderStatus(info) {
   const check = chalk.green("✔");
   const fail = chalk.red("✖");
   const waiting = chalk.gray("…");
-  const inProgress = chalk.cyan("…");
+  const inProgress = chalk.yellow("*");
 
   /**
    *
@@ -247,13 +247,9 @@ function renderStatus(info) {
   lines.push(`${showStatus(info.status)} ${chalk.gray(info.displayTitle)}`);
 
   for (const job of info.jobs) {
-    lines.push(
-      `    ${showStatus(job.status)} ${chalk.gray(job.name)} ${chalk.blue(job.status)}`,
-    );
+    lines.push(`    ${showStatus(job.status)} ${chalk.gray(job.name)}`);
     for (const step of job.steps) {
-      lines.push(
-        `        ${showStatus(step.status)} ${chalk.gray(step.name)} ${chalk.blue(step.status)}`,
-      );
+      lines.push(`        ${showStatus(step.status)} ${chalk.gray(step.name)}`);
     }
   }
 

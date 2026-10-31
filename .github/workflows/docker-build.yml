@@ -60,9 +60,3 @@ jobs:
           file: ./keycloak/keycloak.Dockerfile
           push: true
           tags: ghcr.io/solociti/struxt-keycloak:${{ github.event.release.tag_name }},ghcr.io/solociti/struxt-keycloak:latest
-
-      - name: Publish Release
-        env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: |
-          gh release edit "${{ github.event.release.tag_name }}" --draft=false
