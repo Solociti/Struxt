@@ -6,7 +6,7 @@ WORKDIR /app
 COPY package.json /app
 COPY scripts /app/scripts
 COPY build.Dockerfile /app
-RUN node -v && npm -v && npm install
+RUN node -v && npm -v && npm install --no-audit --no-fund
 
 # copy the source code
 COPY . /app/
@@ -22,4 +22,4 @@ RUN npx babel server --out-dir dist-server/server --extensions '.ts,.js'
 RUN npx babel common --out-dir dist-server/common --extensions '.ts,.js'
 
 # rerun the npm install to only include production dependencies
-RUN npm prune --omit=dev
+RUN npm prune --omit=dev && rm -rf node_modules/.cache
