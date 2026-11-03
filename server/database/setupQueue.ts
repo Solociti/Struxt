@@ -5,7 +5,7 @@ import {
   Worker,
   WorkerOptions,
 } from "bullmq";
-import { clientUrl, createRedisClient, setupNewClient } from "./dragonFly";
+import { createRedisClient } from "./dragonFly";
 
 const queues: Queue[] = [];
 
