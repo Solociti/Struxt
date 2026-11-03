@@ -41,8 +41,8 @@ async function executeUp() {
         sort: {
           date: -1,
         },
-      }
-    )
+      },
+    ),
   );
 
   const batch: number =
@@ -52,6 +52,8 @@ async function executeUp() {
 
   // get the list of migration scripts
   const migrationFiles = await getMigrationFiles();
+
+  console.log(migrationFiles);
 
   // get the list of migration files not run yet
   const pendingMigrations = migrationFiles.filter((file) => {
@@ -107,9 +109,24 @@ async function getMigrationFiles() {
 
   const files = await readdir(migrationDir);
   const migrationFiles = files.filter(
-    (file) => file.endsWith(".ts") || file.endsWith(".js")
+    (file) => file.endsWith(".ts") || file.endsWith(".js"),
   );
-  migrationFiles.sort();
+  migrationFiles.sort((a, b) => {
+    const partsA = a.split(".").reverse();
+    const partsB = b.split(".").reverse();
+
+    partsA.shift();
+    partsB.shift();
+
+    for (let i = 0; i < partsA.length; i++) {
+      const cmp = partsA[i].localeCompare(partsB[i]);
+      if (cmp !== 0) {
+        return cmp;
+      }
+    }
+
+    return 0;
+  });
 
   return migrationFiles;
 }
