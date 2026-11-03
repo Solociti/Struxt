@@ -1,11 +1,22 @@
 import {
+  createNodeRedisClient,
   DefaultJobOptions,
   FlowProducer,
   Queue,
   Worker,
   WorkerOptions,
 } from "bullmq";
-import { clientUrl } from "./dragonFly";
+import { createRedisClient } from "./dragonFly";
+
+/**
+ * Creates a Redis connection for bullmq
+ *
+ * @returns
+ */
+function createConnection() {
+  const connection = createRedisClient();
+  return createNodeRedisClient(connection);
+}
 
 const queues: Queue[] = [];
 
@@ -51,11 +62,11 @@ export function setupQueue(
 
   const prefixKey = `{${prefix}}`;
 
+  const connection = createConnection();
+
   const queue = new Queue(queueName, {
     prefix: prefixKey,
-    connection: {
-      url: clientUrl,
-    },
+    connection,
     defaultJobOptions: options,
   });
 
@@ -96,10 +107,10 @@ export function setupWorker(
   workerFunction: (job: any) => Promise<any>,
   workerOptions: Omit<WorkerOptions, "connection" | "prefix">,
 ) {
+  const connection = createConnection();
+
   const options: WorkerOptions = {
-    connection: {
-      url: clientUrl,
-    },
+    connection,
     prefix: `{${prefix}}`,
     concurrency: 1,
     ...workerOptions,
@@ -121,10 +132,10 @@ export function setupWorker(
  * @returns
  */
 export function createFlowProducer(prefix?: string) {
+  const connection = createConnection();
+
   return new FlowProducer({
-    connection: {
-      url: clientUrl,
-    },
+    connection,
     ...(prefix ? { prefix: `{${prefix}}` } : {}),
   });
 }

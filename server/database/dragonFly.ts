@@ -7,6 +7,10 @@ export const connectionParams = {
 
 export const clientUrl = `redis://${connectionParams.host}:${connectionParams.port}`;
 
+export function createRedisClient() {
+  return createClient({ url: clientUrl });
+}
+
 /**
  * Setup a new redis client
  *
