@@ -1,10 +1,11 @@
 import {
   ProjectCreateApi,
+  ProjectDeleteApi,
   ProjectDetailsApi,
   ProjectEditorApi,
   ProjectListApi,
 } from "common/api/projects/project";
-import { getApi, postApi } from "../api/api";
+import { deleteApi, getApi, postApi } from "../api/api";
 
 /**
  * Create a new project on the server
@@ -107,4 +108,30 @@ export async function updateProjectDetails(
   );
 
   return response;
+}
+
+/**
+ * Schedule a permanent delete of the project
+ *
+ * @param projectId
+ * @returns
+ */
+export async function deleteProject(projectId: string) {
+  return await deleteApi<ProjectDeleteApi>(
+    ["/api/projects", projectId, "delete"],
+    {},
+  );
+}
+
+/**
+ * Restore a recently deleted project
+ *
+ * @param projectId
+ * @returns
+ */
+export async function restoreProject(projectId: string) {
+  return await postApi<ProjectDeleteApi>(
+    ["/api/projects", projectId, "restore"],
+    {},
+  );
 }

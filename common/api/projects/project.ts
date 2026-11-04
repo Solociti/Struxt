@@ -97,3 +97,21 @@ export interface ProjectCreateApi extends Api {
     projectItem: ProjectListItem;
   };
 }
+
+export interface ProjectDeleteApi extends Api {
+  Endpoint: "/api/projects/:projectId/delete";
+  UrlParams: {
+    projectId: string;
+  };
+
+  PostBody: {};
+  PostResponse: {
+    success: boolean;
+  };
+
+  DeleteQuery: {};
+  DeleteResponse: {
+    success: boolean;
+    purgeDate: number;
+  };
+}

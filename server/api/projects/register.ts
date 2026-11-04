@@ -1,5 +1,6 @@
 import {
   ProjectCreateApi,
+  ProjectDeleteApi,
   ProjectDetailsApi,
   ProjectEditorApi,
   ProjectListApi,
@@ -11,6 +12,7 @@ import {
 import { customError } from "common/custom-error/custom-error";
 import { EditorData } from "common/models/projects/editorDataTypes";
 import { roles } from "common/models/user/Roles";
+import { zSimpleIdValidation } from "common/models/zValidation";
 import "server/api/domains/register";
 import "server/api/projects/snapshots/register";
 import { registerApi } from "server/api/registerApi";
@@ -18,6 +20,7 @@ import { validateUserId } from "server/auth/user/getUser";
 import { validateEmailAddress } from "server/utils/validateEmailAddress";
 import z from "zod";
 import { createNewProject } from "./createNewProject";
+import { restoreProject, scheduleProjectDelete } from "./deleteProject";
 import { getProjectEditorData } from "./getProject";
 import { getProjectDetails } from "./getProjectDetails";
 import { getProjectsAdmin, getProjectsForUser } from "./getProjectList";
@@ -61,7 +64,7 @@ registerApi<ProjectCreateApi>("/api/projects/new").post(
     if (typeof body.name !== "string" || body.name.trim().length < 3) {
       throw customError(
         400,
-        "Project name must be at least 3 characters long."
+        "Project name must be at least 3 characters long.",
       );
     }
 
@@ -69,7 +72,7 @@ registerApi<ProjectCreateApi>("/api/projects/new").post(
       userId: user.id,
       displayName: user.name,
     });
-  }
+  },
 );
 
 registerApi<ProjectEditorApi>("/api/projects/:projectId/editor", {
@@ -90,7 +93,7 @@ registerApi<ProjectEditorApi>("/api/projects/:projectId/editor", {
       throw customError(
         403,
         "You do not have permission to view this project.",
-        "Forbidden"
+        "Forbidden",
       );
     }
 
@@ -109,7 +112,7 @@ registerApi<ProjectEditorApi>("/api/projects/:projectId/editor", {
       throw customError(
         403,
         "You do not have permission to modify this project.",
-        "Forbidden"
+        "Forbidden",
       );
     }
 
@@ -124,7 +127,7 @@ registerApi<ProjectEditorApi>("/api/projects/:projectId/editor", {
       {
         userId: user.id,
         displayName: user.name,
-      }
+      },
     );
 
     return response;
@@ -141,7 +144,7 @@ registerApi<ProjectDetailsApi>("/api/projects/:projectId/details")
       throw customError(
         403,
         "You do not have permission to view this project.",
-        "Forbidden"
+        "Forbidden",
       );
     }
 
@@ -158,7 +161,7 @@ registerApi<ProjectDetailsApi>("/api/projects/:projectId/details")
     ) {
       throw customError(
         403,
-        "You do not have permission to modify this project."
+        "You do not have permission to modify this project.",
       );
     }
 
@@ -183,7 +186,7 @@ registerApi<ProjectDetailsApi>("/api/projects/:projectId/details")
     ) {
       throw customError(
         403,
-        "You do not have permission to modify this project property."
+        "You do not have permission to modify this project property.",
       );
     }
 
@@ -192,13 +195,54 @@ registerApi<ProjectDetailsApi>("/api/projects/:projectId/details")
       projectId,
       propPath,
       value,
-      user
+      user,
     );
 
     return {
       success,
       details: await getProjectDetails(projectId),
     };
+  });
+
+registerApi<ProjectDeleteApi>("/api/projects/:projectId/delete")
+  .delete([], async ({ user, params }) => {
+    const projectId = zSimpleIdValidation().parse(params.projectId);
+
+    if (
+      !user.hasPermission(roles.struxt.admin) &&
+      !user.hasProjectPermission(projectId, [roles.projects.edit])
+    ) {
+      throw customError(
+        403,
+        "You do not have permission to modify this project.",
+        "Forbidden",
+      );
+    }
+
+    return await scheduleProjectDelete(projectId, {
+      userId: user.id,
+      displayName: user.name,
+    });
+  })
+  .post([], async ({ user, params }) => {
+    const projectId = zSimpleIdValidation().parse(params.projectId);
+
+    if (
+      !user.hasPermission(roles.struxt.admin) &&
+      !user.hasProjectPermission(projectId, [roles.projects.edit])
+    ) {
+      throw customError(
+        403,
+        "You do not have permission to modify this project.",
+        "Forbidden",
+      );
+    }
+
+    // restore the project delete
+    return await restoreProject(projectId, {
+      userId: user.id,
+      displayName: user.name,
+    });
   });
 
 registerApi<ProjectRolesApi>("/api/projects/:projectId/roles")
@@ -212,7 +256,7 @@ registerApi<ProjectRolesApi>("/api/projects/:projectId/roles")
       throw customError(
         403,
         "You do not have permission to view the project roles.",
-        "Forbidden"
+        "Forbidden",
       );
     }
 
@@ -228,7 +272,7 @@ registerApi<ProjectRolesApi>("/api/projects/:projectId/roles")
     ) {
       throw customError(
         403,
-        "You do not have permission to update the project roles."
+        "You do not have permission to update the project roles.",
       );
     }
 
@@ -242,7 +286,7 @@ registerApi<ProjectRolesApi>("/api/projects/:projectId/roles")
     const document = await updateProjectRoles(
       projectId,
       body.userId,
-      body.roles
+      body.roles,
     );
     return {
       success: true,
@@ -259,7 +303,7 @@ registerApi<ProjectRolesApi>("/api/projects/:projectId/roles")
     ) {
       throw customError(
         403,
-        "You do not have permission to remove users from this project."
+        "You do not have permission to remove users from this project.",
       );
     }
 
@@ -286,7 +330,7 @@ registerApi<ProjectRolesInviteApi>("/api/projects/:projectId/roles/invite")
     ) {
       throw customError(
         403,
-        "You do not have permission to view the project invites."
+        "You do not have permission to view the project invites.",
       );
     }
 
@@ -307,7 +351,7 @@ registerApi<ProjectRolesInviteApi>("/api/projects/:projectId/roles/invite")
       throw customError(
         403,
         "You do not have permission to invite users to this project.",
-        "Forbidden"
+        "Forbidden",
       );
     }
 
@@ -326,7 +370,7 @@ registerApi<ProjectRolesInviteApi>("/api/projects/:projectId/roles/invite")
       {
         userId: user.id,
         displayName: user.name,
-      }
+      },
     );
 
     return {
@@ -345,7 +389,7 @@ registerApi<ProjectRolesInviteApi>("/api/projects/:projectId/roles/invite")
       throw customError(
         403,
         "You do not have permission to delete this invite.",
-        "Forbidden"
+        "Forbidden",
       );
     }
 

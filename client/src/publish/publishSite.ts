@@ -1,4 +1,4 @@
-import { postApi } from "client/api/api";
+import { deleteApi, postApi } from "client/api/api";
 import { addToastError } from "client/components/ErrorSnackBar";
 import { showToastTop } from "client/components/ToastTop";
 import { PublishApi } from "common/api/publish/publish";
@@ -7,7 +7,7 @@ import { Editor } from "grapesjs";
 export async function publishSite(
   editor: Editor,
   projectId: string,
-  type: "staging" | "production"
+  type: "staging" | "production",
 ): Promise<PublishApi["PostResponse"] | null> {
   try {
     const files = await editor.runCommand("studio:projectFiles", {
@@ -35,4 +35,14 @@ export async function publishSite(
     }
   }
   return null;
+}
+
+/**
+ * Unpublish the active site for the project
+ *
+ * @param projectId
+ * @returns
+ */
+export async function unpublishProject(projectId: string) {
+  return await deleteApi<PublishApi>(["/api/publish", projectId], {});
 }
