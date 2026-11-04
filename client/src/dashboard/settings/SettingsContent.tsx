@@ -1,7 +1,9 @@
 import { useLoadAsync } from "client/api/useLoadAsync";
+import { useCurrentUser } from "client/auth/userCurrentUser";
 import { useCurrentProject } from "client/projects/ProjectContext";
 import { getProjectDetails } from "client/projects/projects";
 import { formatStorageSize } from "common/format/storageSize";
+import { roles } from "common/models/user/Roles";
 import Card from "react-bootstrap/Card";
 import Col from "react-bootstrap/Col";
 import Container from "react-bootstrap/Container";
@@ -13,9 +15,16 @@ import Tabs from "react-bootstrap/Tabs";
 import { AddUserRoles } from "./AddUserRoles";
 import { EnvironmentSettings } from "./EnvironmentSettings";
 import { ProjectFeatures } from "./ProjectFeatures";
+import { DangerZone } from "./DangerZone";
 
 export default function SettingsContent() {
   const { project } = useCurrentProject();
+  const currentUser = useCurrentUser();
+
+  const hasDangerZoneCreds =
+    currentUser.hasProjectPermission(project.projectId, [
+      roles.projects.admin,
+    ]) || currentUser.hasPermission(roles.struxt.admin);
 
   // load the project
   const {
@@ -143,7 +152,7 @@ export default function SettingsContent() {
                 100,
                 (projectDetails.storage.usedBytes /
                   projectDetails.storage.maxBytes) *
-                  100
+                  100,
               )}
             />
           </Card.Body>
@@ -173,6 +182,15 @@ export default function SettingsContent() {
             </Tabs>
           </Card.Body>
         </Card>
+
+        {hasDangerZoneCreds && (
+          <Card className="my-4">
+            <Card.Header as="h5">Danger Zone</Card.Header>
+            <Card.Body>
+              <DangerZone />
+            </Card.Body>
+          </Card>
+        )}
       </Container>
     );
   }

@@ -145,6 +145,14 @@ export class ProjectModel extends Model {
     displayName: "",
   };
 
+  public deleted: UserModelAction & { purgeDate: number } = {
+    active: false,
+    date: 0,
+    purgeDate: 0,
+    userId: "",
+    displayName: "",
+  };
+
   constructor(data?: DeepPartial<ProjectModel>) {
     super();
 
@@ -177,7 +185,7 @@ export class ProjectModel extends Model {
   }
 
   static createContextItem(
-    data: DeepPartial<ProjectContextItem>
+    data: DeepPartial<ProjectContextItem>,
   ): ProjectContextItem {
     const date = Math.floor(Date.now() / 1000);
     const item: ProjectContextItem = {
