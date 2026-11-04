@@ -252,7 +252,10 @@ function ListItemDropdown({
 
         <Dropdown.Item
           onClick={() => showDisableModal()}
-          disabled={domain.isPrimary || !domain.dnsVerified.active}
+          disabled={
+            (domain.isPrimary && domain.enabled.active) ||
+            !domain.dnsVerified.active
+          }
         >
           <MaterialIcon className="me-2">
             {domain.enabled.active ? "toggle_off" : "toggle_on"}

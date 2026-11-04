@@ -40,7 +40,7 @@ export function ProjectEnvInfo({
                 active={false}
                 className=""
                 disabled={!domain.enabled.active}
-                href={`https://${domain.domain}`}
+                href={`${project[envLabel].forceSsl ? "https" : "http"}://${domain.domain}`}
                 referrerPolicy="no-referrer"
                 target="_blank"
               >
@@ -58,6 +58,8 @@ export function ProjectEnvInfo({
               {" on "}
               {formatDate(project.publish[envLabel].date)}
             </p>
+          ) : project.publish[envLabel].date > 0 ? (
+            <p className="small">Not currently published</p>
           ) : (
             <p className="small text-muted">No recent publishes</p>
           )}

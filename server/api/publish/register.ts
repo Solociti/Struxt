@@ -5,7 +5,7 @@ import { roles } from "common/models/user/Roles";
 import { registerApi } from "../registerApi";
 import { publishProject } from "./publishProject";
 import { zSimpleIdValidation } from "common/models/zValidation";
-import { unpublishProject } from "../projects/unpublishProject";
+import { unpublishProject } from "./unpublishProject";
 
 registerApi<PublishApi>("/api/publish/:projectId", {
   bodySanitization: {

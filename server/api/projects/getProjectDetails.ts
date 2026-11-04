@@ -55,7 +55,7 @@ export async function getProjectDetails(projectId: string) {
   if (stagingPublish) {
     details.publish.staging = {
       ...details.publish.staging,
-      active: true,
+      active: stagingPublish.isActive,
       date: stagingPublish.created.date,
       userId: stagingPublish.created.userId,
       displayName: stagingPublish.created.displayName,
@@ -66,7 +66,7 @@ export async function getProjectDetails(projectId: string) {
   if (productionPublish) {
     details.publish.production = {
       ...details.publish.production,
-      active: true,
+      active: productionPublish.isActive,
       date: productionPublish.created.date,
       userId: productionPublish.created.userId,
       displayName: productionPublish.created.displayName,
