@@ -131,7 +131,7 @@ export async function deleteProject(projectId: string) {
  */
 export async function restoreProject(projectId: string) {
   return await postApi<ProjectDeleteApi>(
-    ["/api/projects", projectId, "restore"],
+    ["/api/projects", projectId, "delete"],
     {},
   );
 }

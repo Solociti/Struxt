@@ -14,10 +14,10 @@ async function getUserProjectIds(userId: string) {
   const collection = await getCollection("project_members");
 
   const cursor = collection.find<ModelAsDocument<ProjectRoleDocument>>(
-    { userId },
+    { userId, "deleted.active": { $ne: true } },
     {
       projection: { projectId: 1 },
-    }
+    },
   );
   const list = await toArray(cursor);
   const projectIds = list.map((item) => item.projectId);
@@ -38,13 +38,13 @@ export async function getProjectsForUser(userId: string) {
 
   const collection = await getCollection("projects");
   const cursor = collection.find<ModelAsDocument<ProjectModel>>(
-    { projectId: { $in: projectIds } },
+    { projectId: { $in: projectIds }, "deleted.active": { $ne: true } },
     {
       projection: { projectId: 1, name: 1, description: 1 },
       sort: {
         name: 1,
       },
-    }
+    },
   );
   const list: ProjectListItem[] = await toArray(cursor);
   return list;
@@ -59,13 +59,15 @@ export async function getProjectsAdmin() {
   const collection = await getCollection("projects");
 
   const cursor = collection.find<ModelAsDocument<ProjectModel>>(
-    {},
+    {
+      "deleted.active": { $ne: true },
+    },
     {
       projection: { projectId: 1, name: 1, description: 1 },
       sort: {
         name: 1,
       },
-    }
+    },
   );
 
   const list: ProjectListItem[] = await toArray(cursor);

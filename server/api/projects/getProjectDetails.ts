@@ -23,6 +23,8 @@ export async function getProjectDetails(projectId: string) {
 
     featureFlags: project.featureFlags,
 
+    deleted: project.deleted,
+
     publish: {
       staging: {
         active: false,

@@ -27,4 +27,6 @@ export interface ProjectDetails {
    * the list of forms for the project
    */
   forms: FormDetails[];
+
+  deleted: UserModelAction;
 }

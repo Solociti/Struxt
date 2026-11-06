@@ -187,7 +187,10 @@ export default function SettingsContent() {
           <Card className="my-4">
             <Card.Header as="h5">Danger Zone</Card.Header>
             <Card.Body>
-              <DangerZone />
+              <DangerZone
+                project={projectDetails}
+                refreshProject={refreshProject}
+              />
             </Card.Body>
           </Card>
         )}

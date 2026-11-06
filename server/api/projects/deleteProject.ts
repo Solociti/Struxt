@@ -59,8 +59,11 @@ export async function restoreProject(
 ) {
   const project = await getProjectData(projectId);
 
-  if (project.deleted.active) {
-    throw customError(400, "Project already scheduled for deletion.");
+  if (!project.deleted.active) {
+    throw customError(
+      400,
+      "Cannot restore a project that is not scheduled for deletion.",
+    );
   }
 
   project.deleted = {
