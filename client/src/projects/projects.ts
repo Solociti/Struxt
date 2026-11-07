@@ -4,6 +4,7 @@ import {
   ProjectDetailsApi,
   ProjectEditorApi,
   ProjectListApi,
+  ProjectListFilter,
 } from "common/api/projects/project";
 import { deleteApi, getApi, postApi } from "../api/api";
 
@@ -61,10 +62,18 @@ export async function saveProject(projectId: string, editorData: any) {
 /**
  * Load the list of available projects from the server
  *
+ * @param filter
  * @returns
  */
-export async function getAvailableProjects() {
-  const response = await getApi<ProjectListApi>(`/api/projects`);
+export async function getAvailableProjects(
+  filter?: Partial<ProjectListFilter>,
+) {
+  const response = await getApi<ProjectListApi>(`/api/projects`, {
+    search: filter?.search,
+    showDeleted: filter?.showDeleted ? "true" : "false",
+    count: filter?.count?.toString(),
+    page: filter?.page?.toString(),
+  });
   return response;
 }
 

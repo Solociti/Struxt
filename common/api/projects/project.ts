@@ -2,12 +2,19 @@ import { ProjectDetails } from "common/models/projects/ProjectDetails";
 import { ProjectListItem } from "common/models/projects/ProjectItem";
 import { Api } from "../api";
 
+export interface ProjectListFilter {
+  search: string;
+  showDeleted: boolean;
+  page: number;
+  count: number;
+}
+
 export interface ProjectListApi extends Api {
   Endpoint: "/api/projects";
 
   UrlParams: {};
 
-  GetQuery: {};
+  GetQuery: Partial<Record<keyof ProjectListFilter, string>>;
   GetResponse: {
     list: ProjectListItem[];
   };

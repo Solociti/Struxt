@@ -4,6 +4,7 @@ import {
   ProjectDetailsApi,
   ProjectEditorApi,
   ProjectListApi,
+  ProjectListFilter,
 } from "common/api/projects/project";
 import {
   ProjectRolesApi,
@@ -41,26 +42,53 @@ import { saveProjectEditorData } from "./saveProject";
 import { createEditorSnapshot } from "./snapshots/saveEditorSnapshot";
 import { updateProjectDetails } from "./updateProjectDetails";
 
-registerApi<ProjectListApi>("/api/projects").get([], async ({ user }) => {
-  // load the projects for an admin
-  if (user.hasPermission(roles.struxt.admin)) {
-    const rows = await getProjectsAdmin();
+registerApi<ProjectListApi>("/api/projects").get(
+  [],
+  async ({ user, query }) => {
+    const {
+      search,
+      showDeleted,
+      page: pageStr,
+      count: countStr,
+    } = z
+      .object({
+        search: z.string().optional(),
+        showDeleted: z.string().optional(),
+        page: z.string().optional(),
+        count: z.string().optional(),
+      })
+      .parse(query);
+
+    const page = parseInt(pageStr || "0");
+    const count = parseInt(countStr || "10");
+
+    const filter: ProjectListFilter = {
+      search: search || "",
+      showDeleted: showDeleted === "true",
+      page,
+      count,
+    };
+
+    // load the projects for an admin
+    if (user.hasPermission(roles.struxt.admin)) {
+      const rows = await getProjectsAdmin(filter);
+
+      const response = {
+        list: rows,
+      };
+
+      return response;
+    }
+
+    const rows = await getProjectsForUser(user.id, filter);
 
     const response = {
       list: rows,
     };
 
     return response;
-  }
-
-  const rows = await getProjectsForUser(user.id);
-
-  const response = {
-    list: rows,
-  };
-
-  return response;
-});
+  },
+);
 
 registerApi<ProjectCreateApi>("/api/projects/new").post(
   [roles.struxt.admin],

@@ -28,5 +28,5 @@ export interface ProjectDetails {
    */
   forms: FormDetails[];
 
-  deleted: UserModelAction;
+  deleted: ProjectModel["deleted"];
 }
