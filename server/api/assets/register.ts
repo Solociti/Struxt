@@ -24,6 +24,7 @@ import {
   getTempDir,
 } from "server/utils/uploadDir";
 import z from "zod";
+import { checkProjectDeleted } from "../projects/deleteProject";
 import "./apiRegister";
 import { getAsset } from "./getAssets";
 import { saveAsset } from "./saveAsset";
@@ -103,6 +104,10 @@ assetFilesRouter.put("/:projectId/:uuid", async (req, res) => {
       "You do not have permission to modify this project.",
       "Forbidden",
     );
+  }
+
+  if (await checkProjectDeleted(projectId)) {
+    throw customError(400, "Project is scheduled for deletion.");
   }
 
   // get the asset
@@ -188,6 +193,10 @@ router.post(
           "You do not have permission to modify this project.",
           "Forbidden",
         );
+      }
+
+      if (await checkProjectDeleted(projectId)) {
+        throw customError(400, "Project is scheduled for deletion.");
       }
 
       // check if the project has enough storage

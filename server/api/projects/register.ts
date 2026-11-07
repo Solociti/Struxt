@@ -20,7 +20,11 @@ import { validateUserId } from "server/auth/user/getUser";
 import { validateEmailAddress } from "server/utils/validateEmailAddress";
 import z from "zod";
 import { createNewProject } from "./createNewProject";
-import { restoreProject, scheduleProjectDelete } from "./deleteProject";
+import {
+  checkProjectDeleted,
+  restoreProject,
+  scheduleProjectDelete,
+} from "./deleteProject";
 import { getProjectEditorData } from "./getProject";
 import { getProjectDetails } from "./getProjectDetails";
 import { getProjectsAdmin, getProjectsForUser } from "./getProjectList";
@@ -116,6 +120,10 @@ registerApi<ProjectEditorApi>("/api/projects/:projectId/editor", {
       );
     }
 
+    if (await checkProjectDeleted(projectId)) {
+      throw customError(400, "Project is scheduled for deletion.");
+    }
+
     // save the project editor data
     const response = await saveProjectEditorData(projectId, body.editorData);
 
@@ -163,6 +171,10 @@ registerApi<ProjectDetailsApi>("/api/projects/:projectId/details")
         403,
         "You do not have permission to modify this project.",
       );
+    }
+
+    if (await checkProjectDeleted(projectId)) {
+      throw customError(400, "Project is scheduled for deletion.");
     }
 
     // check validity of input shape and props with zod
@@ -276,6 +288,10 @@ registerApi<ProjectRolesApi>("/api/projects/:projectId/roles")
       );
     }
 
+    if (await checkProjectDeleted(projectId)) {
+      throw customError(400, "Project is scheduled for deletion.");
+    }
+
     // validate the user id
     const userIdValid = await validateUserId(body.userId);
     if (!body.userId || !userIdValid) {
@@ -353,6 +369,10 @@ registerApi<ProjectRolesInviteApi>("/api/projects/:projectId/roles/invite")
         "You do not have permission to invite users to this project.",
         "Forbidden",
       );
+    }
+
+    if (await checkProjectDeleted(projectId)) {
+      throw customError(400, "Project is scheduled for deletion.");
     }
 
     // check if the given email is valid

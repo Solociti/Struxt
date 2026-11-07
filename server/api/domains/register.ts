@@ -8,6 +8,7 @@ import { customError } from "common/custom-error/custom-error";
 import { validEnvironments } from "common/models/projects/Environment";
 import { roles } from "common/models/user/Roles";
 import { resolveDns } from "server/utils/dns/resolveDns";
+import { checkProjectDeleted } from "../projects/deleteProject";
 import { registerApi } from "../registerApi";
 import { addDomain } from "./addDomain";
 import { checkDomainAvailability } from "./checkDomainAvailability";
@@ -40,7 +41,7 @@ registerApi<DomainInfoApi>("/api/projects/domains/info").get(
     } catch (err) {
       throw customError(500, "Failed to resolve DNS for the proxy domain.");
     }
-  }
+  },
 );
 
 registerApi<DomainRegisterApi>("/api/projects/:projectId/domains/register")
@@ -56,7 +57,7 @@ registerApi<DomainRegisterApi>("/api/projects/:projectId/domains/register")
       ) {
         throw customError(
           403,
-          "You don't have access to register a domain for this project."
+          "You don't have access to register a domain for this project.",
         );
       }
 
@@ -66,7 +67,7 @@ registerApi<DomainRegisterApi>("/api/projects/:projectId/domains/register")
       if (!domain) {
         throw customError(
           400,
-          "You must specify either a domain or a subdomain to check availability."
+          "You must specify either a domain or a subdomain to check availability.",
         );
       }
 
@@ -89,7 +90,7 @@ registerApi<DomainRegisterApi>("/api/projects/:projectId/domains/register")
         isValid: result.isValid,
         available: isAvailable,
       };
-    }
+    },
   )
   .post(
     [roles.struxt.editor, roles.struxt.admin],
@@ -103,7 +104,7 @@ registerApi<DomainRegisterApi>("/api/projects/:projectId/domains/register")
       ) {
         throw customError(
           403,
-          "You don't have access to register a domain for this project."
+          "You don't have access to register a domain for this project.",
         );
       }
 
@@ -112,13 +113,17 @@ registerApi<DomainRegisterApi>("/api/projects/:projectId/domains/register")
         throw customError(400, "Invalid environment specified.");
       }
 
+      if (await checkProjectDeleted(projectId)) {
+        throw customError(400, "Project is scheduled for deletion.");
+      }
+
       const domain = body.domain || body.freeSubdomain;
       const isFreeDomain = !body.domain && Boolean(body.freeSubdomain);
 
       if (!domain) {
         throw customError(
           400,
-          "You must specify either a domain or a subdomain to check availability."
+          "You must specify either a domain or a subdomain to check availability.",
         );
       }
 
@@ -141,18 +146,18 @@ registerApi<DomainRegisterApi>("/api/projects/:projectId/domains/register")
         {
           userId: user.id,
           displayName: user.name,
-        }
+        },
       );
 
       return {
         success: true,
         environment: domainResult.updatedEnv,
       };
-    }
+    },
   );
 
 registerApi<DomainDnsVerifyApi>(
-  "/api/projects/:projectId/domains/verify-dns"
+  "/api/projects/:projectId/domains/verify-dns",
 ).post(
   [roles.struxt.editor, roles.struxt.admin],
   async ({ params, user, body }) => {
@@ -165,7 +170,7 @@ registerApi<DomainDnsVerifyApi>(
     ) {
       throw customError(
         403,
-        "You don't have access to register a domain for this project."
+        "You don't have access to register a domain for this project.",
       );
     }
 
@@ -177,19 +182,23 @@ registerApi<DomainDnsVerifyApi>(
     if (!body.domain) {
       throw customError(
         400,
-        "You must specify either a domain or a subdomain to check availability."
+        "You must specify either a domain or a subdomain to check availability.",
       );
+    }
+
+    if (await checkProjectDeleted(projectId)) {
+      throw customError(400, "Project is scheduled for deletion.");
     }
 
     // verify the DNS settings for the domain
     const response = await verifyDomainDns(
       projectId,
       body.environment,
-      body.domain
+      body.domain,
     );
 
     return response;
-  }
+  },
 );
 
 // handle updating the domain details for a project environment
@@ -206,7 +215,7 @@ registerApi<DomainUpdateApi>("/api/projects/:projectId/domains/update")
       ) {
         throw customError(
           403,
-          "You don't have access to update a domain for this project."
+          "You don't have access to update a domain for this project.",
         );
       }
 
@@ -219,6 +228,10 @@ registerApi<DomainUpdateApi>("/api/projects/:projectId/domains/update")
         throw customError(400, "No changes specified to update the domain.");
       }
 
+      if (await checkProjectDeleted(projectId)) {
+        throw customError(400, "Project is scheduled for deletion.");
+      }
+
       // process the changes
       const { updatedEnv } = await updateDomainDetails(
         projectId,
@@ -227,14 +240,14 @@ registerApi<DomainUpdateApi>("/api/projects/:projectId/domains/update")
         {
           userId: user.id,
           displayName: user.name,
-        }
+        },
       );
 
       return {
         success: true,
         updatedEnv,
       };
-    }
+    },
   )
   .delete(
     [roles.struxt.editor, roles.struxt.admin],
@@ -249,7 +262,7 @@ registerApi<DomainUpdateApi>("/api/projects/:projectId/domains/update")
       ) {
         throw customError(
           403,
-          "You don't have access to delete a domain for this project."
+          "You don't have access to delete a domain for this project.",
         );
       }
 
@@ -268,5 +281,5 @@ registerApi<DomainUpdateApi>("/api/projects/:projectId/domains/update")
       });
 
       return result;
-    }
+    },
   );

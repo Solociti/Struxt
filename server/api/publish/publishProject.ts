@@ -44,6 +44,13 @@ export async function publishProject(
   // the get project editor data already throws an error if not found
   const project = await getProjectData(projectId);
 
+  if (project.deleted.active) {
+    throw customError(
+      400,
+      "Cannot publish. Project is scheduled for deletion.",
+    );
+  }
+
   // remove any deleted domains from the project environment
   project[projectEnv].domains = project[projectEnv].domains.filter(
     (d) => !d.deleted.active,

@@ -25,6 +25,7 @@ import "server/aiPilot/register";
 import { getAllAiPilotPromptOverrides } from "server/aiPilot/tools/prompts/getAiPilotPrompts";
 import { saveAiPilotPrompts } from "server/aiPilot/tools/prompts/saveAiPilotPrompts";
 import z from "zod";
+import { checkProjectDeleted } from "../projects/deleteProject";
 import { registerApi } from "../registerApi";
 import { aiPilotPermCheck } from "./aiPilotPermCheck";
 
@@ -49,7 +50,7 @@ registerApi<AiPilotChatList>("/api/aiPilot/chat/list").get(
     return {
       list,
     };
-  }
+  },
 );
 
 /**
@@ -67,6 +68,10 @@ registerApi<AiPilotNewChat>("/api/aiPilot/chat/new").post(
     // check if the user has access to the project
     await aiPilotPermCheck(user, projectId);
 
+    if (await checkProjectDeleted(projectId)) {
+      throw customError(400, "Project is scheduled for deletion.");
+    }
+
     // create a new chat session
     const chat = new AiPilotChat({
       projectId,
@@ -80,7 +85,7 @@ registerApi<AiPilotNewChat>("/api/aiPilot/chat/new").post(
 
     const result = await saveChat(chat);
     return result;
-  }
+  },
 );
 
 registerApi<AiPilotModels>("/api/aiPilot/models")
@@ -173,7 +178,7 @@ registerApi<AiPilotPromptsApi>("/api/aiPilot/prompts")
       .parse(body.prompt);
 
     const prompt = new PromptOverrides(
-      zOverride as DeepPartial<PromptOverrides>
+      zOverride as DeepPartial<PromptOverrides>,
     );
 
     if (prompt.uuid === "new") {
@@ -222,12 +227,12 @@ registerApi<AiPilotTokenWallet>("/api/aiPilot/tokens").get(
     ) {
       throw customError(
         403,
-        "You do not have permission to access this project's token wallet."
+        "You do not have permission to access this project's token wallet.",
       );
     }
 
     const wallet = await getTokenWallet(projectId);
 
     return { wallet, success: true };
-  }
+  },
 );

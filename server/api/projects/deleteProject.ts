@@ -1,6 +1,8 @@
 import { customError } from "common/custom-error/custom-error";
+import { ProjectModel } from "common/models/projects/ProjectModel";
 import { dirname } from "node:path";
 import { purgeProjectChats } from "server/aiPilot/chat/deleteChat";
+import { getCollection } from "server/database/mongodb";
 import { rmDirRecursive } from "server/hfs/dirOps";
 import {
   getBasePublishDir,
@@ -18,6 +20,24 @@ import { saveProject } from "./saveProject";
 
 const daySeconds = 60 * 60 * 24;
 const deleteInSeconds = 14 * daySeconds;
+
+/**
+ * Check if the project given is scheduled for deletion
+ *
+ * @param projectId
+ * @returns
+ */
+export async function checkProjectDeleted(projectId: string) {
+  const collection = await getCollection<ProjectModel>("projects");
+
+  const project = await collection.findOne(
+    { uuid: projectId },
+    {
+      projection: { deleted: 1 },
+    },
+  );
+  return project?.deleted.active || false;
+}
 
 /**
  * Schedule a project to be permanently deleted
