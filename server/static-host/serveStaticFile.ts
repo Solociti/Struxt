@@ -24,32 +24,27 @@ export async function serveStaticFile(
   const absolutePath = normalize(join(siteDir, requestPath));
 
   if (!isPathInside(absolutePath, siteDir)) {
-    res.status(404).end();
-    return true;
+    return false;
   }
 
   const resolved = await resolveFilePath(absolutePath);
   if (resolved === null) {
-    res.status(404).end();
-    return true;
+    return false;
   }
 
   // The checks above are lexical and can't see symlinks. Re-check containment
   // on the real path of the exact file we're about to serve.
   const realPath = await safeRealpath(resolved.path);
   if (realPath === null) {
-    res.status(404).end();
-    return true;
+    return false;
   }
 
   if (!isPathInside(realPath, siteDir)) {
-    res.status(404).end();
-    return true;
+    return false;
   }
 
   if (hasDotSegment(realPath) || hasDotSegment(requestPath)) {
-    res.status(404).end();
-    return true;
+    return false;
   }
 
   if (resolved.isIndex) {
