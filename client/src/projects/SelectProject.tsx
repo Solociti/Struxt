@@ -40,7 +40,11 @@ export default function SelectProject({
     }
 
     // Load the projects from the server
-    const res = await getAvailableProjects();
+    const res = await getAvailableProjects({
+      search: "",
+      page: 1,
+      count: 20,
+    });
     return res.list;
   }, [isOpen]);
 
