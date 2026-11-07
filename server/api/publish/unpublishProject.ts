@@ -19,19 +19,19 @@ export async function unpublishProject(
   user: { userId: string; displayName: string },
 ): Promise<PublishApi["DeleteResponse"]> {
   console.log(`Unpublished project ${projectId}`);
-  const project = await getProjectData(projectId);
 
   // Get the current published site info for staging and production
+  const project = await getProjectData(projectId);
+
+  // Delete the NPM proxy hosts as needed.
+  await clearNpmProxy(project.production);
+  await clearNpmProxy(project.staging);
+
   const collection = await getCollection<PublishModel>("projects_published");
   await collection.updateMany(
     { projectId, isActive: true },
     { $set: { isActive: false } },
   );
-
-  // Delete the NPM proxy hosts as needed.
-  // deleteProxyHost()
-  await clearNpmProxy(project.production);
-  await clearNpmProxy(project.staging);
 
   project.updated = {
     ...project.updated,
