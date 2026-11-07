@@ -74,7 +74,7 @@
     "vitest": "^3.2.4"
   },
   "dependencies": {
-    "@bull-board/express": "^9.10.5",
+    "@bull-board/express": "^9.11.0",
     "@google/genai": "^1.46.0",
     "@langchain/anthropic": "^0.3.34",
     "@langchain/core": "^0.3.80",
@@ -86,7 +86,7 @@
     "@langchain/openai": "^0.6.17",
     "@popperjs/core": "^2.11.8",
     "axios": "^1.13.6",
-    "bullmq": "^6.5.2",
+    "bullmq": "^6.7.2",
     "cheerio": "^1.2.0",
     "connect-mongodb-session": "^5.0.0",
     "dotenv": "^16.6.1",
