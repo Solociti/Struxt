@@ -210,7 +210,7 @@ registerApi<ProjectDeleteApi>("/api/projects/:projectId/delete")
 
     if (
       !user.hasPermission(roles.struxt.admin) &&
-      !user.hasProjectPermission(projectId, [roles.projects.edit])
+      !user.hasProjectPermission(projectId, [roles.projects.admin])
     ) {
       throw customError(
         403,
@@ -229,7 +229,7 @@ registerApi<ProjectDeleteApi>("/api/projects/:projectId/delete")
 
     if (
       !user.hasPermission(roles.struxt.admin) &&
-      !user.hasProjectPermission(projectId, [roles.projects.edit])
+      !user.hasProjectPermission(projectId, [roles.projects.admin])
     ) {
       throw customError(
         403,
