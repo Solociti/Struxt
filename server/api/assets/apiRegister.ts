@@ -28,6 +28,7 @@ import {
 import { getAsset, getAssetByPath, getAssetList } from "./getAssets";
 import { moveAssets } from "./moveAssets";
 import { saveAsset } from "./saveAsset";
+import { checkProjectDeleted } from "../projects/deleteProject";
 
 registerApi<AssetApi>("/api/assets/model/:projectId").get(
   [roles.struxt.editor],
@@ -84,6 +85,10 @@ registerApi<AssetCreateApi>("/api/assets/create/:projectId").post(
         "You do not have permission to modify this project.",
         "Forbidden",
       );
+    }
+
+    if (await checkProjectDeleted(projectId)) {
+      throw customError(400, "Project is scheduled for deletion.");
     }
 
     // Sanitize path for cross-platform safety
@@ -174,6 +179,10 @@ registerApi<AssetSaveExternalApi>(
     );
   }
 
+  if (await checkProjectDeleted(projectId)) {
+    throw customError(400, "Project is scheduled for deletion.");
+  }
+
   const uuid = await createSimpleId("asset");
   const asset = new AssetModel({
     uuid,
@@ -220,6 +229,10 @@ registerApi<AssetDeleteApi>("/api/assets/delete/:projectId").post(
         403,
         "You do not have permission to modify this project.",
       );
+    }
+
+    if (await checkProjectDeleted(projectId)) {
+      throw customError(400, "Project is scheduled for deletion.");
     }
 
     // parse the body
@@ -269,6 +282,10 @@ registerApi<AssetRestoreApi>("/api/assets/restore/:projectId").post(
         403,
         "You do not have permission to modify this project.",
       );
+    }
+
+    if (await checkProjectDeleted(projectId)) {
+      throw customError(400, "Project is scheduled for deletion.");
     }
 
     // parse the body
@@ -330,6 +347,10 @@ registerApi<AssetMoveApi>("/api/assets/move/:projectId").post(
         403,
         "You do not have permission to modify this project.",
       );
+    }
+
+    if (await checkProjectDeleted(projectId)) {
+      throw customError(400, "Project is scheduled for deletion.");
     }
 
     // validate the incoming body

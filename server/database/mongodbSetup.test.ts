@@ -1,8 +1,10 @@
-import { getDb } from "./mongodb";
+import { randomUUID } from "node:crypto";
 import { beforeEach, describe, expect, test } from "vitest";
 
-// Since we are using a shared global Mongodb instance,
-// we should clear the database collections between tests to ensure isolation.
+process.env.MONGODB_PREFIX = `struxt_test_${randomUUID().toString().replace(/-/g, "")}`;
+
+const { getDb } = await import("./mongodb");
+
 beforeEach(async () => {
   const db = await getDb();
   const collections = await db.collections();

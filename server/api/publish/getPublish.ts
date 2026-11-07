@@ -22,6 +22,30 @@ export async function getPublish(publishId: string) {
 }
 
 /**
+ * Get the active publish for a project and environment
+ *
+ * @param projectId
+ * @param projectEnv
+ * @returns
+ */
+export async function getActivePublish(
+  projectId: string,
+  projectEnv: EnvironmentTypes,
+) {
+  const collection = await getCollection<PublishModel>("projects_published");
+  const doc = await collection.findOne({
+    projectId,
+    siteEnv: projectEnv,
+    isActive: true,
+  });
+
+  if (!doc) {
+    return null;
+  }
+  return new PublishModel(doc);
+}
+
+/**
  * Get the latest publish data for the given project and environment
  *
  * @param projectId
@@ -30,7 +54,7 @@ export async function getPublish(publishId: string) {
  */
 export async function getLatestPublish(
   projectId: string,
-  projectEnv: EnvironmentTypes
+  projectEnv: EnvironmentTypes,
 ) {
   const collection = await getCollection<PublishModel>("projects_published");
 
@@ -41,7 +65,7 @@ export async function getLatestPublish(
     },
     {
       sort: { "created.date": -1 },
-    }
+    },
   );
   if (!doc) {
     return null;

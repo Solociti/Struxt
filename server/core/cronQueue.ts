@@ -1,7 +1,8 @@
 import { JobSchedulerTemplateOptions } from "bullmq";
 import { setupQueue } from "server/database/setupQueue";
 
-const DAY_MS = 24 * 60 * 60 * 1000;
+const HOUR_MS = 60 * 60 * 1000;
+const DAY_MS = 24 * HOUR_MS;
 
 /**
  * This queue is used to run scheduled jobs from the core container.
@@ -113,6 +114,17 @@ export function setupCronJobs() {
         attempts: 1,
         priority: 60,
       },
+    },
+  );
+
+  cronQueue.queue.upsertJobScheduler(
+    "purge-deleted-projects",
+    {
+      pattern: "30 3,15 * * *",
+    },
+    {
+      data: { cron: true },
+      opts: { attempts: 1, priority: 65 },
     },
   );
 

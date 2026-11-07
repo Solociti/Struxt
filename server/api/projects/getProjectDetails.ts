@@ -2,7 +2,7 @@ import { ProjectDetails } from "common/models/projects/ProjectDetails";
 import { getFormSubmissionList } from "server/forms/getFormSubmission";
 import { calcDirSize } from "../../utils/calcDirSize";
 import { getProjectFilesDir } from "../../utils/uploadDir";
-import { getLatestPublish } from "../publish/getPublish";
+import { getActivePublish, getLatestPublish } from "../publish/getPublish";
 import { getProjectData } from "./getProject";
 
 /**
@@ -22,6 +22,8 @@ export async function getProjectDetails(projectId: string) {
     production: project.production,
 
     featureFlags: project.featureFlags,
+
+    deleted: project.deleted,
 
     publish: {
       staging: {
@@ -49,13 +51,18 @@ export async function getProjectDetails(projectId: string) {
   };
 
   // get the latest publish data for both staging and production
-  const stagingPublish = await getLatestPublish(projectId, "staging");
-  const productionPublish = await getLatestPublish(projectId, "production");
+  const stagingActive = await getActivePublish(projectId, "staging");
+  const productionActive = await getActivePublish(projectId, "production");
+
+  const stagingPublish =
+    stagingActive || (await getLatestPublish(projectId, "staging"));
+  const productionPublish =
+    productionActive || (await getLatestPublish(projectId, "production"));
 
   if (stagingPublish) {
     details.publish.staging = {
       ...details.publish.staging,
-      active: true,
+      active: stagingPublish.isActive,
       date: stagingPublish.created.date,
       userId: stagingPublish.created.userId,
       displayName: stagingPublish.created.displayName,
@@ -66,7 +73,7 @@ export async function getProjectDetails(projectId: string) {
   if (productionPublish) {
     details.publish.production = {
       ...details.publish.production,
-      active: true,
+      active: productionPublish.isActive,
       date: productionPublish.created.date,
       userId: productionPublish.created.userId,
       displayName: productionPublish.created.displayName,

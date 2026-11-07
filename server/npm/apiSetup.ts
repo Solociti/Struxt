@@ -69,7 +69,7 @@ export async function getBearerToken() {
 export async function callNpmApi(
   endpoint: string,
   method: "GET" | "POST" | "PUT" | "DELETE",
-  body?: any
+  body?: any,
 ) {
   const token = await getBearerToken();
 
@@ -94,7 +94,7 @@ export async function callNpmApi(
 
   const data: any = await response.json();
 
-  if ("error" in data) {
+  if (typeof data === "object" && "error" in data) {
     console.log("NPM API Error", endpoint, data.error);
     throw customError(data.error.code, data.error.message);
   }

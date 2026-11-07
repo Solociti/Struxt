@@ -2,14 +2,22 @@ import { ProjectDetails } from "common/models/projects/ProjectDetails";
 import { ProjectListItem } from "common/models/projects/ProjectItem";
 import { Api } from "../api";
 
+export interface ProjectListFilter {
+  search: string;
+  showDeleted: boolean;
+  page: number;
+  count: number;
+}
+
 export interface ProjectListApi extends Api {
   Endpoint: "/api/projects";
 
   UrlParams: {};
 
-  GetQuery: {};
+  GetQuery: Partial<Record<keyof ProjectListFilter, string>>;
   GetResponse: {
     list: ProjectListItem[];
+    total: number;
   };
 }
 
@@ -95,5 +103,23 @@ export interface ProjectCreateApi extends Api {
     projectId: string;
 
     projectItem: ProjectListItem;
+  };
+}
+
+export interface ProjectDeleteApi extends Api {
+  Endpoint: "/api/projects/:projectId/delete";
+  UrlParams: {
+    projectId: string;
+  };
+
+  PostBody: {};
+  PostResponse: {
+    success: boolean;
+  };
+
+  DeleteQuery: {};
+  DeleteResponse: {
+    success: boolean;
+    purgeDate: number;
   };
 }

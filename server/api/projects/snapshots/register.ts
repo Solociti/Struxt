@@ -7,6 +7,7 @@ import { EditorSnapshotModel } from "common/models/projects/EditorSnapshot";
 import { roles } from "common/models/user/Roles";
 import { registerApi } from "server/api/registerApi";
 import z from "zod";
+import { checkProjectDeleted } from "../deleteProject";
 import { editSnapshot } from "./editSnapshot";
 import {
   getEditorSnapshot,
@@ -25,7 +26,7 @@ registerApi<EditorSnapshotListApi>("/api/projects/:projectId/snapshots")
     ) {
       throw customError(
         403,
-        "You do not have permission to view this project's snapshots."
+        "You do not have permission to view this project's snapshots.",
       );
     }
 
@@ -45,7 +46,7 @@ registerApi<EditorSnapshotListApi>("/api/projects/:projectId/snapshots")
     ) {
       throw customError(
         403,
-        "You do not have permission to edit snapshots for this project."
+        "You do not have permission to edit snapshots for this project.",
       );
     }
 
@@ -66,12 +67,16 @@ registerApi<EditorSnapshotListApi>("/api/projects/:projectId/snapshots")
       })
       .parse(body);
 
+    if (await checkProjectDeleted(projectId)) {
+      throw customError(400, "Project is scheduled for deletion.");
+    }
+
     const snapshot = await editSnapshot(
       projectId,
       snapshotTime,
       eventType as EditorSnapshotModel["eventType"],
       update as EditorSnapshotListApi["PostBody"]["update"],
-      { userId: user.id, displayName: user.name }
+      { userId: user.id, displayName: user.name },
     );
 
     return {
@@ -81,7 +86,7 @@ registerApi<EditorSnapshotListApi>("/api/projects/:projectId/snapshots")
   });
 
 registerApi<EditorSnapshotRestoreApi>(
-  "/api/projects/:projectId/snapshots/restore"
+  "/api/projects/:projectId/snapshots/restore",
 ).post([roles.struxt.editor], async ({ user, params, body }) => {
   const projectId = params.projectId;
 
@@ -91,7 +96,7 @@ registerApi<EditorSnapshotRestoreApi>(
   ) {
     throw customError(
       403,
-      "You do not have permission to restore snapshots for this project."
+      "You do not have permission to restore snapshots for this project.",
     );
   }
 
@@ -102,10 +107,14 @@ registerApi<EditorSnapshotRestoreApi>(
     })
     .parse(body);
 
+  if (await checkProjectDeleted(projectId)) {
+    throw customError(400, "Project is scheduled for deletion.");
+  }
+
   const snapshot = await getEditorSnapshot(
     projectId,
     snapshotTime,
-    eventType as EditorSnapshotModel["eventType"]
+    eventType as EditorSnapshotModel["eventType"],
   );
   if (!snapshot) {
     throw customError(404, "Snapshot not found.");

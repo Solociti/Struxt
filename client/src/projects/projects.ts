@@ -1,10 +1,12 @@
 import {
   ProjectCreateApi,
+  ProjectDeleteApi,
   ProjectDetailsApi,
   ProjectEditorApi,
   ProjectListApi,
+  ProjectListFilter,
 } from "common/api/projects/project";
-import { getApi, postApi } from "../api/api";
+import { deleteApi, getApi, postApi } from "../api/api";
 
 /**
  * Create a new project on the server
@@ -60,10 +62,18 @@ export async function saveProject(projectId: string, editorData: any) {
 /**
  * Load the list of available projects from the server
  *
+ * @param filter
  * @returns
  */
-export async function getAvailableProjects() {
-  const response = await getApi<ProjectListApi>(`/api/projects`);
+export async function getAvailableProjects(
+  filter?: Partial<ProjectListFilter>,
+) {
+  const response = await getApi<ProjectListApi>(`/api/projects`, {
+    search: filter?.search,
+    showDeleted: filter?.showDeleted ? "true" : "false",
+    count: filter?.count?.toString(),
+    page: filter?.page?.toString(),
+  });
   return response;
 }
 
@@ -107,4 +117,30 @@ export async function updateProjectDetails(
   );
 
   return response;
+}
+
+/**
+ * Schedule a permanent delete of the project
+ *
+ * @param projectId
+ * @returns
+ */
+export async function deleteProject(projectId: string) {
+  return await deleteApi<ProjectDeleteApi>(
+    ["/api/projects", projectId, "delete"],
+    {},
+  );
+}
+
+/**
+ * Restore a recently deleted project
+ *
+ * @param projectId
+ * @returns
+ */
+export async function restoreProject(projectId: string) {
+  return await postApi<ProjectDeleteApi>(
+    ["/api/projects", projectId, "delete"],
+    {},
+  );
 }

@@ -1,5 +1,5 @@
 import { existsSync } from "node:fs";
-import { readdir, rmdir } from "node:fs/promises";
+import { readdir, rm, rmdir } from "node:fs/promises";
 import { dirname } from "node:path";
 import { isPathInside } from "./path";
 
@@ -33,4 +33,23 @@ export async function rmDirIfEmpty(
       await rmDirIfEmpty(parentDir, true, rootDir);
     }
   }
+}
+
+/**
+ * Recursively removes a directory and its contents.
+ *
+ * @param dir
+ * @param rootDir
+ * @returns
+ */
+export async function rmDirRecursive(dir: string, rootDir: string) {
+  if (!isPathInside(dir, rootDir)) {
+    return;
+  }
+
+  if (!existsSync(dir)) {
+    return;
+  }
+
+  await rm(dir, { recursive: true });
 }

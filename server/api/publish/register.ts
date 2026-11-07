@@ -4,6 +4,8 @@ import { validEnvironments } from "common/models/projects/Environment";
 import { roles } from "common/models/user/Roles";
 import { registerApi } from "../registerApi";
 import { publishProject } from "./publishProject";
+import { zSimpleIdValidation } from "common/models/zValidation";
+import { unpublishProject } from "./unpublishProject";
 
 registerApi<PublishApi>("/api/publish/:projectId", {
   bodySanitization: {
@@ -12,74 +14,97 @@ registerApi<PublishApi>("/api/publish/:projectId", {
       skipSanitize: true,
     },
   },
-}).post(
-  [roles.struxt.publish.staging, roles.struxt.publish.production],
-  async ({ params, user, body }) => {
-    const publishEnv = body.type;
-    const projectId = params.projectId;
+})
+  .post(
+    [roles.struxt.publish.staging, roles.struxt.publish.production],
+    async ({ params, user, body }) => {
+      const publishEnv = body.type;
+      const projectId = params.projectId;
 
-    // check if the publish type is valid
-    if (!validEnvironments.includes(publishEnv)) {
-      throw customError(400, `Type '${publishEnv}' not implemented!`);
+      // check if the publish type is valid
+      if (!validEnvironments.includes(publishEnv)) {
+        throw customError(400, `Type '${publishEnv}' not implemented!`);
+      }
+
+      // perform some sanity checks
+      if (body.projectId !== projectId) {
+        throw customError(400, "Project id mismatch!");
+      }
+
+      // check if the user has access to publish the desired outcome
+      if (!user.hasPermission(roles.struxt.admin)) {
+        if (
+          publishEnv === "production" &&
+          !user.hasPermission(roles.struxt.publish.production)
+        ) {
+          throw customError(
+            403,
+            "You do not have permission to publish to production!",
+          );
+        }
+
+        if (
+          publishEnv === "production" &&
+          !user.hasProjectPermission(
+            projectId,
+            roles.projects.publish.production,
+          )
+        ) {
+          throw customError(
+            403,
+            "You do not have permission to publish this site to production!",
+          );
+        }
+
+        if (
+          publishEnv === "staging" &&
+          !user.hasPermission(roles.struxt.publish.staging)
+        ) {
+          throw customError(
+            403,
+            "You do not have permission to publish to staging!",
+          );
+        }
+
+        if (
+          publishEnv === "staging" &&
+          !user.hasProjectPermission(projectId, roles.projects.publish.staging)
+        ) {
+          throw customError(
+            403,
+            "You do not have permission to publish this site to staging!",
+          );
+        }
+      }
+
+      // publish the project
+      const result = await publishProject(projectId, publishEnv, body.files, {
+        userId: user.id,
+        displayName: user.name,
+      });
+
+      return {
+        success: true,
+        ...result,
+      };
+    },
+  )
+  .delete([], async ({ params, user }) => {
+    const projectId = zSimpleIdValidation().parse(params.projectId);
+
+    if (
+      !user.hasPermission(roles.struxt.admin) &&
+      !user.hasProjectPermission(projectId, [roles.projects.admin])
+    ) {
+      throw customError(
+        403,
+        "You do not have permission to unpublish this project.",
+        "Forbidden",
+      );
     }
 
-    // perform some sanity checks
-    if (body.projectId !== projectId) {
-      throw customError(400, "Project id mismatch!");
-    }
-
-    // check if the user has access to publish the desired outcome
-    if (!user.hasPermission(roles.struxt.admin)) {
-      if (
-        publishEnv === "production" &&
-        !user.hasPermission(roles.struxt.publish.production)
-      ) {
-        throw customError(
-          403,
-          "You do not have permission to publish to production!"
-        );
-      }
-
-      if (
-        publishEnv === "production" &&
-        !user.hasProjectPermission(projectId, roles.projects.publish.production)
-      ) {
-        throw customError(
-          403,
-          "You do not have permission to publish this site to production!"
-        );
-      }
-
-      if (
-        publishEnv === "staging" &&
-        !user.hasPermission(roles.struxt.publish.staging)
-      ) {
-        throw customError(
-          403,
-          "You do not have permission to publish to staging!"
-        );
-      }
-
-      if (
-        publishEnv === "staging" &&
-        !user.hasProjectPermission(projectId, roles.projects.publish.staging)
-      ) {
-        throw customError(
-          403,
-          "You do not have permission to publish this site to staging!"
-        );
-      }
-    }
-
-    // publish the project
-    const result = await publishProject(projectId, publishEnv, body.files, {
+    return await unpublishProject(projectId, {
       userId: user.id,
       displayName: user.name,
     });
-
-    return {
-      success: true,
-      ...result,
-    };
-  }
-);
+  });

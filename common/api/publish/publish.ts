@@ -31,4 +31,9 @@ export interface PublishApi extends Api {
      */
     primaryDomain: string;
   };
+
+  DeleteQuery: {};
+  DeleteResponse: {
+    success: true;
+  };
 }

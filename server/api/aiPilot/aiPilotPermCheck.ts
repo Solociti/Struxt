@@ -16,13 +16,13 @@ import { getAiPilotFeatureFlags } from "server/aiPilot/chat/projectTokens";
  */
 export async function aiPilotPermCheck(
   user: CurrentUserModel,
-  projectId: string
+  projectId: string,
 ) {
   // check if the user has access to the project
   if (!user.hasProjectPermission(projectId, [roles.projects.edit])) {
     throw customError(
       403,
-      "You do not have permission to modify this project."
+      "You do not have permission to modify this project.",
     );
   }
 

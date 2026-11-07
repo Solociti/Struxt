@@ -1,16 +1,22 @@
 import { getTokenWallet } from "client/aiPilot/tokens/tokenWallet";
 import { useLoadAsync } from "client/api/useLoadAsync";
+import { useTheme } from "client/bootstrap/Theme";
+import MaterialIcon from "client/components/MaterialIcon";
 import { ShowError } from "client/components/ShowError";
 import { useCurrentProject } from "client/projects/ProjectContext";
+import { formatDate } from "common/format/date";
 import { formatStorageSize } from "common/format/storageSize";
 import { ProjectDetails } from "common/models/projects/ProjectDetails";
+import Badge from "react-bootstrap/Badge";
 import Button from "react-bootstrap/Button";
 import Card from "react-bootstrap/Card";
 import Col from "react-bootstrap/Col";
+import OverlayTrigger from "react-bootstrap/OverlayTrigger";
 import ProgressBar from "react-bootstrap/ProgressBar";
 import Row from "react-bootstrap/Row";
 import Spinner from "react-bootstrap/Spinner";
 import Table from "react-bootstrap/Table";
+import Tooltip from "react-bootstrap/Tooltip";
 import { useNavigate } from "react-router";
 import { useCurrentUser } from "../auth/userCurrentUser";
 import { ProjectEnvInfo } from "./ProjectEnvInfo";
@@ -19,6 +25,7 @@ export function ShowProject({ project }: { project: ProjectDetails }) {
   const { user } = useCurrentUser();
   const { setProject } = useCurrentProject();
   const navigate = useNavigate();
+  const { theme } = useTheme();
 
   const {
     isLoading: walletIsLoading,
@@ -38,7 +45,22 @@ export function ShowProject({ project }: { project: ProjectDetails }) {
         {/* Project header */}
         <Row className="mb-4 align-items-center">
           <Col>
-            <h2 className="fs-4 fw-bold">{project.name || "Project Name"}</h2>
+            <h2 className="fs-4 fw-bold">
+              {project.name || "Project Name"}
+
+              {project.deleted.active && (
+                <OverlayTrigger
+                  overlay={<Tooltip>Delete Scheduled for</Tooltip>}
+                >
+                  <Badge bg={theme} className="ms-2 text-warning">
+                    <MaterialIcon style={{ fontSize: "1.2em" }}>
+                      delete
+                    </MaterialIcon>
+                    {formatDate(project.deleted.purgeDate)}
+                  </Badge>
+                </OverlayTrigger>
+              )}
+            </h2>
             <p className="text-muted">{project.description}</p>
           </Col>
 
@@ -138,7 +160,7 @@ export function ShowProject({ project }: { project: ProjectDetails }) {
                   <div className="d-flex justify-content-between gap-2 mt-3">
                     <span>
                       {Math.floor(
-                        wallet.monthlyUsage - wallet.monthlyAllowance
+                        wallet.monthlyUsage - wallet.monthlyAllowance,
                       ).toLocaleString()}
                     </span>
                     <h6 className="my-0">Borrowed</h6>
@@ -184,7 +206,7 @@ export function ShowProject({ project }: { project: ProjectDetails }) {
             }
             now={Math.min(
               100,
-              (project.storage.usedBytes / project.storage.maxBytes) * 100
+              (project.storage.usedBytes / project.storage.maxBytes) * 100,
             )}
           />
         </div>

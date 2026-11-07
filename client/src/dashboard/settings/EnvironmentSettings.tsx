@@ -62,7 +62,7 @@ export function EnvironmentSettings({
               forceSsl: typeof updatedSsl === "boolean" ? updatedSsl : sslValue,
               hsts: typeof updatedHsts === "boolean" ? updatedHsts : hstsValue,
             },
-          ]
+          ],
         );
 
         if (
@@ -80,7 +80,7 @@ export function EnvironmentSettings({
     },
     {
       toastError: true,
-    }
+    },
   );
 
   return (
@@ -95,6 +95,8 @@ export function EnvironmentSettings({
                 {" on "}
                 {formatDate(project.publish[environment].date, true)}
               </p>
+            ) : project.publish[environment].date > 0 ? (
+              <p className="small">Not currently published</p>
             ) : (
               <p className="small text-muted">No recent publishes</p>
             )}
