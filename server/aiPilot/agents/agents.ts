@@ -13,6 +13,24 @@ import { getMongoClient, dbName as mongoDbName } from "server/database/mongodb";
 import { setupLLM } from "./setupLLM";
 
 /**
+ * Setup the MongoDB checkpointer for AI Pilot
+ *
+ * @returns
+ */
+export async function setupCheckPointer() {
+  const mongoClient = await getMongoClient();
+
+  // Setup MongoDB checkpoint saver for conversation history
+  const checkPointer = new MongoDBSaver({
+    client: mongoClient,
+    dbName: mongoDbName,
+    checkpointCollectionName: "ai_pilot_checkpoints",
+    checkpointWritesCollectionName: "ai_pilot_checkpoint_writes",
+  });
+  return checkPointer;
+}
+
+/**
  * Setup the AI Pilot agent with all of the required tools.
  *
  * @param chatId
@@ -33,7 +51,7 @@ export async function setupAiPilot(
     prompt: number;
     completion: number;
     total: number;
-  }) => void
+  }) => void,
 ) {
   const langSmithConfig = {
     projectName: `ai-pilot-${projectId}`,
@@ -51,15 +69,8 @@ export async function setupAiPilot(
     temperature: temperature || 0.5,
   });
 
-  const mongoClient = await getMongoClient();
-
   // Setup MongoDB checkpoint saver for conversation history
-  const checkPointer = new MongoDBSaver({
-    client: mongoClient,
-    dbName: mongoDbName,
-    checkpointCollectionName: "ai_pilot_checkpoints",
-    checkpointWritesCollectionName: "ai_pilot_checkpoint_writes",
-  });
+  const checkPointer = await setupCheckPointer();
 
   const { vendor, model } = llmModel.splitId();
   const descriptions = await getAiPilotPrompts(vendor, model);
@@ -109,7 +120,7 @@ export async function setupAiPilot(
             name: t.name,
             description: t.description,
             schema: t.schema,
-          }
+          },
         );
       }),
     ],
@@ -125,7 +136,7 @@ export async function setupAiPilot(
     async streamResponse(message: string, context: AiMessageContext) {
       const memoryKeysResult = await memoryTools.getMemoryKeys();
       const memoryKeys = JSON.stringify(
-        memoryKeysResult.success ? memoryKeysResult.value : []
+        memoryKeysResult.success ? memoryKeysResult.value : [],
       );
 
       const content = [
@@ -169,7 +180,7 @@ export async function setupAiPilot(
             ...langSmithConfig,
             runName: `chat-${chatId.substring(0, 10)}`,
           },
-        }
+        },
       );
     },
   };

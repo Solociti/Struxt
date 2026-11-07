@@ -9,8 +9,10 @@ import { backupMongodb } from "./backup/mongoDb";
 import { backupNginxProxyManager } from "./backup/nginxProxyManager";
 import { syncS3Backups, syncS3Sites, syncS3Uploads } from "./backup/syncS3";
 import { backupVictoriaMetrics } from "./backup/victoriaMetrics";
-import { cronQueue } from "./cronQueue";
 import { cleanTempDir } from "./cleanup/cleanTempDir";
+import { cronQueue } from "./cronQueue";
+import { purgeDeletedProjects } from "server/api/projects/delete/purgeDeletedProjects";
+import { permanentDeleteProject } from "server/api/projects/deleteProject";
 
 if (process.env.CONTAINER_NAME !== "core") {
   throw new Error("This script should only be run in the core container.");
@@ -133,6 +135,14 @@ setupWorker(
 
       case "cleanup-temp-uploads":
         return await cleanTempDir((msg: string) => job.log(msg));
+
+      case "purge-deleted-projects":
+        return await purgeDeletedProjects((msg: string) => job.log(msg));
+
+      case "purge-project":
+        return await permanentDeleteProject(job.data.projectId, (msg) =>
+          job.log(msg),
+        );
 
       default:
         console.warn(`Unknown job name: ${job.name}`);

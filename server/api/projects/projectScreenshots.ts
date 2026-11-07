@@ -30,7 +30,7 @@ const flow = createFlowProducer();
 export async function schedulePublishScreenshot(
   publishId: string,
   projectEnv: EnvironmentTypes,
-  projectId: string
+  projectId: string,
 ) {
   const url = getProxyForwardHostUrl(projectId, projectEnv, publishId);
 
@@ -78,9 +78,10 @@ export async function schedulePublishScreenshot(
 export async function updateScreenshotUrl(
   publishId: string,
   projectId: string,
-  tempScreenshot: string
+  tempScreenshot: string,
 ) {
   // TODO: clean up screenshots after a new publish is created
+  const collection = await getCollection<PublishModel>("projects_published");
 
   // copy the screenshot to the permanent storage
   const uploadDir = getScreenshotDir(projectId);
@@ -89,20 +90,24 @@ export async function updateScreenshotUrl(
   const screenshotName = `${publishId}.png`;
   const screenshotPath = join(uploadDir, screenshotName);
 
+  // check if the publish exists
+  const publish = await collection.findOne({ uuid: publishId });
+  if (!publish) {
+    throw new Error("Publish not found");
+  }
+
   await copyFile(tempScreenshot, screenshotPath);
   await rmFile(tempScreenshot);
 
   const screenshotUrl = `/screenshots/${projectId}/${screenshotName}`;
 
   // update the screenshot URL in the publish model
-  const collection = await getCollection<PublishModel>("projects_published");
-
   await collection.updateOne(
     { uuid: publishId },
     {
       $set: {
         screenshotUrl: screenshotUrl,
       },
-    }
+    },
   );
 }

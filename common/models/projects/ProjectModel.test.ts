@@ -52,6 +52,13 @@ describe("ProjectModel", () => {
       },
       created: { date: 0, userId: "", displayName: "" },
       updated: { date: 0, userId: "", displayName: "" },
+      deleted: {
+        active: false,
+        date: 0,
+        userId: "",
+        displayName: "",
+        purgeDate: 0,
+      },
     });
   });
 
@@ -141,6 +148,13 @@ describe("ProjectModel", () => {
       },
       created: { date: 1234, userId: "", displayName: "" },
       updated: { date: 0, userId: "", displayName: "" },
+      deleted: {
+        active: false,
+        date: 0,
+        userId: "",
+        displayName: "",
+        purgeDate: 0,
+      },
     });
   });
 

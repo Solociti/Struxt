@@ -67,6 +67,18 @@ export function getProjectsParentDir(...paths: string[]) {
 }
 
 /**
+ * Get the base dir for a project
+ *
+ * `.../projects/{projectId}`
+ *
+ * @param projectId
+ * @returns
+ */
+export function getProjectBaseDir(projectId: string) {
+  return getProjectsParentDir(projectId);
+}
+
+/**
  * Get the files directory for the given project
  *
  * `.../projects/{projectId}/files`
@@ -105,6 +117,8 @@ export function getAssetDir(projectId: string) {
 /**
  * Get the screenshot directory for the given project
  *
+ * `.../screenshots/{projectId}`
+ *
  * @param projectId
  * @returns
  */
@@ -114,6 +128,8 @@ export function getScreenshotDir(projectId?: string) {
 
 /**
  * Get the upload directory for any uploads from the sites forms
+ *
+ * `.../projects/{projectId}/forms`
  *
  * @param projectId
  *
@@ -125,6 +141,8 @@ export function getProjectFormUploadDir(projectId: string | number) {
 
 /**
  * Get the base publish directory
+ *
+ * `/sites`
  *
  * @returns
  */
@@ -139,6 +157,8 @@ export function getBasePublishDir() {
 /**
  * Get the publish directory for the given project and publish id
  *
+ * `/sites/{projectId}/{env}/{publishId}`
+ *
  * @param projectId
  * @param publishId
  * @returns
@@ -151,4 +171,16 @@ export function getPublishDir(
   const baseDir = getBasePublishDir();
 
   return path.join(baseDir, projectId, projectEnv, publishId);
+}
+
+/**
+ * Get the publish dir for a project
+ *
+ * `/sites/{projectId}`
+ *
+ * @param projectId
+ * @returns
+ */
+export function getProjectPublishDir(projectId: string) {
+  return path.join(getBasePublishDir(), projectId);
 }
