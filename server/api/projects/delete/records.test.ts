@@ -1,22 +1,31 @@
-import { getCollection, CollectionNames } from "server/database/mongodb";
 import { Collection } from "mongodb";
-import { describe, expect, test, vi } from "vitest";
+import { CollectionNames, getCollection } from "server/database/mongodb";
+import { beforeEach, describe, expect, test, vi } from "vitest";
 import { deleteProjectRecords } from "./records";
 
+const collections: CollectionNames[] = [
+  "editor_snapshots",
+  "project_members",
+  "project_members_invites",
+  "form_settings",
+  "form_submissions",
+  "ai_pilot_token_transactions",
+  "ai_pilot_token_wallet",
+  "assets",
+  "projects_published",
+  "projects",
+];
+
 describe("deleteProjectRecords", () => {
+  beforeEach(async () => {
+    // Clear collections before each test
+    for (const name of collections) {
+      const collection = await getCollection(name);
+      await collection.deleteMany({});
+    }
+  });
+
   test("deletes only the project's application-owned records", async () => {
-    const collections: CollectionNames[] = [
-      "editor_snapshots",
-      "project_members",
-      "project_members_invites",
-      "form_settings",
-      "form_submissions",
-      "ai_pilot_token_transactions",
-      "ai_pilot_token_wallet",
-      "assets",
-      "projects_published",
-      "projects",
-    ];
     const projectId = "project-to-delete";
     const otherProjectId = "other-project";
 
@@ -41,6 +50,7 @@ describe("deleteProjectRecords", () => {
       expect(await collection.countDocuments({ projectId })).toBe(0);
       expect(
         await collection.countDocuments({ projectId: otherProjectId }),
+        `Collection: ${name}`,
       ).toBe(1);
       expect(log).toHaveBeenCalledWith(`Collection: ${name} Deleted: 1`);
     }
