@@ -50,8 +50,6 @@ export async function scheduleProjectDelete(
     ...user,
   };
 
-  await saveProject(project);
-
   // remove the public site
   await unpublishProject(projectId, user);
 
@@ -61,6 +59,8 @@ export async function scheduleProjectDelete(
     // cancel invite
     await cancelUserInvite(invite, user);
   }
+
+  await saveProject(project);
 
   return {
     success: true,
@@ -85,6 +85,10 @@ export async function restoreProject(
       400,
       "Cannot restore a project that is not scheduled for deletion.",
     );
+  }
+
+  if (project.deleted.purgeDate < Math.floor(Date.now() / 1000)) {
+    throw customError(400, "Cannot restore project.");
   }
 
   project.deleted = {
