@@ -17,6 +17,7 @@ export interface ProjectListApi extends Api {
   GetQuery: Partial<Record<keyof ProjectListFilter, string>>;
   GetResponse: {
     list: ProjectListItem[];
+    total: number;
   };
 }
 

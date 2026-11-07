@@ -71,21 +71,11 @@ registerApi<ProjectListApi>("/api/projects").get(
 
     // load the projects for an admin
     if (user.hasPermission(roles.struxt.admin)) {
-      const rows = await getProjectsAdmin(filter);
-
-      const response = {
-        list: rows,
-      };
-
+      const response = await getProjectsAdmin(filter);
       return response;
     }
 
-    const rows = await getProjectsForUser(user.id, filter);
-
-    const response = {
-      list: rows,
-    };
-
+    const response = await getProjectsForUser(user.id, filter);
     return response;
   },
 );

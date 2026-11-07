@@ -60,17 +60,23 @@ export async function getProjectsForUser(
   const projectIds = await getUserProjectIds(userId);
 
   const collection = await getCollection<ProjectModel>("projects");
-  const cursor = collection.find(
-    applyFilter(filter, { projectId: { $in: projectIds } }),
-    {
-      projection: { projectId: 1, name: 1, description: 1 },
-      sort: {
-        name: 1,
-      },
+
+  const query = applyFilter(filter, { projectId: { $in: projectIds } });
+
+  const cursor = collection.find(query, {
+    projection: { projectId: 1, name: 1, description: 1 },
+    sort: {
+      name: 1,
     },
-  );
+    limit: filter.count,
+    skip: (filter.page - 1) * filter.count,
+  });
   const list: ProjectListItem[] = await toArray(cursor);
-  return list;
+
+  // count the total results
+  const total = await collection.countDocuments(query);
+
+  return { list, total };
 }
 
 /**
@@ -82,13 +88,19 @@ export async function getProjectsForUser(
 export async function getProjectsAdmin(filter: ProjectListFilter) {
   const collection = await getCollection<ProjectModel>("projects");
 
-  const cursor = collection.find(applyFilter(filter, {}), {
+  const query = applyFilter(filter, {});
+
+  const cursor = collection.find(query, {
     projection: { projectId: 1, name: 1, description: 1 },
     sort: {
       name: 1,
     },
+    limit: filter.count,
+    skip: (filter.page - 1) * filter.count,
   });
 
   const list: ProjectListItem[] = await toArray(cursor);
-  return list;
+  const total = await collection.countDocuments(query);
+
+  return { list, total };
 }
