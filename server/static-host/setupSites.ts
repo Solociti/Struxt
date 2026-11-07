@@ -4,8 +4,7 @@ import {
   validEnvironments,
 } from "common/models/projects/Environment";
 import { zSimpleIdValidation } from "common/models/zValidation";
-import { Response, Router } from "express";
-import { existsSync } from "node:fs";
+import { Request, Response, Router } from "express";
 import { join } from "node:path";
 import { getPublishDir } from "server/utils/uploadDir";
 import z from "zod";
@@ -50,9 +49,9 @@ sitesRouter.use(
       publishId,
     );
 
-    const handled = await serveStaticFile(siteDir, subPath, req, res);
-    if (!handled) {
-      if (!sendErrorPage(res, 404, siteDir)) {
+    const code = await serveStaticFile(siteDir, subPath, req, res);
+    if (typeof code === "number") {
+      if (!sendErrorPage(res, req, code, siteDir)) {
         next();
       }
     }
@@ -67,10 +66,23 @@ sitesRouter.use(
  * @param siteDir
  * @returns
  */
-function sendErrorPage(res: Response, status: HTTPStatus, siteDir: string) {
+async function sendErrorPage(
+  res: Response,
+  req: Request,
+  status: HTTPStatus,
+  siteDir: string,
+) {
+  res.status(status);
+
   // check if the site has a custom error page
-  if (existsSync(join(siteDir, `${status}.html`))) {
-    res.status(status).sendFile(join(siteDir, `${status}.html`));
+  const notFoundStatus = await serveStaticFile(
+    siteDir,
+    `/${status}.html`,
+    req,
+    res,
+  );
+
+  if (typeof notFoundStatus === "boolean" && notFoundStatus) {
     return true;
   }
 

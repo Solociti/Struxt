@@ -1,3 +1,4 @@
+import { HTTPStatus } from "common/custom-error/custom-error";
 import { Request, Response } from "express";
 import { Stats } from "node:fs";
 import { realpath, stat } from "node:fs/promises";
@@ -20,31 +21,31 @@ export async function serveStaticFile(
   requestPath: string,
   req: Request,
   res: Response,
-): Promise<boolean> {
+): Promise<HTTPStatus | boolean> {
   const absolutePath = normalize(join(siteDir, requestPath));
 
   if (!isPathInside(absolutePath, siteDir)) {
-    return false;
+    return 404;
   }
 
   const resolved = await resolveFilePath(absolutePath);
   if (resolved === null) {
-    return false;
+    return 404;
   }
 
   // The checks above are lexical and can't see symlinks. Re-check containment
   // on the real path of the exact file we're about to serve.
   const realPath = await safeRealpath(resolved.path);
   if (realPath === null) {
-    return false;
+    return 404;
   }
 
   if (!isPathInside(realPath, siteDir)) {
-    return false;
+    return 404;
   }
 
   if (hasDotSegment(realPath) || hasDotSegment(requestPath)) {
-    return false;
+    return 404;
   }
 
   if (resolved.isIndex) {
