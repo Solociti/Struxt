@@ -51,7 +51,13 @@ sitesRouter.use(
 
     const code = await serveStaticFile(siteDir, subPath, req, res);
     if (typeof code === "number") {
-      if (!sendErrorPage(res, req, code, siteDir)) {
+      const errResult = await sendErrorPage(
+        res,
+        req,
+        typeof code === "number" ? code : 500,
+        siteDir,
+      );
+      if (!errResult) {
         next();
       }
     }

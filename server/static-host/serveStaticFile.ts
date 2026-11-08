@@ -21,7 +21,7 @@ export async function serveStaticFile(
   requestPath: string,
   req: Request,
   res: Response,
-): Promise<HTTPStatus | boolean> {
+): Promise<HTTPStatus | true> {
   const absolutePath = normalize(join(siteDir, requestPath));
 
   if (!isPathInside(absolutePath, siteDir)) {
@@ -67,7 +67,7 @@ export async function serveStaticFile(
       { root: siteDir, dotfiles: "ignore" },
       (err) => {
         if (err) {
-          resolvePromise(false);
+          resolvePromise(500);
         } else {
           resolvePromise(true);
         }
