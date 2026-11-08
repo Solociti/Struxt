@@ -90,6 +90,7 @@
     "cheerio": "^1.2.0",
     "connect-mongodb-session": "^5.0.0",
     "dotenv": "^16.6.1",
+    "ejs": "^7.0.2",
     "express": "^5.2.1",
     "express-prom-bundle": "^8.0.0",
     "express-session": "^1.19.0",

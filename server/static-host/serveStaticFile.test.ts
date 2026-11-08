@@ -73,8 +73,7 @@ async function get(
 }
 
 function expectNotFound({ handled, res }: Awaited<ReturnType<typeof get>>) {
-  expect(handled).toBe(true);
-  expect(res._status).toBe(404);
+  expect(handled).toBe(404);
   expect(res._redirectUrl).toBeUndefined();
   expect(res._sendFilePath).toBeUndefined();
 }

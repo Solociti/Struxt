@@ -1,9 +1,10 @@
+import { HTTPStatus } from "common/custom-error/custom-error";
 import {
   EnvironmentTypes,
   validEnvironments,
 } from "common/models/projects/Environment";
 import { zSimpleIdValidation } from "common/models/zValidation";
-import { Router } from "express";
+import { Request, Response, Router } from "express";
 import { join } from "node:path";
 import { getPublishDir } from "server/utils/uploadDir";
 import z from "zod";
@@ -48,9 +49,57 @@ sitesRouter.use(
       publishId,
     );
 
-    const handled = await serveStaticFile(siteDir, subPath, req, res);
-    if (!handled) {
-      next();
+    const code = await serveStaticFile(siteDir, subPath, req, res);
+    if (typeof code === "number") {
+      const errResult = await sendErrorPage(
+        res,
+        req,
+        typeof code === "number" ? code : 500,
+        siteDir,
+      );
+      if (!errResult) {
+        next();
+      }
     }
   },
 );
+
+/**
+ * Send an error page if it exists for the status code
+ *
+ * @param res
+ * @param status
+ * @param siteDir
+ * @returns
+ */
+async function sendErrorPage(
+  res: Response,
+  req: Request,
+  status: HTTPStatus,
+  siteDir: string,
+) {
+  res.status(status);
+
+  // check if the site has a custom error page
+  const notFoundStatus = await serveStaticFile(
+    siteDir,
+    `/${status}.html`,
+    req,
+    res,
+  );
+
+  if (typeof notFoundStatus === "boolean" && notFoundStatus) {
+    return true;
+  }
+
+  if (status === 404) {
+    res.status(404).render("error", {
+      statusCode: 404,
+      title: "Page Not Found",
+      message: "The page you are looking for does not exist.",
+    });
+    return true;
+  }
+
+  return false;
+}
