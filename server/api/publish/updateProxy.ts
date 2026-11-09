@@ -40,7 +40,7 @@ import { updateProxyHostConf } from "../../npm/data/updateProxyHostConf";
  */
 export async function updateProjectProxy(
   project: ProjectModel,
-  publish: PublishModel
+  publish: PublishModel,
 ) {
   console.log("Updating project proxy settings");
 
@@ -84,7 +84,7 @@ export async function updateProjectProxy(
     !process.env.LETSENCRYPT_EMAIL
   ) {
     console.log(
-      "Skipping host certificate update because the letsencrypt license is not accepted."
+      "Skipping host certificate update because the letsencrypt license is not accepted.",
     );
     letsEncryptEnabled = false;
   }
@@ -98,8 +98,6 @@ export async function updateProjectProxy(
       nice_name: `${project.name} - ${env}`,
       provider: "letsencrypt",
       meta: {
-        letsencrypt_agree: true,
-        letsencrypt_email: process.env.LETSENCRYPT_EMAIL || "",
         dns_challenge: false,
         propagation_seconds: 0,
       },
@@ -127,7 +125,7 @@ export async function updateProjectProxy(
     envSettings.proxy.redirectId = await configureRedirectionHosts(
       envSettings,
       redirectDomains,
-      primaryDomain
+      primaryDomain,
     );
   }
 }
@@ -142,7 +140,7 @@ export async function updateProjectProxy(
 async function configureRedirectionHosts(
   envSettings: ProjectEnvSettings,
   redirectDomains: ProjectDomain[],
-  primaryDomain: ProjectDomain
+  primaryDomain: ProjectDomain,
 ): Promise<number> {
   const redirectId = envSettings.proxy.redirectId;
 
@@ -179,7 +177,7 @@ async function configureRedirectionHosts(
       redirectHost,
       redirectDomains.map((d) => d.domain),
       envSettings,
-      primaryDomain.domain
+      primaryDomain.domain,
     );
 
     await updateRedirectionHost(redirectId, redirectHost);
@@ -193,7 +191,7 @@ async function configureRedirectionHosts(
       redirectHost,
       redirectDomains.map((d) => d.domain),
       envSettings,
-      primaryDomain.domain
+      primaryDomain.domain,
     );
 
     // create a new redirect
@@ -216,7 +214,7 @@ async function configureProxyHost(
   project: ProjectModel,
   projectEnv: EnvironmentTypes,
   publish: PublishModel,
-  domains: ProjectDomain[]
+  domains: ProjectDomain[],
 ) {
   const envSettings = project[projectEnv];
   const hostId = envSettings.proxy.hostId;
