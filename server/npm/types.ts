@@ -113,9 +113,9 @@ export interface CertificateUpdate {
     dns_provider?: string;
     dns_provider_credentials?: string;
 
-    letsencrypt_agree: boolean;
+    // letsencrypt_agree: boolean;
     letsencrypt_certificate?: {};
-    letsencrypt_email: string;
+    // letsencrypt_email: string;
 
     propagation_seconds: number;
   };
