@@ -14,6 +14,7 @@ import { deleteAssets, uploadAssets } from "../projects/assets";
 import { getProject, saveProject } from "../projects/projects";
 import { useServiceWorker } from "../sw/useServiceWorker";
 import { canvasTweaksPlugin } from "./components/canvasTweaks";
+import { globalStyles } from "./defaultValues";
 import { customLayout, setupStruxtPlugin } from "./plugin";
 
 // @ts-ignore
@@ -293,6 +294,7 @@ function CustomEditor({
             type: "web",
             id: projectId,
           },
+          globalStyles,
           theme: theme,
           plugins: [
             parserPostCSS,
