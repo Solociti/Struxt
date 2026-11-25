@@ -59,30 +59,34 @@ export const globalStyles: GlobalStylesConfig = {
     },
 
     // Headings
-    {
-      id: "heading-font",
-      property: "font-family",
-      field: "selectFont",
-      selector: "h1, h2, h3, h4, h5, h6",
-      label: "Font",
-      category: headings,
-    },
-    {
-      id: "heading-color",
-      property: "color",
-      field: "color",
-      selector: "h1, h2, h3, h4, h5, h6",
-      label: "Color",
-      category: headings,
-    },
-    ...["h1", "h2", "h3", "h4", "h5"].map((tag) => ({
-      id: `${tag}-size`,
-      property: "font-size",
-      field: sizeField(),
-      selector: tag,
-      label: `${tag.toUpperCase()} size`,
-      category: headings,
-    })),
+    ...(["h1", "h2", "h3", "h4", "h5", "h6"] as const).flatMap(
+      (tag): GlobalStyleProps[] => [
+        {
+          id: `${tag}-font`,
+          property: "font-family",
+          field: "selectFont",
+          selector: tag,
+          label: `${tag.toUpperCase()} font`,
+          category: headings,
+        },
+        {
+          id: `${tag}-color`,
+          property: "color",
+          field: "color",
+          selector: tag,
+          label: `${tag.toUpperCase()} color`,
+          category: headings,
+        },
+        {
+          id: `${tag}-size`,
+          property: "font-size",
+          field: sizeField(),
+          selector: tag,
+          label: `${tag.toUpperCase()} size`,
+          category: headings,
+        },
+      ],
+    ),
 
     // Links
     {
