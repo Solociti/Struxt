@@ -101,7 +101,7 @@ function addCustomStyles(editor: Editor) {
  */
 export function customLayout(
   projectId: string,
-  hasPermission: (permission: PermType) => boolean
+  hasPermission: (permission: PermType) => boolean,
 ): LayoutConfig {
   /**
    * Callback for when the left tab changes.
@@ -187,7 +187,7 @@ export function customLayout(
                               <ThemeProvider>
                                 <AiChat editor={editor} projectId={projectId} />
                               </ThemeProvider>
-                            </ErrorBoundary>
+                            </ErrorBoundary>,
                           );
                         } else {
                           aiChatRoot.render(
@@ -197,7 +197,7 @@ export function customLayout(
                                 Please upgrade your plan to use the AI Chat
                                 feature
                               </p>
-                            </div>
+                            </div>,
                           );
                         }
                       }
@@ -290,13 +290,29 @@ export function customLayout(
                   id: "global-styles",
                   // it seems that react components work just fine here. The type just doesn't match
                   label: (
-                    <MaterialIcon title="Global Styles">css</MaterialIcon>
+                    <MaterialIcon title="Global Styles">style</MaterialIcon>
                   ) as any,
                   children: {
-                    type: "panelGlobalStyles",
-                    style: {
-                      padding: "0.5rem",
-                    },
+                    type: "column",
+                    style: { height: "100%" },
+                    children: [
+                      {
+                        type: "row",
+                        style: { padding: 5 },
+                        children: {
+                          type: "text",
+                          content: "Global Styles",
+                          as: "h5",
+                          style: { margin: "0 5px" },
+                        },
+                      },
+                      {
+                        type: "panelGlobalStyles",
+                        style: {
+                          padding: "0.5rem",
+                        },
+                      },
+                    ],
                   },
                 },
               ],
@@ -367,7 +383,7 @@ function publishCallback(
   }: {
     projectId: string;
     env: "staging" | "production";
-  }
+  },
 ) {
   return async () => {
     // close the publish layout
